@@ -51,11 +51,6 @@ const CustomAutoCompleteSelect: React.FC<Props> = ({
 				<Typography variant="body2" noWrap sx={{ flex: 1 }}>
 					{option.code}
 				</Typography>
-				{option.archived && (
-					<Typography variant="caption" sx={{ color: '#ED6C02', fontWeight: 600, ml: 1, whiteSpace: 'nowrap' }}>
-						(Archivé)
-					</Typography>
-				)}
 			</Box>
 		);
 	};
@@ -68,7 +63,7 @@ const CustomAutoCompleteSelect: React.FC<Props> = ({
 				fullWidth={fullWidth}
 				noOptionsText={noOptionsText}
 				options={items}
-				getOptionLabel={(option) => option.archived ? `${option.code} (Archivé)` : option.code}
+				getOptionLabel={(option) => option.code}
 				getOptionKey={(option) => option.value}
 				filterOptions={(options, state) =>
 					options.filter((opt) => opt.code.toLowerCase().includes(state.inputValue.toLowerCase()))

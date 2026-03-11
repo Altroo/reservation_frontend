@@ -22,7 +22,6 @@ const makeUser = (id: number) =>
 		'2023-01-02',
 		true,
 		false,
-		true,
 		false,
 		false,
 	);

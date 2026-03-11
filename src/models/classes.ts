@@ -15,9 +15,39 @@ export class UserClass {
 		public last_login: string | null,
 		// Per-user permission flags
 		public can_view: boolean,
-		public can_print: boolean,
 		public can_create: boolean,
 		public can_edit: boolean,
 		public can_delete: boolean,
+	) {}
+}
+
+export class ApartmentClass {
+	constructor(
+		public readonly id: number,
+		public code: string,
+		public name: string,
+		public monthly_cost: string,
+		public is_active: boolean,
+	) {}
+}
+
+export class ReservationClass {
+	constructor(
+		public readonly id: number,
+		public apartment: number,
+		public apartment_name: string,
+		public apartment_code: string,
+		public guest_name: string,
+		public check_in: string,
+		public check_out: string,
+		public readonly nights: number,
+		public amount: string,
+		public payment_source: string,
+		public payment_source_display: string,
+		public notes: string | null,
+		public created_by_user: number | null,
+		public created_by_user_name: string,
+		public date_created: string,
+		public date_updated: string,
 	) {}
 }

@@ -16,11 +16,10 @@ describe('UserClass', () => {
 			'2024-01-01',
 			'2024-06-01',
 			'2024-05-31',
-			true,
-			false,
-			true,
-			false,
-			false,
+			true,   // can_view
+			true,   // can_create
+			false,  // can_edit
+			false,  // can_delete
 		];
 		if (overrides) {
 			overrides.forEach((value, index) => {
@@ -52,7 +51,6 @@ describe('UserClass', () => {
 	it('stores permission flags correctly', () => {
 		const user = makeUser();
 		expect(user.can_view).toBe(true);
-		expect(user.can_print).toBe(false);
 		expect(user.can_create).toBe(true);
 		expect(user.can_edit).toBe(false);
 		expect(user.can_delete).toBe(false);
@@ -83,11 +81,9 @@ describe('UserClass', () => {
 			true,
 			true,
 			true,
-			true,
 		);
 		expect(user.is_staff).toBe(true);
 		expect(user.can_view).toBe(true);
-		expect(user.can_print).toBe(true);
 		expect(user.can_create).toBe(true);
 		expect(user.can_edit).toBe(true);
 		expect(user.can_delete).toBe(true);

@@ -1,6 +1,6 @@
 // Site root
 export const SITE_ROOT = `${process.env.NEXT_PUBLIC_DOMAIN_URL_PREFIX}/`;
-export const BACKEND_SITE_ADMIN = `${process.env.NEXT_PUBLIC_API_URL}/gestion-interne-gf62`;
+export const BACKEND_SITE_ADMIN = `${process.env.NEXT_PUBLIC_API_URL}/gestion-interne-bp37`;
 // Auth
 export const AUTH_LOGIN = `${SITE_ROOT}/login`;
 // Auth forgot password
@@ -18,3 +18,12 @@ export const USERS_LIST = `${SITE_ROOT}dashboard/users`;
 export const USERS_ADD = `${SITE_ROOT}dashboard/users/new`;
 export const USERS_VIEW = (id: number) => `${SITE_ROOT}dashboard/users/${id}`;
 export const USERS_EDIT = (id: number) => `${SITE_ROOT}dashboard/users/${id}/edit`;
+// Reservations
+export const RESERVATIONS_LIST = `${SITE_ROOT}dashboard/reservations`;
+export const RESERVATIONS_ADD = `${SITE_ROOT}dashboard/reservations/new`;
+export const RESERVATIONS_VIEW = (id: number) => `${SITE_ROOT}dashboard/reservations/${id}`;
+export const RESERVATIONS_EDIT = (id: number) => `${SITE_ROOT}dashboard/reservations/${id}/edit`;
+export const PLANNING = `${SITE_ROOT}dashboard/planning`;
+export const OCCUPANCY = `${SITE_ROOT}dashboard/occupancy`;
+export const BALANCE = `${SITE_ROOT}dashboard/balance`;
+export const GAINS = `${SITE_ROOT}dashboard/gains`;

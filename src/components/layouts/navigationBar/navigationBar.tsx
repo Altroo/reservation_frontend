@@ -32,6 +32,9 @@ import {
 	People as PeopleIcon,
 	Settings as SettingsIcon,
 	Domain as DomainIcon,
+	Hotel as HotelIcon,
+	BarChart as BarChartIcon,
+	Dashboard as DashboardIcon,
 } from '@mui/icons-material';
 import { useAppSelector } from '@/utils/hooks';
 import { getProfilState } from '@/store/selectors';
@@ -44,6 +47,13 @@ import {
 	SITE_ROOT,
 	USERS_ADD,
 	USERS_LIST,
+	DASHBOARD,
+	RESERVATIONS_LIST,
+	RESERVATIONS_ADD,
+	PLANNING,
+	BALANCE,
+	GAINS,
+	OCCUPANCY,
 } from '@/utils/routes';
 import { signOut, useSession } from 'next-auth/react';
 import { usePathname } from 'next/navigation';
@@ -54,6 +64,29 @@ import { Desktop, TabletAndMobile } from '@/utils/clientHelpers';
 
 const getNavigationMenu = (isStaff: boolean) => {
 	return {
+		tableau_de_bord: {
+			title: 'Tableau de bord',
+			icon: <DashboardIcon />,
+			items: [{ title: 'Tableau de bord', label: 'Consulter le tableau de bord', path: DASHBOARD }],
+		},
+		reservations: {
+			title: 'Réservations',
+			icon: <HotelIcon />,
+			items: [
+				{ title: 'Liste des réservations', label: 'Liste des réservations', path: RESERVATIONS_LIST },
+				{ title: 'Nouvelle réservation', label: 'Nouvelle réservation', path: RESERVATIONS_ADD },
+			],
+		},
+		analytiques: {
+			title: 'Analytiques',
+			icon: <BarChartIcon />,
+			items: [
+				{ title: 'Planning mensuel', label: 'Planning mensuel', path: PLANNING },
+				{ title: "Taux d'occupation", label: "Taux d'occupation", path: OCCUPANCY },
+				{ title: 'Balance & Airbnb', label: 'Balance & Airbnb', path: BALANCE },
+				{ title: 'Gains & Revenus', label: 'Gains & Revenus', path: GAINS },
+			],
+		},
 		...(isStaff && {
 			utilisateurs: {
 				title: 'Utilisateurs',

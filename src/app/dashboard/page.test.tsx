@@ -1,4 +1,5 @@
 import { jest } from '@jest/globals';
+import { renderToStaticMarkup } from 'react-dom/server';
 
 type SessionUser = { pk: number; email: string };
 type Session = { user: SessionUser } | null;
@@ -17,12 +18,18 @@ jest.mock('next/navigation', () => ({
 }));
 
 const AUTH_LOGIN = '/login';
-const DASHBOARD_EDIT_PROFILE = '/dashboard/settings/edit-profile';
 jest.mock('@/utils/routes', () => ({
 	__esModule: true,
 	AUTH_LOGIN,
-	DASHBOARD_EDIT_PROFILE,
 }));
+
+const CLIENT_MARKER = 'MARKER:ReservationDashboardClient';
+jest.mock('@/components/pages/reservations/reservation-dashboard', () => {
+	const Mock = (props: Record<string, unknown>) =>
+		`${CLIENT_MARKER}:${JSON.stringify(props)}` as unknown as JSX.Element;
+	Mock.displayName = 'ReservationDashboardClient';
+	return { __esModule: true, default: Mock };
+});
 
 beforeEach(() => {
 	jest.resetModules();
@@ -48,7 +55,7 @@ describe('DashboardPage server component', () => {
 		expect(mockRedirect).toHaveBeenCalledWith(AUTH_LOGIN);
 	});
 
-	it('redirects to DASHBOARD_EDIT_PROFILE when session exists', async () => {
+	it('renders ReservationDashboardClient when session exists', async () => {
 		const sessionValue: Session = { user: { pk: 1, email: 'user@site.com' } };
 		mockAuth.mockResolvedValueOnce(sessionValue);
 
@@ -59,7 +66,8 @@ describe('DashboardPage server component', () => {
 			Page = mod.default as () => Promise<unknown>;
 		});
 
-		await Page!();
-		expect(mockRedirect).toHaveBeenCalledWith(DASHBOARD_EDIT_PROFILE);
+		const jsx = await Page!();
+		const html = renderToStaticMarkup(jsx as React.ReactElement);
+		expect(html).toContain(CLIENT_MARKER);
 	});
 });

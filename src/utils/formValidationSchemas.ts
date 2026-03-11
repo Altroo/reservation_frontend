@@ -88,7 +88,6 @@ export const userSchema = z.object({
 	is_staff: z.boolean(),
 	// OPTIONAL FIELDS
 	can_view: z.boolean(),
-	can_print: z.boolean(),
 	can_create: z.boolean(),
 	can_edit: z.boolean(),
 	can_delete: z.boolean(),
@@ -104,6 +103,32 @@ export const profilSchema = z.object({
 	avatar: base64ImageField,
 	avatar_cropped: base64ImageField,
 });
+
+export const reservationSchema = z.object({
+	apartment: z.preprocess(
+		(val) => (val === undefined || val === '' || val === null ? undefined : Number(val)),
+		z.number({ error: 'Appartement requis' }).positive({ error: 'Appartement requis' }),
+	),
+	guest_name: requiredTextField(2, 200),
+	check_in: requiredTextField(8, 10),
+	check_out: requiredTextField(8, 10),
+	amount: z.preprocess(
+		(val) => (val === undefined || val === null ? '' : String(val)),
+		z.string().nonempty({ error: INPUT_REQUIRED }),
+	),
+	payment_source: requiredChoiceTextField(),
+	notes: optionalTextField(1, 1000),
+	globalError: optionalTextField(1, 500),
+}).refine(
+	(data) => {
+		if (!data.check_in || !data.check_out) return true;
+		return data.check_out > data.check_in;
+	},
+	{
+		message: "La date de départ doit être après la date d'arrivée.",
+		path: ['check_out'],
+	},
+);
 
 export const changePasswordSchema = z
 	.object({

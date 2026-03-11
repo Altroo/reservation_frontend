@@ -61,7 +61,6 @@ interface UserFormValues {
 	is_active: boolean;
 	is_staff: boolean;
 	can_view: boolean;
-	can_print: boolean;
 	can_create: boolean;
 	can_edit: boolean;
 	can_delete: boolean;
@@ -110,7 +109,6 @@ const FormikContent: React.FC<FormikContentProps> = (props: FormikContentProps) 
 			is_active: rawData?.is_active ?? true,
 			is_staff: rawData?.is_staff ?? false,
 			can_view: rawData?.can_view ?? false,
-			can_print: rawData?.can_print ?? false,
 			can_create: rawData?.can_create ?? false,
 			can_edit: rawData?.can_edit ?? false,
 			can_delete: rawData?.can_delete ?? false,
@@ -164,7 +162,6 @@ const FormikContent: React.FC<FormikContentProps> = (props: FormikContentProps) 
 			avatar: 'Photo de profil',
 			avatar_cropped: 'Photo recadrée',
 			can_view: 'Peut voir',
-			can_print: 'Peut imprimer',
 			can_create: 'Peut créer',
 			can_edit: 'Peut modifier',
 			can_delete: 'Peut supprimer',
@@ -390,10 +387,7 @@ const FormikContent: React.FC<FormikContentProps> = (props: FormikContentProps) 
 										label="Peut voir"
 									/>
 									<FormControlLabel
-										control={<Switch checked={formik.values.can_print} onChange={formik.handleChange} name="can_print" />}
-										label="Peut imprimer"
-									/>
-									<FormControlLabel
+
 										control={<Switch checked={formik.values.can_create} onChange={formik.handleChange} name="can_create" />}
 										label="Peut créer"
 									/>

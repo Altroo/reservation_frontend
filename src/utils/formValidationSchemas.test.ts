@@ -112,7 +112,6 @@ describe('Zod Schema Validation', () => {
 			is_active: true,
 			is_staff: false,
 			can_view: true,
-			can_print: true,
 			can_create: false,
 			can_edit: false,
 			can_delete: false,

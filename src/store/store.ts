@@ -5,6 +5,7 @@ import { rootSaga } from '@/store/sagas';
 import _initReducer from '@/store/slices/_initSlice';
 import accountReducer from '@/store/slices/accountSlice';
 import { accountApi, profilApi, usersApi } from '@/store/services/account';
+import { reservationApi } from '@/store/services/reservation';
 
 const rootReducer = combineReducers({
 	_init: _initReducer,
@@ -12,6 +13,7 @@ const rootReducer = combineReducers({
 	[accountApi.reducerPath]: accountApi.reducer,
 	[profilApi.reducerPath]: profilApi.reducer,
 	[usersApi.reducerPath]: usersApi.reducer,
+	[reservationApi.reducerPath]: reservationApi.reducer,
 });
 
 export interface SagaStore extends Store {
@@ -39,6 +41,7 @@ export const makeStore = (): SagaStore => {
 					accountApi.middleware,
 					profilApi.middleware,
 					usersApi.middleware,
+					reservationApi.middleware,
 				),
 		devTools: process.env.NODE_ENV !== 'production',
 	}) as SagaStore;

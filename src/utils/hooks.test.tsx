@@ -58,7 +58,6 @@ describe('usePermission', () => {
 		});
 		expect(result.current.is_staff).toBe(true);
 		expect(result.current.can_view).toBe(true);
-		expect(result.current.can_print).toBe(true);
 		expect(result.current.can_create).toBe(true);
 		expect(result.current.can_edit).toBe(true);
 		expect(result.current.can_delete).toBe(true);
@@ -69,7 +68,6 @@ describe('usePermission', () => {
 			wrapper: makeWrapper({
 				is_staff: false,
 				can_view: true,
-				can_print: false,
 				can_create: true,
 				can_edit: false,
 				can_delete: false,
@@ -77,7 +75,6 @@ describe('usePermission', () => {
 		});
 		expect(result.current.is_staff).toBe(false);
 		expect(result.current.can_view).toBe(true);
-		expect(result.current.can_print).toBe(false);
 		expect(result.current.can_create).toBe(true);
 		expect(result.current.can_edit).toBe(false);
 		expect(result.current.can_delete).toBe(false);

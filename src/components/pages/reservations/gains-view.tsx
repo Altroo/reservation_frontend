@@ -260,7 +260,7 @@ const GainsClient: React.FC<SessionProps> = ({ session }) => {
 									/>
 									<CardContent>
 										<Box height={360}>
-											{aptCodes.length > 0 ? (
+											{aptCodes.some((c) => apartments[c].year_total > 0) ? (
 												<Bar
 													data={stackedChartData}
 													options={{

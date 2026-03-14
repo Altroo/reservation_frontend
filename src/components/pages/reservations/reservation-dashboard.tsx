@@ -355,7 +355,11 @@ const ReservationDashboardClient: React.FC<SessionProps> = ({ session }) => {
 									infoTooltip="Total des montants encaissés par mois"
 									height={280}
 								>
-									<Bar data={monthlyChartData} options={{ ...CHART_OPTS, plugins: { legend: { display: false } } }} />
+									{monthlyRevenue.some((m) => m.total > 0) ? (
+										<Bar data={monthlyChartData} options={{ ...CHART_OPTS, plugins: { legend: { display: false } } }} />
+									) : (
+										<EmptyChart />
+									)}
 								</ChartCard>
 
 								{/* ── Daily Revenue Line ─────────────────── */}
@@ -423,7 +427,7 @@ const ReservationDashboardClient: React.FC<SessionProps> = ({ session }) => {
 									infoTooltip="Nombre total de nuits occupées par appartement, basé sur les dates d'arrivée et de départ"
 									height={260}
 								>
-									{Object.keys(occupancy).length > 0 ? (
+									{Object.values(occupancy).some((a) => a.occupied_days > 0) ? (
 										<Bar
 											data={occupancyChartData}
 											options={{ ...CHART_OPTS, plugins: { legend: { display: false } } }}

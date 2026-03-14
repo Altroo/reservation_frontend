@@ -271,7 +271,7 @@ const OccupancyClient: React.FC<SessionProps> = ({ session }) => {
 									/>
 									<CardContent>
 										<Box height={300}>
-											{Object.keys(occupancy).length > 0 ? (
+										{Object.values(occupancy).some((a) => a.occupied_days > 0) ? (
 												<Bar
 													data={chartData}
 													options={{

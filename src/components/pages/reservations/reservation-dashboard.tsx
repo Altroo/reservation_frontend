@@ -229,7 +229,7 @@ const ReservationDashboardClient: React.FC<SessionProps> = ({ session }) => {
 
 	// Revenue by apartment bar
 	const aptChartData = {
-		labels: byApartment.map((a) => a.code),
+		labels: byApartment.map((a) => a.nom),
 		datasets: [
 			{
 				label: 'Revenus (MAD)',

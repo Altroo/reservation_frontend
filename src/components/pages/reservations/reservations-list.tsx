@@ -142,7 +142,7 @@ const ReservationsListClient: React.FC<SessionProps> = ({ session }) => {
 				key: 'apartment',
 				label: 'Appartement',
 				paramName: 'apartment',
-				options: (apartments ?? []).map((a) => ({ id: String(a.id), nom: `${a.code} — ${a.name}` })),
+				options: (apartments ?? []).map((a) => ({ id: String(a.id), nom: a.nom })),
 			},
 			{
 				key: 'payment_source',
@@ -156,15 +156,13 @@ const ReservationsListClient: React.FC<SessionProps> = ({ session }) => {
 
 	const columns: GridColDef[] = [
 		{
-			field: 'apartment_code',
+			field: 'apartment_nom',
 			headerName: 'Appart.',
 			flex: 0.7,
 			minWidth: 90,
 			filterable: false,
 			renderCell: (params: GridRenderCellParams<ReservationClass>) => (
-				<DarkTooltip title={params.row.apartment_name ?? params.value ?? '—'}>
-					<Chip label={params.value ?? '—'} size="small" variant="outlined" />
-				</DarkTooltip>
+				<Chip label={params.value ?? '—'} size="small" variant="outlined" />
 			),
 		},
 		{

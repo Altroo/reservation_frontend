@@ -104,7 +104,7 @@ const BalanceClient: React.FC<SessionProps> = ({ session }) => {
 	const yearOptions = yearsData?.years ?? [currentYear];
 
 	const apartments = data?.apartments ?? {};
-	const aptCodes = Object.keys(apartments);
+	const aptNoms = Object.keys(apartments);
 	const totalReturned = data?.total_returned ?? 0;
 	const totalNotReturned = data?.total_not_returned ?? 0;
 	const totalBalance = totalReturned + totalNotReturned;
@@ -112,8 +112,8 @@ const BalanceClient: React.FC<SessionProps> = ({ session }) => {
 
 	const totalByMonth: number[] = Array.from({ length: 12 }, (_, i) => {
 		const month = i + 1;
-		return aptCodes.reduce((sum, code) => {
-			return sum + (apartments[code].monthly[month]?.total ?? 0);
+		return aptNoms.reduce((sum, nom) => {
+			return sum + (apartments[nom].monthly[month]?.total ?? 0);
 		}, 0);
 	});
 
@@ -175,7 +175,7 @@ const BalanceClient: React.FC<SessionProps> = ({ session }) => {
 										color="#6a1b9a"
 										icon={<HomeWorkIcon />}
 										label="Appartements"
-										value={`${aptCodes.length}`}
+										value={`${aptNoms.length}`}
 										tooltip="Nombre d'appartements actifs"
 									/>
 								</Box>
@@ -220,7 +220,7 @@ const BalanceClient: React.FC<SessionProps> = ({ session }) => {
 																key={r.id}
 																sx={{ bgcolor: idx % 2 === 0 ? 'background.default' : 'action.hover' }}
 															>
-																<TableCell sx={{ fontWeight: 600 }}>{r.apartment_code}</TableCell>
+																<TableCell sx={{ fontWeight: 600 }}>{r.apartment_nom}</TableCell>
 																<TableCell>{r.guest_name}</TableCell>
 																<TableCell>{r.check_in}</TableCell>
 																<TableCell>{r.check_out}</TableCell>
@@ -287,16 +287,16 @@ const BalanceClient: React.FC<SessionProps> = ({ session }) => {
 													</TableRow>
 												</TableHead>
 												<TableBody>
-													{aptCodes.map((code, rowIdx) => {
-														const apt = apartments[code];
+													{aptNoms.map((nom, rowIdx) => {
+														const apt = apartments[nom];
 														return (
 															<TableRow
-																key={code}
+																key={nom}
 																sx={{
 																	bgcolor: rowIdx % 2 === 0 ? 'background.default' : 'action.hover',
 																}}
 															>
-																<TableCell sx={{ fontWeight: 600 }}>{code}</TableCell>
+																<TableCell sx={{ fontWeight: 600 }}>{nom}</TableCell>
 																{Array.from({ length: 12 }, (_, i) => {
 																	const monthData = apt.monthly[i + 1];
 																	const total = monthData?.total ?? 0;
@@ -349,11 +349,11 @@ const BalanceClient: React.FC<SessionProps> = ({ session }) => {
 																borderColor: 'divider',
 															}}
 														>
-															{fmt(aptCodes.reduce((s, c) => s + apartments[c].year_total, 0))}
-														</TableCell>
-													</TableRow>
+													{fmt(aptNoms.reduce((s, c) => s + apartments[c].year_total, 0))}
+												</TableCell>
+											</TableRow>
 
-													{aptCodes.length === 0 && (
+											{aptNoms.length === 0 && (
 														<TableRow>
 															<TableCell colSpan={14} align="center" sx={{ py: 4, color: 'text.secondary' }}>
 																Aucune donnée disponible pour {year}

@@ -24,10 +24,7 @@ export class UserClass {
 export class ApartmentClass {
 	constructor(
 		public readonly id: number,
-		public code: string,
-		public name: string,
-		public monthly_cost: string,
-		public is_active: boolean,
+		public nom: string,
 	) {}
 }
 
@@ -35,8 +32,7 @@ export class ReservationClass {
 	constructor(
 		public readonly id: number,
 		public apartment: number,
-		public apartment_name: string,
-		public apartment_code: string,
+		public apartment_nom: string,
 		public guest_name: string,
 		public check_in: string,
 		public check_out: string,

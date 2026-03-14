@@ -46,18 +46,17 @@ interface CellReservation {
 }
 
 interface ApartmentPlanningRow {
-	code: string;
-	name: string;
+	nom: string;
 	cells: (CellReservation | null)[]; // index 0 = day 1, …, lastDay-1
 }
 
 function buildRows(
-	apartments: Record<string, { id: number; name: string; reservations: ReservationListType[] }>,
+	apartments: Record<string, { id: number; nom: string; reservations: ReservationListType[] }>,
 	year: number,
 	month: number,
 	lastDay: number,
 ): ApartmentPlanningRow[] {
-	return Object.entries(apartments).map(([code, apt]) => {
+	return Object.entries(apartments).map(([nom, apt]) => {
 		const cells: (CellReservation | null)[] = Array(lastDay).fill(null);
 
 		for (const res of apt.reservations) {
@@ -77,7 +76,7 @@ function buildRows(
 			}
 		}
 
-		return { code, name: apt.name, cells };
+		return { nom, cells };
 	});
 }
 
@@ -264,7 +263,7 @@ const PlanningMonthClient: React.FC<SessionProps> = ({ session }) => {
 										{/* Apartment rows */}
 										{rows.map((aptRow, rowIdx) => (
 											<Box
-												key={aptRow.code}
+												key={aptRow.nom}
 												display="flex"
 												sx={{
 													borderBottom: '1px solid',
@@ -287,7 +286,7 @@ const PlanningMonthClient: React.FC<SessionProps> = ({ session }) => {
 													}}
 												>
 													<Typography variant="caption" fontWeight={700} noWrap>
-														{aptRow.code}
+													{aptRow.nom}
 													</Typography>
 												</Box>
 

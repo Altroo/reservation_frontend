@@ -27,7 +27,6 @@ import {
 import {
 	TrendingUp as TrendingUpIcon,
 	EmojiEvents as TrophyIcon,
-	AccountBalanceWallet as WalletIcon,
 	CalendarMonth as CalendarIcon,
 	InfoOutlined as InfoOutlinedIcon,
 } from '@mui/icons-material';
@@ -110,26 +109,25 @@ const GainsClient: React.FC<SessionProps> = ({ session }) => {
 	const yearOptions = yearsData?.years ?? [currentYear];
 
 	const apartments = useMemo(() => data?.apartments ?? {}, [data?.apartments]);
-	const aptCodes = useMemo(() => Object.keys(apartments), [apartments]);
-	const monthlyCost = data?.total_monthly_cost ?? 0;
+	const aptNoms = useMemo(() => Object.keys(apartments), [apartments]);
 
-	const totalYearRevenue = aptCodes.reduce((s, c) => s + apartments[c].year_total, 0);
+	const totalYearRevenue = aptNoms.reduce((s, c) => s + apartments[c].year_total, 0);
 
 	// Derived KPI data
 	const { bestApt, bestMonth } = useMemo(() => {
-		let bestAptCode = '';
+		let bestAptNom = '';
 		let bestAptTotal = 0;
-		for (const code of aptCodes) {
-			if (apartments[code].year_total > bestAptTotal) {
-				bestAptTotal = apartments[code].year_total;
-				bestAptCode = code;
+		for (const nom of aptNoms) {
+			if (apartments[nom].year_total > bestAptTotal) {
+				bestAptTotal = apartments[nom].year_total;
+				bestAptNom = nom;
 			}
 		}
 
 		let bestMonthIdx = 0;
 		let bestMonthTotal = 0;
 		for (let m = 1; m <= 12; m++) {
-			const mTotal = aptCodes.reduce((s, c) => s + (apartments[c].monthly[m]?.total ?? 0), 0);
+			const mTotal = aptNoms.reduce((s, c) => s + (apartments[c].monthly[m]?.total ?? 0), 0);
 			if (mTotal > bestMonthTotal) {
 				bestMonthTotal = mTotal;
 				bestMonthIdx = m - 1;
@@ -137,26 +135,26 @@ const GainsClient: React.FC<SessionProps> = ({ session }) => {
 		}
 
 		return {
-			bestApt: bestAptCode ? { code: bestAptCode, total: bestAptTotal } : null,
+			bestApt: bestAptNom ? { nom: bestAptNom, total: bestAptTotal } : null,
 			bestMonth: bestMonthTotal > 0 ? { name: MONTH_NAMES[bestMonthIdx], total: bestMonthTotal } : null,
 		};
-	}, [apartments, aptCodes]);
+	}, [apartments, aptNoms]);
 
 	// Monthly totals for cards
 	const monthlyData = useMemo(() => {
 		return Array.from({ length: 12 }, (_, i) => {
 			const month = i + 1;
-			const aptBreakdown: { code: string; total: number }[] = [];
+			const aptBreakdown: { nom: string; total: number }[] = [];
 			let monthTotal = 0;
-			for (const code of aptCodes) {
-				const val = apartments[code].monthly[month]?.total ?? 0;
-				if (val > 0) aptBreakdown.push({ code, total: val });
+			for (const nom of aptNoms) {
+				const val = apartments[nom].monthly[month]?.total ?? 0;
+				if (val > 0) aptBreakdown.push({ nom, total: val });
 				monthTotal += val;
 			}
 			aptBreakdown.sort((a, b) => b.total - a.total);
 			return { month, monthTotal, aptBreakdown };
 		});
-	}, [apartments, aptCodes]);
+	}, [apartments, aptNoms]);
 
 	const maxAptGain = useMemo(() => {
 		let max = 0;
@@ -171,16 +169,14 @@ const GainsClient: React.FC<SessionProps> = ({ session }) => {
 	// Stacked bar chart
 	const stackedChartData = {
 		labels: MONTH_LABELS,
-		datasets: aptCodes.map((code, i) => ({
-			label: code,
-			data: Array.from({ length: 12 }, (_, monthIdx) => apartments[code].monthly[monthIdx + 1]?.total ?? 0),
+		datasets: aptNoms.map((nom, i) => ({
+			label: nom,
+			data: Array.from({ length: 12 }, (_, monthIdx) => apartments[nom].monthly[monthIdx + 1]?.total ?? 0),
 			backgroundColor: APARTMENT_COLORS[i % APARTMENT_COLORS.length],
 			borderRadius: 2,
 		})),
 	};
 
-	const annualCost = monthlyCost * 12;
-	const annualSolde = totalYearRevenue - annualCost;
 
 	return (
 		<Stack direction="column" spacing={2} className={Styles.flexRootStack} mt="48px">
@@ -221,22 +217,14 @@ const GainsClient: React.FC<SessionProps> = ({ session }) => {
 										icon={<TrendingUpIcon fontSize="small" />}
 										label="Gain total"
 										value={`${fmt(totalYearRevenue)} MAD`}
-										sub={monthlyCost > 0 ? `Solde net : ${fmt(annualSolde)} MAD` : undefined}
 										color="#1976d2"
 									/>
 									<KpiCard
 										icon={<TrophyIcon fontSize="small" />}
 										label="Meilleur appartement"
-										value={bestApt?.code ?? '—'}
+										value={bestApt?.nom ?? '—'}
 										sub={bestApt ? `${fmt(bestApt.total)} MAD` : undefined}
 										color="#d4af6e"
-									/>
-									<KpiCard
-										icon={<WalletIcon fontSize="small" />}
-										label="Coût mensuel location"
-										value={monthlyCost > 0 ? `${fmt(monthlyCost)} MAD` : '—'}
-										sub={monthlyCost > 0 ? 'MAD / mois' : 'Non configuré'}
-										color="#e57373"
 									/>
 									<KpiCard
 										icon={<CalendarIcon fontSize="small" />}
@@ -260,7 +248,7 @@ const GainsClient: React.FC<SessionProps> = ({ session }) => {
 									/>
 									<CardContent>
 										<Box height={360}>
-											{aptCodes.some((c) => apartments[c].year_total > 0) ? (
+											{aptNoms.some((c) => apartments[c].year_total > 0) ? (
 												<Bar
 													data={stackedChartData}
 													options={{
@@ -293,7 +281,6 @@ const GainsClient: React.FC<SessionProps> = ({ session }) => {
 									{monthlyData
 										.filter((md) => md.monthTotal > 0)
 										.map((md) => {
-											const solde = md.monthTotal - monthlyCost;
 											return (
 												<Card key={md.month} elevation={1}>
 													<CardContent>
@@ -302,25 +289,12 @@ const GainsClient: React.FC<SessionProps> = ({ session }) => {
 														</Typography>
 														<Typography variant="body2" color="text.secondary" component="div" sx={{ pb: 1.5, borderBottom: 1, borderColor: 'divider', mb: 1.5 }}>
 															Total : {fmt(md.monthTotal)} MAD
-															{monthlyCost > 0 && (
-																<>
-																	{' · Location : '}
-																	{fmt(monthlyCost)} MAD
-																	{' · Solde : '}
-																	<Box
-																		component="strong"
-																		sx={{ color: solde >= 0 ? 'success.main' : 'error.main' }}
-																	>
-																		{fmt(solde)} MAD
-																	</Box>
-																</>
-															)}
 														</Typography>
 														{md.aptBreakdown.map((ab, idx) => {
 															const pct = maxAptGain > 0 ? Math.round((ab.total / maxAptGain) * 100) : 0;
 															return (
 																<Stack
-																	key={ab.code}
+																	key={ab.nom}
 																	direction="row"
 																	alignItems="center"
 																	justifyContent="space-between"
@@ -331,7 +305,7 @@ const GainsClient: React.FC<SessionProps> = ({ session }) => {
 																	}}
 																>
 																	<Typography variant="body2" color="text.secondary" sx={{ minWidth: 80 }}>
-																		{ab.code}
+																		{ab.nom}
 																	</Typography>
 																	<Stack direction="row" alignItems="center" spacing={1} sx={{ flex: 1 }}>
 																		<LinearProgress
@@ -344,7 +318,7 @@ const GainsClient: React.FC<SessionProps> = ({ session }) => {
 																				bgcolor: 'grey.200',
 																				'& .MuiLinearProgress-bar': {
 																					borderRadius: 2,
-																					background: `linear-gradient(90deg, ${APARTMENT_COLORS[aptCodes.indexOf(ab.code) % APARTMENT_COLORS.length]}, ${APARTMENT_COLORS[aptCodes.indexOf(ab.code) % APARTMENT_COLORS.length].replace('0.8', '1')})`,
+																					background: `linear-gradient(90deg, ${APARTMENT_COLORS[aptNoms.indexOf(ab.nom) % APARTMENT_COLORS.length]}, ${APARTMENT_COLORS[aptNoms.indexOf(ab.nom) % APARTMENT_COLORS.length].replace('0.8', '1')})`,
 																				},
 																			}}
 																		/>
@@ -362,7 +336,7 @@ const GainsClient: React.FC<SessionProps> = ({ session }) => {
 								</Box>
 
 								{/* ── Per-apartment detail table ────────────── */}
-								{aptCodes.length > 0 && (
+								{aptNoms.length > 0 && (
 									<Card elevation={2}>
 										<CardHeader
 										title="Détail mensuel par appartement"
@@ -390,28 +364,19 @@ const GainsClient: React.FC<SessionProps> = ({ session }) => {
 															>
 																Total
 															</TableCell>
-															{monthlyCost > 0 && (
-																<TableCell
-																	align="right"
-																	sx={{ fontWeight: 700, borderLeft: '2px solid', borderColor: 'divider' }}
-																>
-																	Solde
-																</TableCell>
-															)}
 														</TableRow>
 													</TableHead>
 													<TableBody>
-														{aptCodes.map((code, i) => {
-															const aptYearTotal = apartments[code].year_total;
-															const aptSolde = aptYearTotal - (monthlyCost > 0 ? annualCost / aptCodes.length : 0);
+														{aptNoms.map((nom, i) => {
+															const aptYearTotal = apartments[nom].year_total;
 															return (
 																<TableRow
-																	key={code}
+																	key={nom}
 																	sx={{ bgcolor: i % 2 === 0 ? 'background.default' : 'action.hover' }}
 																>
-																	<TableCell sx={{ fontWeight: 500, position: 'sticky', left: 0, bgcolor: i % 2 === 0 ? 'background.default' : 'action.hover', zIndex: 1 }}>{code}</TableCell>
+																	<TableCell sx={{ fontWeight: 500, position: 'sticky', left: 0, bgcolor: i % 2 === 0 ? 'background.default' : 'action.hover', zIndex: 1 }}>{nom}</TableCell>
 																	{Array.from({ length: 12 }, (_, mi) => {
-																		const val = apartments[code].monthly[mi + 1]?.total ?? 0;
+																		const val = apartments[nom].monthly[mi + 1]?.total ?? 0;
 																		return (
 																			<TableCell
 																				key={mi}
@@ -436,19 +401,6 @@ const GainsClient: React.FC<SessionProps> = ({ session }) => {
 																	>
 																		{aptYearTotal > 0 ? fmt(aptYearTotal) : '—'}
 																	</TableCell>
-																	{monthlyCost > 0 && (
-																		<TableCell
-																			align="right"
-																			sx={{
-																				fontWeight: 600,
-																				borderLeft: '2px solid',
-																				borderColor: 'divider',
-																				color: aptYearTotal > 0 ? (aptSolde >= 0 ? 'success.main' : 'error.main') : 'text.disabled',
-																			}}
-																		>
-																			{aptYearTotal > 0 ? fmt(aptSolde) : '—'}
-																		</TableCell>
-																	)}
 																</TableRow>
 															);
 														})}
@@ -456,7 +408,7 @@ const GainsClient: React.FC<SessionProps> = ({ session }) => {
 														<TableRow sx={{ bgcolor: 'primary.light' }}>
 															<TableCell sx={{ fontWeight: 700, position: 'sticky', left: 0, bgcolor: 'primary.light', zIndex: 1 }}>TOTAL</TableCell>
 															{Array.from({ length: 12 }, (_, mi) => {
-																const monthTotal = aptCodes.reduce(
+																const monthTotal = aptNoms.reduce(
 																	(s, c) => s + (apartments[c].monthly[mi + 1]?.total ?? 0),
 																	0,
 																);
@@ -477,19 +429,6 @@ const GainsClient: React.FC<SessionProps> = ({ session }) => {
 															>
 																{fmt(totalYearRevenue)}
 															</TableCell>
-															{monthlyCost > 0 && (
-																<TableCell
-																	align="right"
-																	sx={{
-																		fontWeight: 700,
-																		borderLeft: '2px solid',
-																		borderColor: 'divider',
-																		color: annualSolde >= 0 ? 'success.dark' : 'error.dark',
-																	}}
-																>
-																	{fmt(annualSolde)}
-																</TableCell>
-															)}
 														</TableRow>
 													</TableBody>
 												</Table>

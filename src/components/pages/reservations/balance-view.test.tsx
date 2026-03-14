@@ -24,7 +24,6 @@ const mockBalanceData = {
 	year: 2025,
 	apartments: {
 		'APT-1': {
-			name: 'Apt 1',
 			monthly: {
 				1: { total: 10000, count: 2 },
 				6: { total: 25000, count: 5 },
@@ -32,21 +31,18 @@ const mockBalanceData = {
 			year_total: 35000,
 		},
 		'APT-2': {
-			name: 'Apt 2',
 			monthly: {
 				3: { total: 15000, count: 3 },
 			},
 			year_total: 15000,
 		},
-	} as Record<string, { name: string; monthly: Record<number, { total: number; count: number }>; year_total: number }>,
+	} as Record<string, { monthly: Record<number, { total: number; count: number }>; year_total: number }>,
 	total_returned: 28000,
 	total_not_returned: 22000,
-	total_monthly_cost: 50000,
 	reservations: [
 		{
 			id: 1,
-			apartment_code: 'APT-1',
-			apartment_name: 'Apt 1',
+			apartment_nom: 'APT-1',
 			guest_name: 'John Doe',
 			check_in: '2025-01-10',
 			check_out: '2025-01-15',
@@ -56,8 +52,7 @@ const mockBalanceData = {
 		},
 		{
 			id: 2,
-			apartment_code: 'APT-2',
-			apartment_name: 'Apt 2',
+			apartment_nom: 'APT-2',
 			guest_name: 'Jane Smith',
 			check_in: '2025-03-05',
 			check_out: '2025-03-10',
@@ -249,7 +244,6 @@ describe('BalanceClient', () => {
 					apartments: {},
 					total_returned: 0,
 					total_not_returned: 0,
-					total_monthly_cost: 0,
 					reservations: [],
 				},
 				isLoading: false,

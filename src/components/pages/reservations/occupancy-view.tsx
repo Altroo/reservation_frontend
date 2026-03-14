@@ -138,8 +138,7 @@ const OccupancyClient: React.FC<SessionProps> = ({ session }) => {
 		reservation: ReservationListType | null;
 	}
 	interface AptHeatRow {
-		code: string;
-		name: string;
+		nom: string;
 		days: DayCell[];
 		occupied: number;
 		revenue: number;
@@ -147,7 +146,7 @@ const OccupancyClient: React.FC<SessionProps> = ({ session }) => {
 
 	const heatmapRows: AptHeatRow[] = useMemo(() => {
 		if (!planningData) return [];
-		return Object.entries(planningData.apartments).map(([code, apt]) => {
+		return Object.entries(planningData.apartments).map(([nom, apt]) => {
 			const days: DayCell[] = Array.from({ length: lastDay }, (_, i) => ({ day: i + 1, reservation: null }));
 			let occupied = 0;
 			let revenue = 0;
@@ -164,7 +163,7 @@ const OccupancyClient: React.FC<SessionProps> = ({ session }) => {
 				}
 				revenue += Number(res.amount);
 			}
-			return { code, name: apt.name, days, occupied, revenue };
+			return { nom, days, occupied, revenue };
 		});
 	}, [planningData, lastDay, year, heatmapMonth]);
 
@@ -360,7 +359,7 @@ const OccupancyClient: React.FC<SessionProps> = ({ session }) => {
 													const pct = lastDay > 0 ? Math.round((row.occupied / lastDay) * 100) : 0;
 													return (
 														<Box
-															key={row.code}
+															key={row.nom}
 															sx={{
 																border: 1,
 																borderColor: 'divider',
@@ -371,7 +370,7 @@ const OccupancyClient: React.FC<SessionProps> = ({ session }) => {
 															{/* Apartment header */}
 															<Stack direction="row" justifyContent="space-between" alignItems="center" mb={1}>
 																<Typography variant="subtitle2" fontWeight={700}>
-																	{row.code}
+																	{row.nom}
 																</Typography>
 																<Stack direction="row" spacing={2}>
 																	<Typography variant="caption" color="text.secondary">

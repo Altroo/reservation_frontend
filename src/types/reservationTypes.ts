@@ -1,20 +1,14 @@
 export type PaymentSourceType = 'Booking' | 'Airbnb' | 'Cash' | 'Bank';
 
-export type ApartmentCodeType = '5B' | '11-1R' | '13-2R' | '12-1R' | '9-2R' | '9-1R';
-
 export interface ApartmentType {
 	id: number;
-	code: ApartmentCodeType | string;
-	name: string;
-	monthly_cost: string;
-	is_active: boolean;
+	nom: string;
 }
 
 export interface ReservationListType {
 	id: number;
 	apartment: number;
-	apartment_name: string;
-	apartment_code: string;
+	apartment_nom: string;
 	guest_name: string;
 	check_in: string;
 	check_out: string;
@@ -54,14 +48,13 @@ export interface SourceRevenueType {
 }
 
 export interface ApartmentRevenueType {
-	code: string;
-	name: string;
+	nom: string;
 	total: number;
 	count: number;
 }
 
 export interface OccupancyApartmentType {
-	name: string;
+	nom: string;
 	occupied_days: number;
 	reservation_count: number;
 	revenue: number;
@@ -85,7 +78,7 @@ export interface DashboardStatsType {
 // Planning
 export interface PlanningApartmentType {
 	id: number;
-	name: string;
+	nom: string;
 	reservations: ReservationListType[];
 }
 
@@ -103,15 +96,14 @@ export interface BalanceMonthlyType {
 }
 
 export interface BalanceApartmentType {
-	name: string;
+	nom: string;
 	monthly: Record<number, BalanceMonthlyType>;
 	year_total: number;
 }
 
 export interface BalanceReservationType {
 	id: number;
-	apartment_code: string;
-	apartment_name: string;
+	apartment_nom: string;
 	guest_name: string;
 	check_in: string;
 	check_out: string;
@@ -125,6 +117,5 @@ export interface BalanceType {
 	apartments: Record<string, BalanceApartmentType>;
 	total_returned: number;
 	total_not_returned: number;
-	total_monthly_cost: number;
 	reservations: BalanceReservationType[];
 }

@@ -207,7 +207,7 @@ const ReservationViewClient: React.FC<Props> = ({ session, id }) => {
 												<Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap">
 													<Chip
 														icon={<HotelIcon />}
-														label={`${reservation.apartment_code} — ${reservation.apartment_name}`}
+													label={reservation.apartment_nom}
 														size="small"
 														variant="outlined"
 													/>
@@ -240,11 +240,7 @@ const ReservationViewClient: React.FC<Props> = ({ session, id }) => {
 												label="Appartement"
 												value={
 													<Chip
-														label={
-															reservation.apartment_code === reservation.apartment_name
-																? reservation.apartment_name
-																: `${reservation.apartment_code} — ${reservation.apartment_name}`
-														}
+													label={reservation.apartment_nom}
 														size="small"
 														variant="outlined"
 													/>

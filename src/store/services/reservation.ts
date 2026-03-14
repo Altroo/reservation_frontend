@@ -151,6 +151,18 @@ export const reservationApi = createApi({
 			providesTags: ['Balance'],
 		}),
 
+		toggleAmountReturned: builder.mutation<
+			{ id: number; amount_returned: boolean },
+			{ id: number; amount_returned: boolean }
+		>({
+			query: ({ id, amount_returned }) => ({
+				url: `${process.env.NEXT_PUBLIC_RESERVATION_LIST}${id}/toggle-returned/`,
+				method: 'PATCH',
+				data: { amount_returned },
+			}),
+			invalidatesTags: ['Balance'],
+		}),
+
 		// ── Years ─────────────────────────────────────────────────────────────
 		getReservationYears: builder.query<{ years: number[] }, void>({
 			query: () => ({
@@ -187,6 +199,7 @@ export const {
 	useGetDashboardStatsQuery,
 	useGetPlanningQuery,
 	useGetBalanceQuery,
+	useToggleAmountReturnedMutation,
 	useGetReservationYearsQuery,
 	useGetOccupiedDatesQuery,
 } = reservationApi;

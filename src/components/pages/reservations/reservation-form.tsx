@@ -11,10 +11,8 @@ import {
 	Card,
 	CardContent,
 	Divider,
-	FormControlLabel,
 	InputAdornment,
 	Stack,
-	Switch,
 	Typography,
 	useMediaQuery,
 	useTheme,
@@ -72,7 +70,6 @@ export interface ReservationFormValues {
 	check_out: string;
 	amount: string;
 	payment_source: string;
-	amount_returned: boolean;
 	notes: string;
 	globalError: string;
 }
@@ -123,7 +120,6 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 			check_out: rawData?.check_out ?? '',
 			amount: rawData?.amount ?? '',
 			payment_source: rawData?.payment_source ?? '',
-			amount_returned: rawData?.amount_returned ?? false,
 			notes: rawData?.notes ?? '',
 			globalError: '',
 		},
@@ -425,24 +421,7 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 									</Stack>
 								</CardContent>
 							</Card>
-						{/* Amount Returned Toggle */}
-						<Card elevation={2} sx={{ borderRadius: 2 }}>
-							<CardContent sx={{ p: 3 }}>
-								<FormControlLabel
-									control={
-										<Switch
-											checked={formik.values.amount_returned}
-											onChange={(e) => formik.setFieldValue('amount_returned', e.target.checked)}
-											disabled={isLoading}
-										/>
-									}
-									label="Montant retourné"
-								/>
-								<Typography variant="caption" color="text.secondary" display="block" sx={{ mt: 0.5, ml: 6 }}>
-									Indiquer si le montant de cette réservation a été retourné
-								</Typography>
-							</CardContent>
-						</Card>
+
 							{/* Notes */}
 							<Card elevation={2} sx={{ borderRadius: 2 }}>
 								<CardContent sx={{ p: 3 }}>

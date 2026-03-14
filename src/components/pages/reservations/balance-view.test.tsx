@@ -42,6 +42,30 @@ const mockBalanceData = {
 	total_returned: 28000,
 	total_not_returned: 22000,
 	total_monthly_cost: 50000,
+	reservations: [
+		{
+			id: 1,
+			apartment_code: 'APT-1',
+			apartment_name: 'Apt 1',
+			guest_name: 'John Doe',
+			check_in: '2025-01-10',
+			check_out: '2025-01-15',
+			amount: 10000,
+			payment_source: 'Airbnb',
+			amount_returned: true,
+		},
+		{
+			id: 2,
+			apartment_code: 'APT-2',
+			apartment_name: 'Apt 2',
+			guest_name: 'Jane Smith',
+			check_in: '2025-03-05',
+			check_out: '2025-03-10',
+			amount: 15000,
+			payment_source: 'Bank',
+			amount_returned: false,
+		},
+	],
 };
 
 interface MockQueryResult<T> {
@@ -54,12 +78,15 @@ const mockUseGetBalanceQuery = jest.fn<MockQueryResult<typeof mockBalanceData>, 
 	isLoading: false,
 }));
 
+const mockToggleAmountReturned = jest.fn();
+
 jest.mock('@/store/services/reservation', () => ({
 	useGetBalanceQuery: () => mockUseGetBalanceQuery(),
 	useGetReservationYearsQuery: () => {
 		const y = new Date().getFullYear();
 		return { data: { years: [y, y - 1] } };
 	},
+	useToggleAmountReturnedMutation: () => [mockToggleAmountReturned],
 }));
 
 // Mock layout components
@@ -161,8 +188,8 @@ describe('BalanceClient', () => {
 
 		it('renders apartment rows', () => {
 			render(<BalanceClient session={mockSession} />);
-			expect(screen.getByText('APT-1')).toBeInTheDocument();
-			expect(screen.getByText('APT-2')).toBeInTheDocument();
+			expect(screen.getAllByText('APT-1').length).toBeGreaterThanOrEqual(1);
+			expect(screen.getAllByText('APT-2').length).toBeGreaterThanOrEqual(1);
 		});
 
 		it('renders month headers', () => {
@@ -173,8 +200,8 @@ describe('BalanceClient', () => {
 
 		it('renders Appartement and Total column headers', () => {
 			render(<BalanceClient session={mockSession} />);
-			expect(screen.getByText('Appartement')).toBeInTheDocument();
-			expect(screen.getByText('Total')).toBeInTheDocument();
+			expect(screen.getAllByText('Appartement').length).toBeGreaterThanOrEqual(1);
+			expect(screen.getAllByText('Total').length).toBeGreaterThanOrEqual(1);
 		});
 
 		it('renders apartment year totals', () => {
@@ -190,6 +217,30 @@ describe('BalanceClient', () => {
 		});
 	});
 
+	describe('Detail table', () => {
+		it('renders detail table title', () => {
+			render(<BalanceClient session={mockSession} />);
+			expect(screen.getByText('Détail des réservations')).toBeInTheDocument();
+		});
+
+		it('renders reservation guest names', () => {
+			render(<BalanceClient session={mockSession} />);
+			expect(screen.getByText('John Doe')).toBeInTheDocument();
+			expect(screen.getByText('Jane Smith')).toBeInTheDocument();
+		});
+
+		it('renders Oui/Non chips for returned status', () => {
+			render(<BalanceClient session={mockSession} />);
+			expect(screen.getByText('Oui')).toBeInTheDocument();
+			expect(screen.getByText('Non')).toBeInTheDocument();
+		});
+
+		it('renders reservation amounts', () => {
+			render(<BalanceClient session={mockSession} />);
+			expect(screen.getByText('10.000 MAD')).toBeInTheDocument();
+		});
+	});
+
 	describe('Empty state', () => {
 		it('shows empty table row when no apartments', () => {
 			mockUseGetBalanceQuery.mockReturnValueOnce({
@@ -199,11 +250,12 @@ describe('BalanceClient', () => {
 					total_returned: 0,
 					total_not_returned: 0,
 					total_monthly_cost: 0,
+					reservations: [],
 				},
 				isLoading: false,
 			});
 			render(<BalanceClient session={mockSession} />);
-			expect(screen.getByText(/Aucune donnée disponible/)).toBeInTheDocument();
+			expect(screen.getAllByText(/Aucune donnée disponible/).length).toBeGreaterThanOrEqual(1);
 		});
 	});
 });

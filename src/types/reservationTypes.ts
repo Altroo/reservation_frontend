@@ -108,10 +108,23 @@ export interface BalanceApartmentType {
 	year_total: number;
 }
 
+export interface BalanceReservationType {
+	id: number;
+	apartment_code: string;
+	apartment_name: string;
+	guest_name: string;
+	check_in: string;
+	check_out: string;
+	amount: number;
+	payment_source: string;
+	amount_returned: boolean;
+}
+
 export interface BalanceType {
 	year: number;
 	apartments: Record<string, BalanceApartmentType>;
 	total_returned: number;
 	total_not_returned: number;
 	total_monthly_cost: number;
+	reservations: BalanceReservationType[];
 }

@@ -39,7 +39,7 @@ import {
 	Filler,
 } from 'chart.js';
 import { Bar, Doughnut, Line } from 'react-chartjs-2';
-import { useGetDashboardStatsQuery } from '@/store/services/reservation';
+import { useGetDashboardStatsQuery, useGetReservationYearsQuery } from '@/store/services/reservation';
 import { getAccessTokenFromSession } from '@/store/session';
 import NavigationBar from '@/components/layouts/navigationBar/navigationBar';
 import { Protected } from '@/components/layouts/protected/protected';
@@ -160,6 +160,9 @@ const EmptyChart: React.FC<{ message?: string }> = ({ message }) => (
 		height="100%"
 		sx={{ bgcolor: 'grey.50', borderRadius: 2, border: '1px dashed', borderColor: 'grey.300' }}
 	>
+		<Typography variant="h6" color="text.secondary" gutterBottom>
+			📊
+		</Typography>
 		<Typography variant="body2" color="text.secondary" textAlign="center">
 			{message ?? 'Aucune donnée disponible'}
 		</Typography>
@@ -172,8 +175,9 @@ const ReservationDashboardClient: React.FC<SessionProps> = ({ session }) => {
 	const [year, setYear] = useState<number>(currentYear);
 
 	const { data, isLoading } = useGetDashboardStatsQuery({ year }, { skip: !token });
+	const { data: yearsData } = useGetReservationYearsQuery(undefined, { skip: !token });
 
-	const yearOptions = [currentYear];
+	const yearOptions = yearsData?.years ?? [currentYear];
 
 	const totalRevenue = data?.total_revenue ?? 0;
 	const monthlyRevenue = data?.monthly_revenue ?? [];
@@ -192,8 +196,9 @@ const ReservationDashboardClient: React.FC<SessionProps> = ({ session }) => {
 		monthlyRevenue.length > 0
 		? monthlyRevenue.reduce((bIdx, m, i, arr) => (m.total > arr[bIdx].total ? i : bIdx), 0)
 		: -1;
-	const bestMonthName = bestMonthIdx >= 0 ? MONTH_LABELS[bestMonthIdx] : '—';
-	const bestMonthRevenue = bestMonthIdx >= 0 ? monthlyRevenue[bestMonthIdx].total : 0;
+	const bestMonthHasRevenue = bestMonthIdx >= 0 && monthlyRevenue[bestMonthIdx].total > 0;
+	const bestMonthName = bestMonthHasRevenue ? MONTH_LABELS[bestMonthIdx] : '—';
+	const bestMonthRevenue = bestMonthHasRevenue ? monthlyRevenue[bestMonthIdx].total : 0;
 
 	// Monthly revenue bar chart
 	const monthlyChartData = {
@@ -387,6 +392,7 @@ const ReservationDashboardClient: React.FC<SessionProps> = ({ session }) => {
 									<ChartCard
 										title="Répartition par source"
 										subheader="Booking, Airbnb, Espèces, Virement"
+										infoTooltip="Répartition du chiffre d'affaires selon la source de réservation (Booking, Airbnb, Espèces, Virement)"
 										height={280}
 									>
 										{bySource.length > 0 ? (
@@ -399,6 +405,7 @@ const ReservationDashboardClient: React.FC<SessionProps> = ({ session }) => {
 									<ChartCard
 										title="Revenus par appartement"
 										subheader="Répartition du CA par unité"
+										infoTooltip="Montant total des revenus générés par chaque appartement sur l'année"
 										height={280}
 									>
 										{byApartment.length > 0 ? (
@@ -413,6 +420,7 @@ const ReservationDashboardClient: React.FC<SessionProps> = ({ session }) => {
 								<ChartCard
 									title="Jours d'occupation par appartement"
 									subheader="Nombre total de nuitées enregistrées"
+									infoTooltip="Nombre total de nuits occupées par appartement, basé sur les dates d'arrivée et de départ"
 									height={260}
 								>
 									{Object.keys(occupancy).length > 0 ? (

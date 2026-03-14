@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { ApiErrorResponseType, ResponseDataInterface, SessionProps } from '@/types/_initTypes';
 import Styles from '@/styles/dashboard/dashboard.module.sass';
 import NavigationBar from '@/components/layouts/navigationBar/navigationBar';
@@ -11,8 +11,10 @@ import {
 	Card,
 	CardContent,
 	Divider,
+	FormControlLabel,
 	InputAdornment,
 	Stack,
+	Switch,
 	Typography,
 	useMediaQuery,
 	useTheme,
@@ -35,7 +37,7 @@ import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { fr } from 'date-fns/locale';
-import { format, parseISO } from 'date-fns';
+import { format, parseISO, isWithinInterval, addDays, subDays } from 'date-fns';
 import CustomTextInput from '@/components/formikElements/customTextInput/customTextInput';
 import CustomAutoCompleteSelect from '@/components/formikElements/customAutoCompleteSelect/customAutoCompleteSelect';
 import AddEntityModal from '@/components/shared/addEntityModal/addEntityModal';
@@ -54,6 +56,7 @@ import {
 	useAddApartmentMutation,
 	useCreateReservationMutation,
 	useGetApartmentsQuery,
+	useGetOccupiedDatesQuery,
 	useGetReservationQuery,
 	useUpdateReservationMutation,
 } from '@/store/services/reservation';
@@ -69,6 +72,7 @@ export interface ReservationFormValues {
 	check_out: string;
 	amount: string;
 	payment_source: string;
+	amount_returned: boolean;
 	notes: string;
 	globalError: string;
 }
@@ -119,6 +123,7 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 			check_out: rawData?.check_out ?? '',
 			amount: rawData?.amount ?? '',
 			payment_source: rawData?.payment_source ?? '',
+			amount_returned: rawData?.amount_returned ?? false,
 			notes: rawData?.notes ?? '',
 			globalError: '',
 		},
@@ -153,6 +158,23 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 		if (!v || apartmentItems.length === 0) return null;
 		return apartmentItems.find((a) => a.value === String(v)) ?? null;
 	}, [formik.values.apartment, apartmentItems]);
+
+	const { data: occupiedRanges } = useGetOccupiedDatesQuery(
+		{ apartment: formik.values.apartment as number, ...(isEditMode ? { exclude: id } : {}) },
+		{ skip: !token || !formik.values.apartment },
+	);
+
+	const shouldDisableDate = useCallback(
+		(date: Date) => {
+			if (!occupiedRanges || occupiedRanges.length === 0) return false;
+			return occupiedRanges.some((r) => {
+				const start = parseISO(r.check_in);
+				const end = subDays(parseISO(r.check_out), 1);
+				return isWithinInterval(date, { start, end });
+			});
+		},
+		[occupiedRanges],
+	);
 
 	const paymentSourceItems: DropDownType[] = useMemo(
 		() => paymentSourceItemsList.map((p) => ({ code: p.value, value: p.code })),
@@ -302,6 +324,7 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 												value={formik.values.check_in ? parseISO(formik.values.check_in) : null}
 												onChange={(date) => formik.setFieldValue('check_in', date ? format(date, 'yyyy-MM-dd') : '')}
 												maxDate={formik.values.check_out ? parseISO(formik.values.check_out) : undefined}
+												shouldDisableDate={shouldDisableDate}
 												disabled={isLoading}
 												slotProps={{
 													textField: {
@@ -325,6 +348,7 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 												value={formik.values.check_out ? parseISO(formik.values.check_out) : null}
 												onChange={(date) => formik.setFieldValue('check_out', date ? format(date, 'yyyy-MM-dd') : '')}
 												minDate={formik.values.check_in ? parseISO(formik.values.check_in) : undefined}
+												shouldDisableDate={shouldDisableDate}
 												disabled={isLoading}
 												slotProps={{
 													textField: {
@@ -365,7 +389,7 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 												id="amount"
 												type="text"
 												size="small"
-												label="Montant (MAD) *"
+												label="Montant total (MAD) *"
 												value={formik.values.amount}
 												onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
 													if (/^(0|[1-9]\d*)?([.,]\d*)?$/.test(e.target.value))
@@ -401,7 +425,24 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 									</Stack>
 								</CardContent>
 							</Card>
-
+						{/* Amount Returned Toggle */}
+						<Card elevation={2} sx={{ borderRadius: 2 }}>
+							<CardContent sx={{ p: 3 }}>
+								<FormControlLabel
+									control={
+										<Switch
+											checked={formik.values.amount_returned}
+											onChange={(e) => formik.setFieldValue('amount_returned', e.target.checked)}
+											disabled={isLoading}
+										/>
+									}
+									label="Montant retourné"
+								/>
+								<Typography variant="caption" color="text.secondary" display="block" sx={{ mt: 0.5, ml: 6 }}>
+									Indiquer si le montant de cette réservation a été retourné
+								</Typography>
+							</CardContent>
+						</Card>
 							{/* Notes */}
 							<Card elevation={2} sx={{ borderRadius: 2 }}>
 								<CardContent sx={{ p: 3 }}>

@@ -46,6 +46,7 @@ jest.mock('@/store/services/reservation', () => ({
 	useCreateReservationMutation: () => [mockCreateReservation, { isLoading: false, error: undefined }],
 	useUpdateReservationMutation: () => [mockUpdateReservation, { isLoading: false, error: undefined }],
 	useAddApartmentMutation: () => [jest.fn(), { isLoading: false }],
+	useGetOccupiedDatesQuery: () => ({ data: [], isLoading: false }),
 }));
 
 // Mock form sub-components

@@ -25,28 +25,16 @@ import {
 } from '@mui/material';
 import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
 import HomeWorkIcon from '@mui/icons-material/HomeWork';
+import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
+import HighlightOffIcon from '@mui/icons-material/HighlightOff';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
-import {
-	Chart as ChartJS,
-	CategoryScale,
-	LinearScale,
-	BarElement,
-	Title,
-	Tooltip,
-	Legend,
-} from 'chart.js';
-import { Bar } from 'react-chartjs-2';
 import type { SessionProps } from '@/types/_initTypes';
 import Styles from '@/styles/dashboard/dashboard.module.sass';
 import NavigationBar from '@/components/layouts/navigationBar/navigationBar';
 import { Protected } from '@/components/layouts/protected/protected';
-import { useGetBalanceQuery } from '@/store/services/reservation';
+import { useGetBalanceQuery, useGetReservationYearsQuery } from '@/store/services/reservation';
 import { getAccessTokenFromSession } from '@/store/session';
 import { MONTH_LABELS } from '@/utils/rawData';
-
-ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
-
-const CHART_OPTS = { responsive: true, maintainAspectRatio: false } as const;
 
 const fmt = (val: number) => val.toLocaleString('fr-MA');
 
@@ -109,13 +97,15 @@ const BalanceClient: React.FC<SessionProps> = ({ session }) => {
 	const [year, setYear] = useState(currentYear);
 
 	const { data, isLoading } = useGetBalanceQuery({ year }, { skip: !token });
+	const { data: yearsData } = useGetReservationYearsQuery(undefined, { skip: !token });
 
-	const yearOptions = [currentYear];
+	const yearOptions = yearsData?.years ?? [currentYear];
 
 	const apartments = data?.apartments ?? {};
-	const airbnbMonthly = data?.airbnb_monthly ?? {};
-	const nonAirbnbMonthly = data?.non_airbnb_monthly ?? {};
 	const aptCodes = Object.keys(apartments);
+	const totalReturned = data?.total_returned ?? 0;
+	const totalNotReturned = data?.total_not_returned ?? 0;
+	const totalBalance = totalReturned + totalNotReturned;
 
 	const totalByMonth: number[] = Array.from({ length: 12 }, (_, i) => {
 		const month = i + 1;
@@ -124,27 +114,9 @@ const BalanceClient: React.FC<SessionProps> = ({ session }) => {
 		}, 0);
 	});
 
-	const airbnbVsNonAirbnbData = {
-		labels: MONTH_LABELS,
-		datasets: [
-			{
-				label: 'Airbnb',
-				data: Array.from({ length: 12 }, (_, i) => airbnbMonthly[i + 1] ?? 0),
-				backgroundColor: 'rgba(255, 90, 31, 0.75)',
-				borderRadius: 3,
-			},
-			{
-				label: 'Hors Airbnb',
-				data: Array.from({ length: 12 }, (_, i) => nonAirbnbMonthly[i + 1] ?? 0),
-				backgroundColor: 'rgba(25, 118, 210, 0.75)',
-				borderRadius: 3,
-			},
-		],
-	};
-
 	return (
 		<Stack direction="column" spacing={2} className={Styles.flexRootStack} mt="48px">
-			<NavigationBar title="Balance & Airbnb">
+			<NavigationBar title="Balance">
 				<Protected>
 					<Box sx={{ px: { xs: 1, sm: 2, md: 3 }, pb: 4 }}>
 						<Stack direction="row" justifyContent="space-between" alignItems="center" py={2}>
@@ -170,43 +142,36 @@ const BalanceClient: React.FC<SessionProps> = ({ session }) => {
 						) : (
 							<Stack spacing={3}>
 								{/* Balance KPIs */}
-								{(() => {
-									const totalAirbnb = Object.values(airbnbMonthly).reduce((s, v) => s + v, 0);
-									const totalNonAirbnb = Object.values(nonAirbnbMonthly).reduce((s, v) => s + v, 0);
-									const totalGlobal = totalAirbnb + totalNonAirbnb;
-									return (
-										<Box sx={{ display: 'grid', gap: 2, gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(4, 1fr)' } }}>
-											<KpiCard
-												color="#1565c0"
-												icon={<AccountBalanceWalletIcon />}
-												label="Revenu global"
-												value={`${fmt(totalGlobal)} MAD`}
-												tooltip="Somme de tous les revenus (Airbnb + Hors-Airbnb)"
-											/>
-											<KpiCard
-												color="#e65100"
-												icon={<HomeWorkIcon />}
-												label="Total Airbnb"
-												value={`${fmt(totalAirbnb)} MAD`}
-												tooltip="Revenus provenant de la source Airbnb"
-											/>
-											<KpiCard
-												color="#2e7d32"
-												icon={<AccountBalanceWalletIcon />}
-												label="Total Hors-Airbnb"
-												value={`${fmt(totalNonAirbnb)} MAD`}
-												tooltip="Revenus provenant de sources autres qu'Airbnb"
-											/>
-											<KpiCard
-												color="#6a1b9a"
-												icon={<HomeWorkIcon />}
-												label="Appartements"
-												value={`${aptCodes.length}`}
-												tooltip="Nombre d'appartements avec des données"
-											/>
-										</Box>
-									);
-								})()}
+								<Box sx={{ display: 'grid', gap: 2, gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(4, 1fr)' } }}>
+									<KpiCard
+										color="#1565c0"
+										icon={<AccountBalanceWalletIcon />}
+										label="Balance totale"
+										value={`${fmt(totalBalance)} MAD`}
+										tooltip="Somme des revenus Airbnb & Virement bancaire"
+									/>
+									<KpiCard
+										color="#2e7d32"
+										icon={<CheckCircleOutlineIcon />}
+										label="Montant retourné"
+										value={`${fmt(totalReturned)} MAD`}
+										tooltip="Total des réservations dont le montant a été retourné"
+									/>
+									<KpiCard
+										color="#d32f2f"
+										icon={<HighlightOffIcon />}
+										label="Montant non retourné"
+										value={`${fmt(totalNotReturned)} MAD`}
+										tooltip="Total des réservations dont le montant n'a pas encore été retourné"
+									/>
+									<KpiCard
+										color="#6a1b9a"
+										icon={<HomeWorkIcon />}
+										label="Appartements"
+										value={`${aptCodes.length}`}
+										tooltip="Nombre d'appartements actifs"
+									/>
+								</Box>
 								{/* Matrix table: apartment × month */}
 								<Card elevation={2}>
 									<CardHeader
@@ -322,37 +287,6 @@ const BalanceClient: React.FC<SessionProps> = ({ session }) => {
 												</TableBody>
 											</Table>
 										</TableContainer>
-									</CardContent>
-								</Card>
-
-								{/* Airbnb vs non-Airbnb chart */}
-								<Card elevation={2}>
-									<CardHeader
-										title="Airbnb vs Hors-Airbnb"
-										subheader="Comparaison mensuelle des revenus par source"
-										action={
-											<MuiTooltip title="Ventilation mensuelle des revenus entre Airbnb et Hors-Airbnb" arrow>
-												<IconButton size="small">
-													<InfoOutlinedIcon fontSize="small" sx={{ color: 'text.disabled' }} />
-												</IconButton>
-											</MuiTooltip>
-										}
-									/>
-									<CardContent>
-										<Box height={300}>
-											<Bar
-												data={airbnbVsNonAirbnbData}
-												options={{
-													...CHART_OPTS,
-													scales: {
-														y: {
-															beginAtZero: true,
-															title: { display: true, text: 'MAD' },
-														},
-													},
-												}}
-											/>
-										</Box>
 									</CardContent>
 								</Card>
 

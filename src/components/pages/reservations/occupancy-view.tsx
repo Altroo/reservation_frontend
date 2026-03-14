@@ -40,7 +40,7 @@ import type { ReservationListType } from '@/types/reservationTypes';
 import Styles from '@/styles/dashboard/dashboard.module.sass';
 import NavigationBar from '@/components/layouts/navigationBar/navigationBar';
 import { Protected } from '@/components/layouts/protected/protected';
-import { useGetDashboardStatsQuery, useGetPlanningQuery } from '@/store/services/reservation';
+import { useGetDashboardStatsQuery, useGetPlanningQuery, useGetReservationYearsQuery } from '@/store/services/reservation';
 import { getAccessTokenFromSession } from '@/store/session';
 import { formatDate } from '@/utils/helpers';
 import { APARTMENT_COLORS, PAYMENT_SOURCE_BG, MONTH_NAMES } from '@/utils/rawData';
@@ -115,8 +115,9 @@ const OccupancyClient: React.FC<SessionProps> = ({ session }) => {
 		{ year, month: heatmapMonth },
 		{ skip: !token },
 	);
+	const { data: yearsData } = useGetReservationYearsQuery(undefined, { skip: !token });
 
-	const yearOptions = [currentYear];
+	const yearOptions = yearsData?.years ?? [currentYear];
 
 	const occupancy = data?.occupancy_by_apartment ?? {};
 
@@ -288,12 +289,14 @@ const OccupancyClient: React.FC<SessionProps> = ({ session }) => {
 											) : (
 												<Box
 													display="flex"
+													flexDirection="column"
 													alignItems="center"
 													justifyContent="center"
 													height="100%"
-													sx={{ border: '2px dashed', borderColor: 'divider', borderRadius: 2, bgcolor: 'action.hover' }}
+													sx={{ border: '1px dashed', borderColor: 'grey.300', borderRadius: 2, bgcolor: 'grey.50' }}
 												>
-													<Typography color="text.secondary">Aucune donnée disponible</Typography>
+													<Typography variant="h6" color="text.secondary" gutterBottom>📊</Typography>
+													<Typography variant="body2" color="text.secondary">Aucune donnée disponible</Typography>
 												</Box>
 											)}
 										</Box>
@@ -517,9 +520,12 @@ const OccupancyClient: React.FC<SessionProps> = ({ session }) => {
 												);
 											})}
 											{Object.keys(occupancy).length === 0 && (
-												<Typography color="text.secondary" textAlign="center" py={2}>
-													Aucune donnée disponible pour {year}
-												</Typography>
+												<Box display="flex" flexDirection="column" alignItems="center" py={2}>
+													<Typography variant="h6" color="text.secondary" gutterBottom>📊</Typography>
+													<Typography variant="body2" color="text.secondary" textAlign="center">
+														Aucune donnée disponible pour {year}
+													</Typography>
+												</Box>
 											)}
 										</Stack>
 									</CardContent>

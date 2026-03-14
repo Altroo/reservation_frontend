@@ -22,6 +22,7 @@ export interface ReservationListType {
 	amount: string;
 	payment_source: PaymentSourceType | string;
 	payment_source_display: string;
+	amount_returned: boolean;
 	notes: string | null;
 	created_by_user: number | null;
 	created_by_user_name: string;
@@ -110,7 +111,7 @@ export interface BalanceApartmentType {
 export interface BalanceType {
 	year: number;
 	apartments: Record<string, BalanceApartmentType>;
-	airbnb_monthly: Record<number, number>;
-	non_airbnb_monthly: Record<number, number>;
+	total_returned: number;
+	total_not_returned: number;
 	total_monthly_cost: number;
 }

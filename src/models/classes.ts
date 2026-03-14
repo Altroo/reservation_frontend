@@ -44,6 +44,7 @@ export class ReservationClass {
 		public amount: string,
 		public payment_source: string,
 		public payment_source_display: string,
+		public amount_returned: boolean,
 		public notes: string | null,
 		public created_by_user: number | null,
 		public created_by_user_name: string,

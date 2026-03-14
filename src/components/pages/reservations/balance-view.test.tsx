@@ -19,21 +19,6 @@ jest.mock('@/store/session', () => ({
 	getAccessTokenFromSession: jest.fn(() => 'mock-token'),
 }));
 
-// Mock chart.js
-jest.mock('react-chartjs-2', () => ({
-	Bar: () => <div data-testid="chart-bar" />,
-}));
-
-jest.mock('chart.js', () => ({
-	Chart: { register: jest.fn() },
-	CategoryScale: jest.fn(),
-	LinearScale: jest.fn(),
-	BarElement: jest.fn(),
-	Title: jest.fn(),
-	Tooltip: jest.fn(),
-	Legend: jest.fn(),
-}));
-
 // Mock RTK Query hook
 const mockBalanceData = {
 	year: 2025,
@@ -54,9 +39,8 @@ const mockBalanceData = {
 			year_total: 15000,
 		},
 	},
-	airbnb_monthly: { 1: 8000, 6: 20000 } as Record<number, number>,
-	non_airbnb_monthly: { 1: 2000, 3: 15000, 6: 5000 } as Record<number, number>,
-	total_monthly_cost: 186000,
+	total_returned: 28000,
+	total_not_returned: 22000,
 };
 
 const mockUseGetBalanceQuery = jest.fn(() => ({
@@ -65,7 +49,8 @@ const mockUseGetBalanceQuery = jest.fn(() => ({
 }));
 
 jest.mock('@/store/services/reservation', () => ({
-	useGetBalanceQuery: (...args: unknown[]) => mockUseGetBalanceQuery(...args),
+	useGetBalanceQuery: (...args: unknown[]) => mockUseGetBalanceQuery(),
+	useGetReservationYearsQuery: () => ({ data: { years: [2025, 2024] } }),
 }));
 
 // Mock layout components
@@ -90,7 +75,7 @@ jest.mock('@/styles/dashboard/dashboard.module.sass', () => ({
 import BalanceClient from './balance-view';
 import type { AppSession } from '@/types/_initTypes';
 
-const mockSession: AppSession = {
+const mockSession = {
 	accessToken: 'mock-token',
 	user: {
 		accessToken: 'mock-token',
@@ -98,9 +83,12 @@ const mockSession: AppSession = {
 		name: 'Test User',
 		email: 'test@example.com',
 		emailVerified: null,
+		pk: 1,
+		first_name: 'Test',
+		last_name: 'User',
 	},
 	expires: '2099-12-31T23:59:59Z',
-};
+} as AppSession;
 
 describe('BalanceClient', () => {
 	beforeEach(() => jest.clearAllMocks());
@@ -109,7 +97,7 @@ describe('BalanceClient', () => {
 	describe('Rendering', () => {
 		it('renders the page title with year', () => {
 			render(<BalanceClient session={mockSession} />);
-			expect(screen.getByText(/Balance/)).toBeInTheDocument();
+			expect(screen.getByRole('heading', { level: 5 })).toHaveTextContent(/Balance/);
 		});
 
 		it('renders inside Protected and NavigationBar', () => {
@@ -119,25 +107,25 @@ describe('BalanceClient', () => {
 		});
 
 		it('renders loading spinner when loading', () => {
-			mockUseGetBalanceQuery.mockReturnValueOnce({ data: undefined, isLoading: true });
+			mockUseGetBalanceQuery.mockReturnValueOnce({ data: undefined, isLoading: true } as any);
 			render(<BalanceClient session={mockSession} />);
 			expect(screen.getByRole('progressbar')).toBeInTheDocument();
 		});
 	});
 
 	describe('KPI cards', () => {
-		it('renders global revenue', () => {
+		it('renders total balance', () => {
 			render(<BalanceClient session={mockSession} />);
-			// 28000 airbnb + 22000 non-airbnb = 50000
+			// 28000 returned + 22000 not returned = 50000
 			expect(screen.getByText('50.000 MAD')).toBeInTheDocument();
 		});
 
-		it('renders total Airbnb revenue', () => {
+		it('renders total returned', () => {
 			render(<BalanceClient session={mockSession} />);
 			expect(screen.getByText('28.000 MAD')).toBeInTheDocument();
 		});
 
-		it('renders total non-Airbnb revenue', () => {
+		it('renders total not returned', () => {
 			render(<BalanceClient session={mockSession} />);
 			expect(screen.getByText('22.000 MAD')).toBeInTheDocument();
 		});
@@ -149,9 +137,9 @@ describe('BalanceClient', () => {
 
 		it('renders KPI labels', () => {
 			render(<BalanceClient session={mockSession} />);
-			expect(screen.getByText('Revenu global')).toBeInTheDocument();
-			expect(screen.getByText('Total Airbnb')).toBeInTheDocument();
-			expect(screen.getByText('Total Hors-Airbnb')).toBeInTheDocument();
+			expect(screen.getByText('Balance totale')).toBeInTheDocument();
+			expect(screen.getByText('Montant retourné')).toBeInTheDocument();
+			expect(screen.getByText('Montant non retourné')).toBeInTheDocument();
 			expect(screen.getByText('Appartements')).toBeInTheDocument();
 		});
 	});
@@ -193,24 +181,15 @@ describe('BalanceClient', () => {
 		});
 	});
 
-	describe('Chart', () => {
-		it('renders Airbnb vs non-Airbnb chart', () => {
-			render(<BalanceClient session={mockSession} />);
-			expect(screen.getByText('Airbnb vs Hors-Airbnb')).toBeInTheDocument();
-			expect(screen.getByTestId('chart-bar')).toBeInTheDocument();
-		});
-	});
-
 	describe('Empty state', () => {
 		it('shows empty table row when no apartments', () => {
 			mockUseGetBalanceQuery.mockReturnValueOnce({
 				data: {
 					year: 2025,
 					apartments: {},
-					airbnb_monthly: {},
-					non_airbnb_monthly: {},
-					total_monthly_cost: 0,
-				},
+					total_returned: 0,
+					total_not_returned: 0,
+				} as any,
 				isLoading: false,
 			});
 			render(<BalanceClient session={mockSession} />);

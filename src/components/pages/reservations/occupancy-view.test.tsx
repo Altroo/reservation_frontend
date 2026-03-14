@@ -98,6 +98,7 @@ const mockUseGetPlanningQuery = jest.fn(() => ({
 jest.mock('@/store/services/reservation', () => ({
 	useGetDashboardStatsQuery: (...args: unknown[]) => mockUseGetDashboardStatsQuery(...args),
 	useGetPlanningQuery: (...args: unknown[]) => mockUseGetPlanningQuery(...args),
+	useGetReservationYearsQuery: () => ({ data: { years: [2025, 2024] } }),
 }));
 
 // Mock layout components

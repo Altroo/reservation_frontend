@@ -120,9 +120,8 @@ const nextConfig: NextConfig = {
 							"script-src 'self' 'unsafe-inline' 'unsafe-eval'",
 							"style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
 							"font-src 'self' https://fonts.gstatic.com data:",
-						`img-src 'self' https://reservation-api.elbouazzatiholding.ma data: blob:${isDev ? ' http://localhost:8002 http://127.0.0.1:8002' : ''}`,
-						`connect-src 'self' https://reservation-api.elbouazzatiholding.ma wss://reservation-api.elbouazzatiholding.ma${isDev ? ' http://localhost:8002 http://127.0.0.1:8002 ws://localhost:8002 ws://127.0.0.1:8002' : ''}`,
-
+						  `img-src 'self' https://reservation-api.elbouazzatiholding.ma data: blob:${isDev ? ' http://localhost:8002 http://127.0.0.1:8002' : ''}`,
+						  `connect-src 'self' https://reservation-api.elbouazzatiholding.ma wss://reservation-api.elbouazzatiholding.ma${isDev ? ' http://localhost:8002 http://127.0.0.1:8002 ws://localhost:8002 ws://127.0.0.1:8002' : ''}`,
 							"frame-ancestors 'self'",
 							"base-uri 'self'",
 							"form-action 'self'",

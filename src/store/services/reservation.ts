@@ -150,6 +150,28 @@ export const reservationApi = createApi({
 			}),
 			providesTags: ['Balance'],
 		}),
+
+		// ── Years ─────────────────────────────────────────────────────────────
+		getReservationYears: builder.query<{ years: number[] }, void>({
+			query: () => ({
+				url: process.env.NEXT_PUBLIC_RESERVATION_YEARS,
+				method: 'GET',
+			}),
+			providesTags: ['Dashboard'],
+		}),
+
+		// ── Occupied dates ──────────────────────────────────────────────────
+		getOccupiedDates: builder.query<
+			{ check_in: string; check_out: string }[],
+			{ apartment: number | string; exclude?: number | string }
+		>({
+			query: ({ apartment, exclude }) => ({
+				url: process.env.NEXT_PUBLIC_RESERVATION_OCCUPIED_DATES,
+				method: 'GET',
+				params: { apartment, ...(exclude ? { exclude } : {}) },
+			}),
+			providesTags: ['Reservation'],
+		}),
 	}),
 });
 
@@ -165,4 +187,6 @@ export const {
 	useGetDashboardStatsQuery,
 	useGetPlanningQuery,
 	useGetBalanceQuery,
+	useGetReservationYearsQuery,
+	useGetOccupiedDatesQuery,
 } = reservationApi;

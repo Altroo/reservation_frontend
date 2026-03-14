@@ -83,7 +83,7 @@ const getNavigationMenu = (isStaff: boolean) => {
 			items: [
 				{ title: 'Planning mensuel', label: 'Planning mensuel', path: PLANNING },
 				{ title: "Taux d'occupation", label: "Taux d'occupation", path: OCCUPANCY },
-				{ title: 'Balance & Airbnb', label: 'Balance & Airbnb', path: BALANCE },
+				{ title: 'Balance', label: 'Balance', path: BALANCE },
 				{ title: 'Gains & Revenus', label: 'Gains & Revenus', path: GAINS },
 			],
 		},

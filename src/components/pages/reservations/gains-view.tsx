@@ -8,11 +8,13 @@ import {
 	CardHeader,
 	CircularProgress,
 	FormControl,
+	IconButton,
 	InputLabel,
 	LinearProgress,
 	MenuItem,
 	Select,
 	Stack,
+	Tooltip as MuiTooltip,
 	Typography,
 	Table,
 	TableBody,
@@ -27,6 +29,7 @@ import {
 	EmojiEvents as TrophyIcon,
 	AccountBalanceWallet as WalletIcon,
 	CalendarMonth as CalendarIcon,
+	InfoOutlined as InfoOutlinedIcon,
 } from '@mui/icons-material';
 import {
 	Chart as ChartJS,
@@ -42,7 +45,7 @@ import type { SessionProps } from '@/types/_initTypes';
 import Styles from '@/styles/dashboard/dashboard.module.sass';
 import NavigationBar from '@/components/layouts/navigationBar/navigationBar';
 import { Protected } from '@/components/layouts/protected/protected';
-import { useGetBalanceQuery } from '@/store/services/reservation';
+import { useGetBalanceQuery, useGetReservationYearsQuery } from '@/store/services/reservation';
 import { getAccessTokenFromSession } from '@/store/session';
 import { MONTH_LABELS, MONTH_NAMES, APARTMENT_COLORS } from '@/utils/rawData';
 
@@ -102,8 +105,9 @@ const GainsClient: React.FC<SessionProps> = ({ session }) => {
 	const [year, setYear] = useState(currentYear);
 
 	const { data, isLoading } = useGetBalanceQuery({ year }, { skip: !token });
+	const { data: yearsData } = useGetReservationYearsQuery(undefined, { skip: !token });
 
-	const yearOptions = [currentYear];
+	const yearOptions = yearsData?.years ?? [currentYear];
 
 	const apartments = useMemo(() => data?.apartments ?? {}, [data?.apartments]);
 	const aptCodes = useMemo(() => Object.keys(apartments), [apartments]);
@@ -248,6 +252,11 @@ const GainsClient: React.FC<SessionProps> = ({ session }) => {
 									<CardHeader
 										title="Gains par appartement"
 										subheader="Vue empilée — contribution de chaque appartement par mois"
+										action={
+											<MuiTooltip title="Revenus mensuels empilés par appartement, permettant de visualiser la contribution de chaque unité" arrow placement="top">
+												<IconButton size="small"><InfoOutlinedIcon fontSize="small" /></IconButton>
+											</MuiTooltip>
+										}
 									/>
 									<CardContent>
 										<Box height={360}>
@@ -263,8 +272,10 @@ const GainsClient: React.FC<SessionProps> = ({ session }) => {
 													}}
 												/>
 											) : (
-												<Box display="flex" alignItems="center" justifyContent="center" height="100%">
-													<Typography color="text.secondary">Aucune donnée disponible pour {year}</Typography>
+												<Box display="flex" flexDirection="column" alignItems="center" justifyContent="center" height="100%"
+													sx={{ bgcolor: 'grey.50', borderRadius: 2, border: '1px dashed', borderColor: 'grey.300' }}>
+													<Typography variant="h6" color="text.secondary" gutterBottom>📊</Typography>
+													<Typography variant="body2" color="text.secondary">Aucune donnée disponible pour {year}</Typography>
 												</Box>
 											)}
 										</Box>
@@ -353,16 +364,24 @@ const GainsClient: React.FC<SessionProps> = ({ session }) => {
 								{/* ── Per-apartment detail table ────────────── */}
 								{aptCodes.length > 0 && (
 									<Card elevation={2}>
-										<CardHeader title="Détail mensuel par appartement" subheader={`Revenus en MAD — ${year}`} />
+										<CardHeader
+										title="Détail mensuel par appartement"
+										subheader={`Revenus en MAD — ${year}`}
+										action={
+											<MuiTooltip title="Tableau détaillé des revenus mensuels par appartement avec totaux" arrow placement="top">
+												<IconButton size="small"><InfoOutlinedIcon fontSize="small" /></IconButton>
+											</MuiTooltip>
+										}
+									/>
 										<CardContent sx={{ p: 0 }}>
 											<TableContainer component={Paper} elevation={0}>
 												<Table size="small" sx={{ minWidth: 700 }}>
 													<TableHead>
 														<TableRow sx={{ bgcolor: 'grey.100' }}>
-															<TableCell sx={{ fontWeight: 700 }}>Mois</TableCell>
-															{aptCodes.map((code) => (
-																<TableCell key={code} align="right" sx={{ fontWeight: 700 }}>
-																	{code}
+															<TableCell sx={{ fontWeight: 700, position: 'sticky', left: 0, bgcolor: 'grey.100', zIndex: 1 }}>Appartement</TableCell>
+															{MONTH_LABELS.map((m) => (
+																<TableCell key={m} align="right" sx={{ fontWeight: 700 }}>
+																	{m}
 																</TableCell>
 															))}
 															<TableCell
@@ -382,24 +401,20 @@ const GainsClient: React.FC<SessionProps> = ({ session }) => {
 														</TableRow>
 													</TableHead>
 													<TableBody>
-														{MONTH_LABELS.map((monthName, i) => {
-															const month = i + 1;
-															const rowTotal = aptCodes.reduce(
-																(s, c) => s + (apartments[c].monthly[month]?.total ?? 0),
-																0,
-															);
-															const rowSolde = rowTotal - monthlyCost;
+														{aptCodes.map((code, i) => {
+															const aptYearTotal = apartments[code].year_total;
+															const aptSolde = aptYearTotal - (monthlyCost > 0 ? annualCost / aptCodes.length : 0);
 															return (
 																<TableRow
-																	key={month}
+																	key={code}
 																	sx={{ bgcolor: i % 2 === 0 ? 'background.default' : 'action.hover' }}
 																>
-																	<TableCell sx={{ fontWeight: 500 }}>{monthName}</TableCell>
-																	{aptCodes.map((code) => {
-																		const val = apartments[code].monthly[month]?.total ?? 0;
+																	<TableCell sx={{ fontWeight: 500, position: 'sticky', left: 0, bgcolor: i % 2 === 0 ? 'background.default' : 'action.hover', zIndex: 1 }}>{code}</TableCell>
+																	{Array.from({ length: 12 }, (_, mi) => {
+																		const val = apartments[code].monthly[mi + 1]?.total ?? 0;
 																		return (
 																			<TableCell
-																				key={code}
+																				key={mi}
 																				align="right"
 																				sx={{
 																					fontSize: '0.8rem',
@@ -416,10 +431,10 @@ const GainsClient: React.FC<SessionProps> = ({ session }) => {
 																			fontWeight: 600,
 																			borderLeft: '2px solid',
 																			borderColor: 'divider',
-																			color: rowTotal > 0 ? 'primary.main' : 'text.disabled',
+																			color: aptYearTotal > 0 ? 'primary.main' : 'text.disabled',
 																		}}
 																	>
-																		{rowTotal > 0 ? fmt(rowTotal) : '—'}
+																		{aptYearTotal > 0 ? fmt(aptYearTotal) : '—'}
 																	</TableCell>
 																	{monthlyCost > 0 && (
 																		<TableCell
@@ -428,23 +443,29 @@ const GainsClient: React.FC<SessionProps> = ({ session }) => {
 																				fontWeight: 600,
 																				borderLeft: '2px solid',
 																				borderColor: 'divider',
-																				color: rowTotal > 0 ? (rowSolde >= 0 ? 'success.main' : 'error.main') : 'text.disabled',
+																				color: aptYearTotal > 0 ? (aptSolde >= 0 ? 'success.main' : 'error.main') : 'text.disabled',
 																			}}
 																		>
-																			{rowTotal > 0 ? fmt(rowSolde) : '—'}
+																			{aptYearTotal > 0 ? fmt(aptSolde) : '—'}
 																		</TableCell>
 																	)}
 																</TableRow>
 															);
 														})}
-														{/* Year total row */}
+														{/* Month totals row */}
 														<TableRow sx={{ bgcolor: 'primary.light' }}>
-															<TableCell sx={{ fontWeight: 700 }}>TOTAL</TableCell>
-															{aptCodes.map((code) => (
-																<TableCell key={code} align="right" sx={{ fontWeight: 700 }}>
-																	{fmt(apartments[code].year_total)}
-																</TableCell>
-															))}
+															<TableCell sx={{ fontWeight: 700, position: 'sticky', left: 0, bgcolor: 'primary.light', zIndex: 1 }}>TOTAL</TableCell>
+															{Array.from({ length: 12 }, (_, mi) => {
+																const monthTotal = aptCodes.reduce(
+																	(s, c) => s + (apartments[c].monthly[mi + 1]?.total ?? 0),
+																	0,
+																);
+																return (
+																	<TableCell key={mi} align="right" sx={{ fontWeight: 700 }}>
+																		{monthTotal > 0 ? fmt(monthTotal) : '—'}
+																	</TableCell>
+																);
+															})}
 															<TableCell
 																align="right"
 																sx={{

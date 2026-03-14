@@ -57,6 +57,8 @@ const mockBalanceData = {
 	},
 	airbnb_monthly: {} as Record<number, number>,
 	non_airbnb_monthly: {} as Record<number, number>,
+	total_returned: 0,
+	total_not_returned: 0,
 	total_monthly_cost: 93000,
 };
 
@@ -67,6 +69,7 @@ const mockUseGetBalanceQuery = jest.fn(() => ({
 
 jest.mock('@/store/services/reservation', () => ({
 	useGetBalanceQuery: (...args: unknown[]) => mockUseGetBalanceQuery(...args),
+	useGetReservationYearsQuery: () => ({ data: { years: [2025, 2024] } }),
 }));
 
 // Mock layout components
@@ -202,9 +205,9 @@ describe('GainsClient', () => {
 			expect(screen.getByText('Solde')).toBeInTheDocument();
 		});
 
-		it('renders Mois column header', () => {
+		it('renders Appartement column header', () => {
 			render(<GainsClient session={mockSession} />);
-			expect(screen.getByText('Mois')).toBeInTheDocument();
+			expect(screen.getByText('Appartement')).toBeInTheDocument();
 		});
 	});
 
@@ -215,8 +218,8 @@ describe('GainsClient', () => {
 					year: 2025,
 					apartments: {},
 					airbnb_monthly: {},
-					non_airbnb_monthly: {},
-					total_monthly_cost: 0,
+					non_airbnb_monthly: {},						total_returned: 0,
+						total_not_returned: 0,					total_monthly_cost: 0,
 				},
 				isLoading: false,
 			});

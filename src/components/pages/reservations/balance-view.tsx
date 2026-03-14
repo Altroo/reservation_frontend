@@ -117,7 +117,7 @@ const BalanceClient: React.FC<SessionProps> = ({ session }) => {
 	return (
 		<Stack direction="column" spacing={2} className={Styles.flexRootStack} mt="48px">
 			<NavigationBar title="Balance">
-				<Protected>
+				<Protected permission="can_view">
 					<Box sx={{ px: { xs: 1, sm: 2, md: 3 }, pb: 4 }}>
 						<Stack direction="row" justifyContent="space-between" alignItems="center" py={2}>
 							<Typography variant="h5" fontWeight={600}>

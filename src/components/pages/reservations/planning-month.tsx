@@ -138,7 +138,7 @@ const PlanningMonthClient: React.FC<SessionProps> = ({ session }) => {
 	return (
 		<Stack direction="column" spacing={2} className={Styles.flexRootStack} mt="48px">
 			<NavigationBar title="Planning mensuel">
-				<Protected>
+				<Protected permission="can_view">
 					<Box sx={{ px: { xs: 1, sm: 2, md: 3 }, pb: 4 }}>
 						{/* Month navigation */}
 						<Stack direction="row" alignItems="center" justifyContent="center" spacing={2} py={2}>

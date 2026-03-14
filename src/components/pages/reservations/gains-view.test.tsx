@@ -54,7 +54,7 @@ const mockBalanceData = {
 			} as Record<number, { total: number; count: number }>,
 			year_total: 40000,
 		},
-	},
+	} as Record<string, { name: string; monthly: Record<number, { total: number; count: number }>; year_total: number }>,
 	airbnb_monthly: {} as Record<number, number>,
 	non_airbnb_monthly: {} as Record<number, number>,
 	total_returned: 0,
@@ -62,14 +62,22 @@ const mockBalanceData = {
 	total_monthly_cost: 93000,
 };
 
-const mockUseGetBalanceQuery = jest.fn(() => ({
+interface MockQueryResult<T> {
+	data: T | undefined;
+	isLoading: boolean;
+}
+
+const mockUseGetBalanceQuery = jest.fn<MockQueryResult<typeof mockBalanceData>, []>(() => ({
 	data: mockBalanceData,
 	isLoading: false,
 }));
 
 jest.mock('@/store/services/reservation', () => ({
-	useGetBalanceQuery: (...args: unknown[]) => mockUseGetBalanceQuery(...args),
-	useGetReservationYearsQuery: () => ({ data: { years: [2025, 2024] } }),
+	useGetBalanceQuery: () => mockUseGetBalanceQuery(),
+	useGetReservationYearsQuery: () => {
+		const y = new Date().getFullYear();
+		return { data: { years: [y, y - 1] } };
+	},
 }));
 
 // Mock layout components
@@ -98,10 +106,16 @@ import type { AppSession } from '@/types/_initTypes';
 
 const mockSession: AppSession = {
 	accessToken: 'mock-token',
+	refreshToken: 'mock-refresh-token',
+	accessTokenExpiration: '2099-12-31T23:59:59Z',
+	refreshTokenExpiration: '2099-12-31T23:59:59Z',
 	user: {
 		accessToken: 'mock-token',
 		id: '1',
+		pk: 1,
 		name: 'Test User',
+		first_name: 'Test',
+		last_name: 'User',
 		email: 'test@example.com',
 		emailVerified: null,
 	},

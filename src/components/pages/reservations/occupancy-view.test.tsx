@@ -39,7 +39,7 @@ const mockDashboardData = {
 	occupancy_by_apartment: {
 		'APT-1': { name: 'Apt 1', occupied_days: 200, reservation_count: 10, revenue: 90000 },
 		'APT-2': { name: 'Apt 2', occupied_days: 150, reservation_count: 8, revenue: 60000 },
-	},
+	} as Record<string, { name: string; occupied_days: number; reservation_count: number; revenue: number }>,
 };
 
 const nowForTest = new Date();
@@ -47,6 +47,31 @@ const testYear = nowForTest.getFullYear();
 const testMonth = nowForTest.getMonth() + 1;
 const mm = String(testMonth).padStart(2, '0');
 const testLastDay = new Date(testYear, testMonth, 0).getDate();
+
+type PlanningReservation = {
+	id: number;
+	apartment: number;
+	apartment_name: string;
+	apartment_code: string;
+	guest_name: string;
+	check_in: string;
+	check_out: string;
+	nights: number;
+	amount: string;
+	payment_source: string;
+	payment_source_display: string;
+	notes: string | null;
+	created_by_user: number;
+	created_by_user_name: string;
+	date_created: string;
+	date_updated: string;
+};
+
+type PlanningApartment = {
+	id: number;
+	name: string;
+	reservations: PlanningReservation[];
+};
 
 const mockPlanningData = {
 	year: testYear,
@@ -82,23 +107,36 @@ const mockPlanningData = {
 			name: 'Apt 2',
 			reservations: [],
 		},
-	},
+	} as Record<string, PlanningApartment>,
 };
 
-const mockUseGetDashboardStatsQuery = jest.fn(() => ({
+interface MockQueryResult<T> {
+	data: T | undefined;
+	isLoading: boolean;
+}
+
+interface MockFetchResult<T> {
+	data: T | undefined;
+	isFetching: boolean;
+}
+
+const mockUseGetDashboardStatsQuery = jest.fn<MockQueryResult<typeof mockDashboardData>, []>(() => ({
 	data: mockDashboardData,
 	isLoading: false,
 }));
 
-const mockUseGetPlanningQuery = jest.fn(() => ({
+const mockUseGetPlanningQuery = jest.fn<MockFetchResult<typeof mockPlanningData>, []>(() => ({
 	data: mockPlanningData,
 	isFetching: false,
 }));
 
 jest.mock('@/store/services/reservation', () => ({
-	useGetDashboardStatsQuery: (...args: unknown[]) => mockUseGetDashboardStatsQuery(...args),
-	useGetPlanningQuery: (...args: unknown[]) => mockUseGetPlanningQuery(...args),
-	useGetReservationYearsQuery: () => ({ data: { years: [2025, 2024] } }),
+	useGetDashboardStatsQuery: () => mockUseGetDashboardStatsQuery(),
+	useGetPlanningQuery: () => mockUseGetPlanningQuery(),
+	useGetReservationYearsQuery: () => {
+		const y = new Date().getFullYear();
+		return { data: { years: [y, y - 1] } };
+	},
 }));
 
 // Mock layout components
@@ -140,10 +178,16 @@ import type { AppSession } from '@/types/_initTypes';
 
 const mockSession: AppSession = {
 	accessToken: 'mock-token',
+	refreshToken: 'mock-refresh-token',
+	accessTokenExpiration: '2099-12-31T23:59:59Z',
+	refreshTokenExpiration: '2099-12-31T23:59:59Z',
 	user: {
 		accessToken: 'mock-token',
 		id: '1',
+		pk: 1,
 		name: 'Test User',
+		first_name: 'Test',
+		last_name: 'User',
 		email: 'test@example.com',
 		emailVerified: null,
 	},

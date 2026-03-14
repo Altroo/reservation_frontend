@@ -37,7 +37,7 @@ import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { fr } from 'date-fns/locale';
-import { format, parseISO, isWithinInterval, addDays, subDays } from 'date-fns';
+import { format, parseISO, isWithinInterval, subDays } from 'date-fns';
 import CustomTextInput from '@/components/formikElements/customTextInput/customTextInput';
 import CustomAutoCompleteSelect from '@/components/formikElements/customAutoCompleteSelect/customAutoCompleteSelect';
 import AddEntityModal from '@/components/shared/addEntityModal/addEntityModal';
@@ -160,7 +160,7 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 	}, [formik.values.apartment, apartmentItems]);
 
 	const { data: occupiedRanges } = useGetOccupiedDatesQuery(
-		{ apartment: formik.values.apartment as number, ...(isEditMode ? { exclude: id } : {}) },
+		{ apartment: formik.values.apartment, ...(isEditMode ? { exclude: id } : {}) },
 		{ skip: !token || !formik.values.apartment },
 	);
 
@@ -518,7 +518,7 @@ const ReservationFormClient: React.FC<SessionProps & { id?: number }> = ({ sessi
 	return (
 		<Stack direction="column" spacing={2} className={Styles.flexRootStack} mt="48px">
 			<NavigationBar title={title}>
-				<Protected>
+				<Protected permission={id !== undefined ? 'can_edit' : 'can_create'}>
 					<FormikContent token={token} id={id} />
 				</Protected>
 			</NavigationBar>

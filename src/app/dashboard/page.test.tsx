@@ -26,7 +26,7 @@ jest.mock('@/utils/routes', () => ({
 const CLIENT_MARKER = 'MARKER:ReservationDashboardClient';
 jest.mock('@/components/pages/reservations/reservation-dashboard', () => {
 	const Mock = (props: Record<string, unknown>) =>
-		`${CLIENT_MARKER}:${JSON.stringify(props)}` as unknown as JSX.Element;
+		`${CLIENT_MARKER}:${JSON.stringify(props)}` as unknown;
 	Mock.displayName = 'ReservationDashboardClient';
 	return { __esModule: true, default: Mock };
 });

@@ -183,6 +183,7 @@ describe('auth.ts', () => {
 		});
 
 		it('should return null when API throws', async () => {
+			jest.spyOn(console, 'error').mockImplementation(() => {});
 			mockedPostApi.mockRejectedValueOnce(new Error('Network error'));
 
 			const authorize = getAuthorizeFunction();
@@ -264,6 +265,7 @@ describe('auth.ts', () => {
 					access: 'new-access-token',
 					access_expiration: '2026-01-01T00:00:00Z',
 					refresh: 'new-refresh-token',
+					refresh_expiration: '2026-01-08T00:00:00Z',
 				},
 			});
 
@@ -280,6 +282,7 @@ describe('auth.ts', () => {
 			expect(result.access).toBe('new-access-token');
 			expect(result.access_expiration).toBe('2026-01-01T00:00:00Z');
 			expect(result.refresh).toBe('new-refresh-token');
+			expect(result.refresh_expiration).toBe('2026-01-08T00:00:00Z');
 		});
 
 		it('should keep old refresh token if not provided in refresh response', async () => {
@@ -305,6 +308,7 @@ describe('auth.ts', () => {
 		});
 
 		it('should handle refresh token failure gracefully', async () => {
+			jest.spyOn(console, 'error').mockImplementation(() => {});
 			mockedPostApi.mockRejectedValueOnce(new Error('Refresh failed'));
 
 			const callbacks = getCallbacks();

@@ -38,19 +38,28 @@ const mockBalanceData = {
 			},
 			year_total: 15000,
 		},
-	},
+	} as Record<string, { name: string; monthly: Record<number, { total: number; count: number }>; year_total: number }>,
 	total_returned: 28000,
 	total_not_returned: 22000,
+	total_monthly_cost: 50000,
 };
 
-const mockUseGetBalanceQuery = jest.fn(() => ({
+interface MockQueryResult<T> {
+	data: T | undefined;
+	isLoading: boolean;
+}
+
+const mockUseGetBalanceQuery = jest.fn<MockQueryResult<typeof mockBalanceData>, []>(() => ({
 	data: mockBalanceData,
 	isLoading: false,
 }));
 
 jest.mock('@/store/services/reservation', () => ({
-	useGetBalanceQuery: (...args: unknown[]) => mockUseGetBalanceQuery(),
-	useGetReservationYearsQuery: () => ({ data: { years: [2025, 2024] } }),
+	useGetBalanceQuery: () => mockUseGetBalanceQuery(),
+	useGetReservationYearsQuery: () => {
+		const y = new Date().getFullYear();
+		return { data: { years: [y, y - 1] } };
+	},
 }));
 
 // Mock layout components
@@ -107,7 +116,7 @@ describe('BalanceClient', () => {
 		});
 
 		it('renders loading spinner when loading', () => {
-			mockUseGetBalanceQuery.mockReturnValueOnce({ data: undefined, isLoading: true } as any);
+			mockUseGetBalanceQuery.mockReturnValueOnce({ data: undefined, isLoading: true });
 			render(<BalanceClient session={mockSession} />);
 			expect(screen.getByRole('progressbar')).toBeInTheDocument();
 		});
@@ -189,7 +198,8 @@ describe('BalanceClient', () => {
 					apartments: {},
 					total_returned: 0,
 					total_not_returned: 0,
-				} as any,
+					total_monthly_cost: 0,
+				},
 				isLoading: false,
 			});
 			render(<BalanceClient session={mockSession} />);

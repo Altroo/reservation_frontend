@@ -20,6 +20,28 @@ jest.mock('@/store/session', () => ({
 }));
 
 // Mock RTK Query hook
+type PlanningReservation = {
+	id: number;
+	apartment: number;
+	apartment_code: string;
+	apartment_name: string;
+	guest_name: string;
+	check_in: string;
+	check_out: string;
+	nights: number;
+	amount: string;
+	payment_source: string;
+	notes: string;
+	created_at: string;
+	updated_at: string;
+};
+
+type PlanningApartment = {
+	id: number;
+	name: string;
+	reservations: PlanningReservation[];
+};
+
 const mockPlanningData = {
 	year: 2025,
 	month: 6,
@@ -51,16 +73,21 @@ const mockPlanningData = {
 			name: 'Apt 2',
 			reservations: [],
 		},
-	},
+	} as Record<string, PlanningApartment>,
 };
 
-const mockUseGetPlanningQuery = jest.fn(() => ({
+interface MockQueryResult<T> {
+	data: T | undefined;
+	isLoading: boolean;
+}
+
+const mockUseGetPlanningQuery = jest.fn<MockQueryResult<typeof mockPlanningData>, []>(() => ({
 	data: mockPlanningData,
 	isLoading: false,
 }));
 
 jest.mock('@/store/services/reservation', () => ({
-	useGetPlanningQuery: (...args: unknown[]) => mockUseGetPlanningQuery(...args),
+	useGetPlanningQuery: () => mockUseGetPlanningQuery(),
 }));
 
 // Mock layout components
@@ -98,15 +125,21 @@ import PlanningMonthClient from './planning-month';
 import type { AppSession } from '@/types/_initTypes';
 
 const mockSession: AppSession = {
-	accessToken: 'mock-token',
+	accessToken: 'test-access-token',
+	refreshToken: 'test-refresh-token',
+	accessTokenExpiration: '2099-12-31T23:59:59Z',
+	refreshTokenExpiration: '2099-12-31T23:59:59Z',
+	expires: '2099-12-31T23:59:59Z',
 	user: {
-		accessToken: 'mock-token',
 		id: '1',
-		name: 'Test User',
+		pk: 1,
 		email: 'test@example.com',
 		emailVerified: null,
+		name: 'Test User',
+		first_name: 'Test',
+		last_name: 'User',
+		image: null,
 	},
-	expires: '2099-12-31T23:59:59Z',
 };
 
 describe('PlanningMonthClient', () => {

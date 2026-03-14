@@ -69,21 +69,29 @@ const mockDashboardData = {
 	occupancy_by_apartment: {
 		'APT-1': { name: 'Apt 1', occupied_days: 200, reservation_count: 10, revenue: 90000 },
 		'APT-2': { name: 'Apt 2', occupied_days: 150, reservation_count: 8, revenue: 60000 },
-	},
+	} as Record<string, { name: string; occupied_days: number; reservation_count: number; revenue: number }>,
 	daily_revenue: [
 		{ date: '2025-01-15', total: 5000 },
 		{ date: '2025-02-20', total: 8000 },
 	],
 };
 
-const mockUseGetDashboardStatsQuery = jest.fn(() => ({
+interface MockQueryResult<T> {
+	data: T | undefined;
+	isLoading: boolean;
+}
+
+const mockUseGetDashboardStatsQuery = jest.fn<MockQueryResult<typeof mockDashboardData>, []>(() => ({
 	data: mockDashboardData,
 	isLoading: false,
 }));
 
 jest.mock('@/store/services/reservation', () => ({
-	useGetDashboardStatsQuery: (...args: unknown[]) => mockUseGetDashboardStatsQuery(...args),
-	useGetReservationYearsQuery: () => ({ data: { years: [2025, 2024] } }),
+	useGetDashboardStatsQuery: () => mockUseGetDashboardStatsQuery(),
+	useGetReservationYearsQuery: () => {
+		const y = new Date().getFullYear();
+		return { data: { years: [y, y - 1] } };
+	},
 }));
 
 // Mock layout components
@@ -126,10 +134,16 @@ import type { AppSession } from '@/types/_initTypes';
 
 const mockSession: AppSession = {
 	accessToken: 'mock-token',
+	refreshToken: 'mock-refresh-token',
+	accessTokenExpiration: '2099-12-31T23:59:59Z',
+	refreshTokenExpiration: '2099-12-31T23:59:59Z',
 	user: {
 		accessToken: 'mock-token',
 		id: '1',
+		pk: 1,
 		name: 'Test User',
+		first_name: 'Test',
+		last_name: 'User',
 		email: 'test@example.com',
 		emailVerified: null,
 	},

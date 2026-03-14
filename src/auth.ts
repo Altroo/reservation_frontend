@@ -161,6 +161,10 @@ export const { handlers, auth } = NextAuth({
 
 			// Perform refresh token logic if the access token is expired
 			if (Date.now() >= parseExpirationToMs(token.access_expiration)) {
+				// Guard: if refresh token is missing or empty, force re-auth immediately
+				if (!token.refresh) {
+					return null;
+				}
 				try {
 					// Call your refresh token API if necessary
 					const instance = allowAnyInstance();
@@ -183,7 +187,10 @@ export const { handlers, auth } = NextAuth({
 						if (refreshedAccessExpiration) {
 							token.access_expiration = String(refreshedAccessExpiration);
 						}
-						token.refresh = refreshed.data.refresh ?? token.refresh; // Fallback to the old refresh token if not updated
+						token.refresh = refreshed.data.refresh || token.refresh; // Fallback to the old refresh token if not updated
+						if (refreshed.data.refresh_expiration) {
+							token.refresh_expiration = String(refreshed.data.refresh_expiration);
+						}
 					}
 				} catch (error) {
 					console.error('[Auth] Token refresh failed:', error instanceof Error ? error.message : error);

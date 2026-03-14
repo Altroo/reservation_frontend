@@ -296,7 +296,7 @@ const ReservationsListClient: React.FC<SessionProps> = ({ session }) => {
 			sx={{ overflowX: 'auto', overflowY: 'hidden' }}
 		>
 			<NavigationBar title="Liste des réservations">
-				<Protected>
+				<Protected permission="can_view">
 					<>
 						<Box
 							sx={{

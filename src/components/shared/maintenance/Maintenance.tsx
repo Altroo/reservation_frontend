@@ -6,8 +6,8 @@ import { Box, Chip, Divider, Paper, Stack, Typography } from '@mui/material';
 import BuildCircleOutlinedIcon from '@mui/icons-material/BuildCircleOutlined';
 import { useAppSelector } from '@/utils/hooks';
 import { getWSMaintenanceState } from '@/store/selectors';
-import Logo from '../../../../../public/assets/images/reservation-logo.png';
-import MaintenanceSVG from '../../../../../public/assets/images/auth_illu/maintenance.svg';
+import Logo from '../../../../public/assets/images/reservation-logo.png';
+import DocumentSVG from '../../../../public/assets/images/auth_illu/document.svg';
 
 const Maintenance: React.FC = () => {
 	const maintenance = useAppSelector(getWSMaintenanceState);
@@ -47,19 +47,9 @@ const Maintenance: React.FC = () => {
 						overflow: 'hidden',
 					}}
 				>
-					<Image
-						src={Logo}
-						alt="E.B.H Réservation - Logo"
-						priority
-						style={{ width: '150px', height: 'auto' }}
-					/>
+					<Image src={Logo} alt="E.B.H Réservation - Logo" priority style={{ width: '150px', height: 'auto' }} />
 					<Box sx={{ width: '100%', maxWidth: 420 }}>
-						<Image
-							src={MaintenanceSVG}
-							alt=""
-							priority
-							style={{ width: '100%', height: 'auto' }}
-						/>
+						<Image src={DocumentSVG} alt="" priority style={{ width: '100%', height: 'auto' }} />
 					</Box>
 				</Box>
 
@@ -78,12 +68,7 @@ const Maintenance: React.FC = () => {
 					}}
 				>
 					<Stack direction="row" justifyContent="center" sx={{ display: { xs: 'flex', md: 'none' }, mb: 4 }}>
-						<Image
-							src={Logo}
-							alt="E.B.H Réservation - Logo"
-							priority
-							style={{ width: '88px', height: 'auto' }}
-						/>
+						<Image src={Logo} alt="E.B.H Réservation - Logo" priority style={{ width: '88px', height: 'auto' }} />
 					</Stack>
 
 					<Paper
@@ -133,8 +118,8 @@ const Maintenance: React.FC = () => {
 										color: '#6B7280',
 									}}
 								>
-									Nous effectuons actuellement une maintenance sur E.B.H Réservation afin d&apos;améliorer la
-									stabilité de l&apos;application.
+									Nous effectuons actuellement une maintenance sur E.B.H Réservation afin d&apos;améliorer la stabilité
+									de l&apos;application.
 								</Typography>
 							</Stack>
 

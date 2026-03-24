@@ -8,3 +8,6 @@ export const getAccessToken = (state: RootState): string => state._init.initStat
 
 // Account
 export const getProfilState = (state: RootState): UserClass => state.account.profil as UserClass;
+
+// WS
+export const getWSMaintenanceState = (state: RootState): boolean => state.ws.maintenance;

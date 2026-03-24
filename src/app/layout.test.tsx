@@ -75,6 +75,14 @@ jest.mock('@/components/shared/sessionExpiredListener/sessionExpiredListener', (
 		return React.createElement('div', null, 'SESSION_EXPIRED_LISTENER');
 	},
 }));
+jest.mock('@/components/shared/maintenance/Maintenance', () => ({
+	__esModule: true,
+	default: () => {
+		// eslint-disable-next-line @typescript-eslint/no-require-imports
+		const React = require('react');
+		return React.createElement('div', null, 'MAINTENANCE_GATE');
+	},
+}));
 
 jest.mock('@mui/material-nextjs/v15-appRouter', () => ({
 	__esModule: true,

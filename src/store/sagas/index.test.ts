@@ -26,7 +26,8 @@ describe('rootSaga', () => {
 			]),
 		});
 
-		// 2 sagas: watchInit, watchAccount
-		expect(effect.payload).toHaveLength(2);
+		// 3 effects: watchInit, watchAccount, watchWS
+		expect(effect.payload).toHaveLength(3);
 	});
 });
+

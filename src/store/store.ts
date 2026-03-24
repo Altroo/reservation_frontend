@@ -4,12 +4,14 @@ import type { Store, Action } from '@reduxjs/toolkit';
 import { rootSaga } from '@/store/sagas';
 import _initReducer from '@/store/slices/_initSlice';
 import accountReducer from '@/store/slices/accountSlice';
+import wsReducer from '@/store/slices/wsSlice';
 import { accountApi, profilApi, usersApi } from '@/store/services/account';
 import { reservationApi } from '@/store/services/reservation';
 
 const rootReducer = combineReducers({
 	_init: _initReducer,
 	account: accountReducer,
+	ws: wsReducer,
 	[accountApi.reducerPath]: accountApi.reducer,
 	[profilApi.reducerPath]: profilApi.reducer,
 	[usersApi.reducerPath]: usersApi.reducer,

@@ -130,6 +130,7 @@ const mockReservation = {
 	apartment: 1,
 	apartment_code: 'APT-01',
 	apartment_name: 'Appartement Luxe',
+	apartment_nom: 'APT-01 — Appartement Luxe',
 	guest_name: 'Ahmed Ben Ali',
 	check_in: '2024-06-01',
 	check_out: '2024-06-05',

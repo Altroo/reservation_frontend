@@ -18,7 +18,7 @@ export const cookiesDeleter = async (url: string, body: object) => {
 	return { status: response.status };
 };
 
-/*** Fetch a PDF or DOCX blob via GET with Bearer auth token */
+/*** Fetch a file blob via GET with Bearer auth token */
 export const fetchFileBlob = async (url: string, accessToken: string): Promise<Blob> => {
 	const instance = axios.create();
 	const response = await instance.get<Blob>(url, {
@@ -28,9 +28,23 @@ export const fetchFileBlob = async (url: string, accessToken: string): Promise<B
 	return response.data;
 };
 
-/*** Base Axios JSON API call [POST] */
+/*** Fetch a PDF blob via GET with Bearer auth token */
+export const fetchPdfBlob = async (url: string, accessToken: string): Promise<Blob> => {
+	return fetchFileBlob(url, accessToken);
+};
+
+/*** Base Axios JSON Api call [POST] */
 export const postApi = async (url: string | undefined, instance: AxiosInstance, body?: object) => {
 	const response = await instance.post(`${url}`, body);
+	return {
+		status: response.status,
+		data: response.data,
+	};
+};
+
+/*** Base Axios JSON Api call [GET] */
+export const getApi = async (url: string | undefined, instance: AxiosInstance, queryParams?: object) => {
+	const response = await instance.get(`${url}`, { params: queryParams });
 	return {
 		status: response.status,
 		data: response.data,

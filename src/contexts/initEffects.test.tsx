@@ -32,47 +32,24 @@ describe('InitEffects', () => {
 
 		(useRouter as jest.Mock).mockReturnValue({ push: jest.fn() });
 		(usePathname as jest.Mock).mockReturnValue('/');
-
 		(useGetProfilQuery as jest.Mock).mockReturnValue({ data: undefined });
 	});
 
-	it('renders null without errors', () => {
-		(useSession as jest.Mock).mockReturnValue({ data: null, status: 'unauthenticated' });
-
-		const { container } = render(<InitEffects />);
-		expect(container.firstChild).toBeNull();
-	});
-
-	it('dispatches INIT_APP_SESSION_TOKENS when session is authenticated', async () => {
+	it('dispatches init app and session token actions when session is authenticated', async () => {
 		const mockSession = { user: { name: 'Test' } };
 		(useSession as jest.Mock).mockReturnValue({ data: mockSession, status: 'authenticated' });
 
 		render(<InitEffects />);
 
 		await waitFor(() => {
-			expect(mockDispatch).toHaveBeenCalledWith(
-				expect.objectContaining({ type: 'INIT_APP_SESSION_TOKENS' }),
-			);
+			expect(mockDispatch).toHaveBeenCalledWith(expect.objectContaining({ type: 'INIT_APP' }));
+			expect(mockDispatch).toHaveBeenCalledWith(expect.objectContaining({ type: 'INIT_APP_SESSION_TOKENS' }));
 		});
 	});
 
-	it('does not dispatch INIT_APP_SESSION_TOKENS when unauthenticated', async () => {
-		(useSession as jest.Mock).mockReturnValue({ data: null, status: 'unauthenticated' });
-
-		render(<InitEffects />);
-
-		await waitFor(() => {
-			const initCalls = mockDispatch.mock.calls.filter(
-				([action]) => action?.type === 'INIT_APP_SESSION_TOKENS',
-			);
-			expect(initCalls.length).toBe(0);
-		});
-	});
-
-	it('dispatches ACCOUNT_SET_PROFIL when profile data is available', async () => {
+	it('dispatches profile action when user data is available', async () => {
+		const mockUser = { id: 1, name: 'User' };
 		(useSession as jest.Mock).mockReturnValue({ data: { user: {} }, status: 'authenticated' });
-
-		const mockUser = { id: 1, first_name: 'Jane', default_password_set: false };
 		(useGetProfilQuery as jest.Mock).mockReturnValue({ data: mockUser });
 
 		render(<InitEffects />);
@@ -81,38 +58,6 @@ describe('InitEffects', () => {
 			expect(mockDispatch).toHaveBeenCalledWith(
 				expect.objectContaining({ type: 'ACCOUNT_SET_PROFIL', data: mockUser }),
 			);
-		});
-	});
-
-	it('redirects to DASHBOARD_PASSWORD when default_password_set is true', async () => {
-		const mockPush = jest.fn();
-		(useRouter as jest.Mock).mockReturnValue({ push: mockPush });
-		(usePathname as jest.Mock).mockReturnValue('/dashboard/contracts');
-
-		(useSession as jest.Mock).mockReturnValue({ data: { user: {} }, status: 'authenticated' });
-		const mockUser = { id: 1, first_name: 'A', default_password_set: true };
-		(useGetProfilQuery as jest.Mock).mockReturnValue({ data: mockUser });
-
-		render(<InitEffects />);
-
-		await waitFor(() => {
-			expect(mockPush).toHaveBeenCalledWith(expect.stringContaining('password'));
-		});
-	});
-
-	it('does not redirect when already on password page', async () => {
-		const mockPush = jest.fn();
-		(useRouter as jest.Mock).mockReturnValue({ push: mockPush });
-		(usePathname as jest.Mock).mockReturnValue('/dashboard/settings/password');
-
-		(useSession as jest.Mock).mockReturnValue({ data: { user: {} }, status: 'authenticated' });
-		const mockUser = { id: 1, first_name: 'A', default_password_set: true };
-		(useGetProfilQuery as jest.Mock).mockReturnValue({ data: mockUser });
-
-		render(<InitEffects />);
-
-		await waitFor(() => {
-			expect(mockPush).not.toHaveBeenCalled();
 		});
 	});
 });

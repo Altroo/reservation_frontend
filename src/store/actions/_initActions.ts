@@ -1,12 +1,22 @@
 import * as types from './index';
-import type { Session } from 'next-auth';
+import { Session } from 'next-auth';
 
-export const initAppSessionTokensAction = (session: Session) => ({
-	type: types.INIT_APP_SESSION_TOKENS,
-	session,
-});
+export const initAppAction = () => {
+	return {
+		type: types.INIT_APP,
+	};
+};
 
-export const refreshAppTokenStatesAction = (session: Session) => ({
-	type: types.REFRESH_APP_TOKEN_STATES,
-	session,
-});
+export const initAppSessionTokensAction = (session: Session) => {
+	return {
+		type: types.INIT_APP_SESSION_TOKENS,
+		session,
+	};
+};
+
+export const refreshAppTokenStatesAction = (session: Session) => {
+	return {
+		type: types.REFRESH_APP_TOKEN_STATES,
+		session,
+	};
+};

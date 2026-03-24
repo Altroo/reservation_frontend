@@ -8,69 +8,71 @@ import * as Types from '@/store/actions';
 import { setWSMaintenance } from '@/store/slices/wsSlice';
 
 jest.mock('@/store/services/ws', () => ({
-  initWebsocket: jest.fn(),
+	initWebsocket: jest.fn(),
 }));
 
 jest.mock('@/store/selectors', () => ({
-  getAccessToken: jest.fn(),
+	getAccessToken: jest.fn(),
 }));
 
 describe('watchWS saga', () => {
-  it('should initialize websocket and dispatch non-maintenance actions from the channel', async () => {
-    const dispatched: Action[] = [];
-    const mockToken = 'mock-token';
-    const mockAction: Action = { type: 'MOCK_ACTION' };
+	it('should initialize websocket and dispatch actions from the channel', async () => {
+		const dispatched: Action[] = [];
+		const mockToken = 'mock-token';
+		const mockAction: Action = { type: 'MOCK_ACTION' };
 
-    (getAccessToken as jest.Mock).mockReturnValue(mockToken);
+		(getAccessToken as jest.Mock).mockReturnValue(mockToken);
 
-    const mockChannel = eventChannel((emit) => {
-      const timer = setTimeout(() => emit(mockAction), 10);
-      return () => clearTimeout(timer);
-    });
+		const mockChannel = eventChannel((emit) => {
+			const timer = setTimeout(() => emit(mockAction), 10); // emit after saga starts
+			return () => clearTimeout(timer);
+		});
 
-    (initWebsocket as jest.Mock).mockReturnValue(mockChannel);
+		(initWebsocket as jest.Mock).mockReturnValue(mockChannel);
 
-    const task = runSaga(
-      {
-        dispatch: (action: Action) => dispatched.push(action),
-        getState: () => ({ auth: { token: mockToken } }),
-      },
-      watchWS,
-    );
+		const task = runSaga(
+			{
+				dispatch: (action: Action) => dispatched.push(action),
+				getState: () => ({ auth: { token: mockToken } }),
+			},
+			watchWS,
+		);
 
-    setTimeout(() => task.cancel(), 100);
-    await task.toPromise();
+		// Cancel after short delay to break infinite loop
+		setTimeout(() => task.cancel(), 100);
 
-    expect(initWebsocket).toHaveBeenCalledWith(mockToken);
-    expect(dispatched).toContainEqual(mockAction);
-  }, 10000);
+		await task.toPromise();
 
-  it('should map WS_MAINTENANCE to setWSMaintenance', async () => {
-    const dispatched: Action[] = [];
-    const mockToken = 'mock-token';
-    const mockAction = { type: Types.WS_MAINTENANCE, maintenance: true };
+		expect(initWebsocket).toHaveBeenCalledWith(mockToken);
+		expect(dispatched).toContainEqual(mockAction);
+	}, 10000); // Optional: increase timeout to 10s
 
-    (getAccessToken as jest.Mock).mockReturnValue(mockToken);
+	it('should map WS_MAINTENANCE to setWSMaintenance', async () => {
+		const dispatched: Action[] = [];
+		const mockToken = 'mock-token';
+		const mockAction = { type: Types.WS_MAINTENANCE, maintenance: true };
 
-    const mockChannel = eventChannel((emit) => {
-      const timer = setTimeout(() => emit(mockAction), 10);
-      return () => clearTimeout(timer);
-    });
+		(getAccessToken as jest.Mock).mockReturnValue(mockToken);
 
-    (initWebsocket as jest.Mock).mockReturnValue(mockChannel);
+		const mockChannel = eventChannel((emit) => {
+			const timer = setTimeout(() => emit(mockAction), 10);
+			return () => clearTimeout(timer);
+		});
 
-    const task = runSaga(
-      {
-        dispatch: (action: Action) => dispatched.push(action),
-        getState: () => ({ auth: { token: mockToken } }),
-      },
-      watchWS,
-    );
+		(initWebsocket as jest.Mock).mockReturnValue(mockChannel);
 
-    setTimeout(() => task.cancel(), 100);
-    await task.toPromise();
+		const task = runSaga(
+			{
+				dispatch: (action: Action) => dispatched.push(action),
+				getState: () => ({ auth: { token: mockToken } }),
+			},
+			watchWS,
+		);
 
-    expect(initWebsocket).toHaveBeenCalledWith(mockToken);
-    expect(dispatched).toContainEqual(setWSMaintenance(true));
-  });
+		setTimeout(() => task.cancel(), 100);
+		await task.toPromise();
+
+		expect(initWebsocket).toHaveBeenCalledWith(mockToken);
+		expect(dispatched).toContainEqual(setWSMaintenance(true));
+	});
 });

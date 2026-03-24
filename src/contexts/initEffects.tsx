@@ -4,7 +4,7 @@ import React, { useEffect, useRef } from 'react';
 import { useAppDispatch, useAppSelector } from '@/utils/hooks';
 import { useSession } from 'next-auth/react';
 import { useRouter, usePathname } from 'next/navigation';
-import { initAppSessionTokensAction } from '@/store/actions/_initActions';
+import { initAppAction, initAppSessionTokensAction } from '@/store/actions/_initActions';
 import { getAccessToken } from '@/store/selectors';
 import { useGetProfilQuery } from '@/store/services/account';
 import { accountSetProfilAction } from '@/store/actions/accountActions';
@@ -15,13 +15,22 @@ export const InitEffects: React.FC = () => {
 	const dispatch = useAppDispatch();
 	const router = useRouter();
 	const pathname = usePathname();
-	const accessToken = useAppSelector(getAccessToken) ?? undefined;
+	const initState = useAppSelector(getAccessToken);
+	const accessToken = initState ?? undefined;
 	const skip = !accessToken || status !== 'authenticated';
 
+	const appInitializedRef = useRef(false);
 	const tokensInitializedRef = useRef(false);
+
+	useEffect(() => {
+		if (!appInitializedRef.current) {
+			dispatch(initAppAction());
+			appInitializedRef.current = true;
+		}
+	}, [dispatch]);
+
 	const { data: user } = useGetProfilQuery(undefined, { skip });
 
-	// Initialize tokens once
 	useEffect(() => {
 		if (status === 'authenticated' && session && !tokensInitializedRef.current) {
 			dispatch(initAppSessionTokensAction(session));

@@ -7,7 +7,7 @@ const isProd = process.env.NODE_ENV === 'production';
 
 type http = 'http' | 'https' | undefined;
 
-// Remote patterns for production API
+// Define remote patterns for production API
 const remotePatterns: RemotePattern[] = [
 	{
 		protocol: 'https',
@@ -66,20 +66,28 @@ const nextConfig: NextConfig = {
 	},
 
 	async headers() {
-		return [
-			{
+		const headers: {
+			source: string;
+			headers: { key: string; value: string }[];
+		}[] = [];
+
+		if (isProd) {
+			headers.push({
 				source: '/_next/static/:path*',
-				headers: [
-					{ key: 'Cache-Control', value: 'public, max-age=31536000, immutable' },
-				],
-			},
+				headers: [{ key: 'Cache-Control', value: 'public, max-age=31536000, immutable' }],
+			});
+		}
+
+		headers.push(
 			{
+				// Manifest file
 				source: '/assets/ico/manifest.json',
 				headers: [
 					{ key: 'Content-Type', value: 'application/manifest+json' },
 					{ key: 'Cache-Control', value: 'public, max-age=604800, immutable' },
 				],
 			},
+			// Fonts - long cache + CORS
 			{
 				source: '/assets/fonts/:path*',
 				headers: [
@@ -87,24 +95,21 @@ const nextConfig: NextConfig = {
 					{ key: 'Access-Control-Allow-Origin', value: '*' },
 				],
 			},
+			// Images and icons - long cache
 			{
 				source: '/assets/images/:path*',
-				headers: [
-					{ key: 'Cache-Control', value: 'public, max-age=31536000, immutable' },
-				],
+				headers: [{ key: 'Cache-Control', value: 'public, max-age=31536000, immutable' }],
 			},
 			{
 				source: '/assets/ico/:path*',
-				headers: [
-					{ key: 'Cache-Control', value: 'public, max-age=31536000, immutable' },
-				],
+				headers: [{ key: 'Cache-Control', value: 'public, max-age=31536000, immutable' }],
 			},
+			// Catch-all for other assets
 			{
 				source: '/assets/:path*',
-				headers: [
-					{ key: 'Cache-Control', value: 'public, max-age=31536000, immutable' },
-				],
+				headers: [{ key: 'Cache-Control', value: 'public, max-age=31536000, immutable' }],
 			},
+			// Security & privacy headers for all pages
 			{
 				source: '/(.*)',
 				headers: [
@@ -129,7 +134,8 @@ const nextConfig: NextConfig = {
 					},
 				],
 			},
-		];
+		);
+		return headers;
 	},
 };
 

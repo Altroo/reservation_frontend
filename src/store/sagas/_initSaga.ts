@@ -1,16 +1,12 @@
 import { call, put, takeLatest } from 'redux-saga/effects';
 import * as Types from '../actions';
-import type { InitStateInterface, InitStateToken } from '@/types/_initTypes';
+import type { InitStateInterface, InitStateToken, MaintenanceGetRootResponseType } from '@/types/_initTypes';
 import { setInitState } from '../slices/_initSlice';
 import type { Session } from 'next-auth';
 import { setWSMaintenance } from '../slices/wsSlice';
 import { allowAnyInstance } from '@/utils/helpers';
 import { getApi } from '@/utils/apiHelpers';
-import type { ResponseDataInterface } from '@/types/_initTypes';
-import type { WSMaintenanceBootstrap } from '@/types/wsTypes';
 import type { AxiosInstance } from 'axios';
-
-type MaintenanceGetRootResponseType = ResponseDataInterface<WSMaintenanceBootstrap>;
 
 export function* initAppSaga() {
 	yield call(initMaintenanceSaga);

@@ -1,4 +1,5 @@
 import type { Session } from 'next-auth';
+import { WSMaintenanceBootstrap } from '@/types/wsTypes';
 
 export type ApiErrorResponseType = {
 	status_code: number;
@@ -63,3 +64,5 @@ export interface PaginationResponseType<T> {
 	previous: string | null;
 	results: Array<T>;
 }
+
+export type MaintenanceGetRootResponseType = ResponseDataInterface<WSMaintenanceBootstrap>;

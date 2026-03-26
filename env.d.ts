@@ -14,6 +14,8 @@ declare namespace NodeJS {
 		NEXT_PUBLIC_API_URL: string;
 		// Base URLs
 		NEXT_PUBLIC_ROOT_API_URL: string;
+		NEXT_PUBLIC_ROOT_WS_URL: string;
+		NEXT_PUBLIC_WS_MAINTENANCE_ROOT: string;
 		AUTH_TRUST_HOST: string;
 		NEXTAUTH_SECRET: string;
 		NEXTAUTH_URL: string;

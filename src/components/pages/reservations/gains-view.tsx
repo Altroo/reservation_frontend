@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
 	Box,
 	Card,
@@ -12,33 +12,25 @@ import {
 	InputLabel,
 	LinearProgress,
 	MenuItem,
+	Paper,
 	Select,
 	Stack,
-	Tooltip as MuiTooltip,
-	Typography,
 	Table,
 	TableBody,
 	TableCell,
 	TableContainer,
 	TableHead,
 	TableRow,
-	Paper,
+	Tooltip as MuiTooltip,
+	Typography,
 } from '@mui/material';
 import {
-	TrendingUp as TrendingUpIcon,
-	EmojiEvents as TrophyIcon,
 	CalendarMonth as CalendarIcon,
+	EmojiEvents as TrophyIcon,
 	InfoOutlined as InfoOutlinedIcon,
+	TrendingUp as TrendingUpIcon,
 } from '@mui/icons-material';
-import {
-	Chart as ChartJS,
-	CategoryScale,
-	LinearScale,
-	BarElement,
-	Title,
-	Tooltip,
-	Legend,
-} from 'chart.js';
+import { BarElement, CategoryScale, Chart as ChartJS, Legend, LinearScale, Title, Tooltip } from 'chart.js';
 import { Bar } from 'react-chartjs-2';
 import type { SessionProps } from '@/types/_initTypes';
 import Styles from '@/styles/dashboard/dashboard.module.sass';
@@ -46,7 +38,7 @@ import NavigationBar from '@/components/layouts/navigationBar/navigationBar';
 import { Protected } from '@/components/layouts/protected/protected';
 import { useGetBalanceQuery, useGetReservationYearsQuery } from '@/store/services/reservation';
 import { useInitAccessToken } from '@/contexts/InitContext';
-import { MONTH_LABELS, MONTH_NAMES, APARTMENT_COLORS } from '@/utils/rawData';
+import { APARTMENT_COLORS, MONTH_LABELS, MONTH_NAMES } from '@/utils/rawData';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
@@ -500,6 +492,3 @@ const GainsClient: React.FC<SessionProps> = ({ session }) => {
 };
 
 export default GainsClient;
-
-
-

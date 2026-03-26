@@ -12,6 +12,7 @@ import {
 	IconButton,
 	InputLabel,
 	MenuItem,
+	Paper,
 	Select,
 	Stack,
 	Table,
@@ -22,7 +23,6 @@ import {
 	TableRow,
 	Tooltip as MuiTooltip,
 	Typography,
-	Paper,
 } from '@mui/material';
 import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
 import HomeWorkIcon from '@mui/icons-material/HomeWork';
@@ -33,7 +33,11 @@ import type { SessionProps } from '@/types/_initTypes';
 import Styles from '@/styles/dashboard/dashboard.module.sass';
 import NavigationBar from '@/components/layouts/navigationBar/navigationBar';
 import { Protected } from '@/components/layouts/protected/protected';
-import { useGetBalanceQuery, useGetReservationYearsQuery, useToggleAmountReturnedMutation } from '@/store/services/reservation';
+import {
+	useGetBalanceQuery,
+	useGetReservationYearsQuery,
+	useToggleAmountReturnedMutation,
+} from '@/store/services/reservation';
 import { useInitAccessToken } from '@/contexts/InitContext';
 import { MONTH_LABELS } from '@/utils/rawData';
 
@@ -71,7 +75,11 @@ function KpiCard({ color, icon, label, value, tooltip }: KpiCardProps) {
 					<Stack direction="row" alignItems="center" spacing={1.5}>
 						<Box sx={{ color }}>{icon}</Box>
 						<Box>
-							<Typography variant="caption" color="text.secondary" sx={{ textTransform: 'uppercase', letterSpacing: 0.5 }}>
+							<Typography
+								variant="caption"
+								color="text.secondary"
+								sx={{ textTransform: 'uppercase', letterSpacing: 0.5 }}
+							>
 								{label}
 							</Typography>
 							<Typography variant="h6" fontWeight={700}>
@@ -390,6 +398,3 @@ const BalanceClient: React.FC<SessionProps> = ({ session }) => {
 };
 
 export default BalanceClient;
-
-
-

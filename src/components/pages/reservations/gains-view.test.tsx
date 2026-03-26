@@ -1,6 +1,8 @@
 import React from 'react';
-import { render, screen, cleanup } from '@testing-library/react';
+import { cleanup, render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
+import GainsClient from './gains-view';
+import type { AppSession } from '@/types/_initTypes';
 
 // Mock next/navigation
 jest.mock('next/navigation', () => ({
@@ -93,16 +95,26 @@ jest.mock('@/components/layouts/navigationBar/navigationBar', () => {
 
 jest.mock('@/utils/rawData', () => ({
 	MONTH_LABELS: ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin', 'Juil', 'Août', 'Sep', 'Oct', 'Nov', 'Déc'],
-	MONTH_NAMES: ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'],
+	MONTH_NAMES: [
+		'Janvier',
+		'Février',
+		'Mars',
+		'Avril',
+		'Mai',
+		'Juin',
+		'Juillet',
+		'Août',
+		'Septembre',
+		'Octobre',
+		'Novembre',
+		'Décembre',
+	],
 	APARTMENT_COLORS: ['rgba(25,118,210,0.8)', 'rgba(255,152,0,0.8)', 'rgba(76,175,80,0.8)'],
 }));
 
 jest.mock('@/styles/dashboard/dashboard.module.sass', () => ({
 	flexRootStack: 'flexRootStack',
 }));
-
-import GainsClient from './gains-view';
-import type { AppSession } from '@/types/_initTypes';
 
 const mockSession: AppSession = {
 	accessToken: 'mock-token',
@@ -231,8 +243,10 @@ describe('GainsClient', () => {
 					year: 2025,
 					apartments: {},
 					airbnb_monthly: {},
-					non_airbnb_monthly: {},						total_returned: 0,
-						total_not_returned: 0,					total_monthly_cost: 0,
+					non_airbnb_monthly: {},
+					total_returned: 0,
+					total_not_returned: 0,
+					total_monthly_cost: 0,
 				},
 				isLoading: false,
 			});
@@ -241,6 +255,3 @@ describe('GainsClient', () => {
 		});
 	});
 });
-
-
-

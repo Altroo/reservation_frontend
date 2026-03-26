@@ -1,6 +1,8 @@
 import React from 'react';
-import { render, screen, cleanup } from '@testing-library/react';
+import { cleanup, render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
+import BalanceClient from './balance-view';
+import type { AppSession } from '@/types/_initTypes';
 
 // Mock next/navigation
 jest.mock('next/navigation', () => ({
@@ -102,9 +104,6 @@ jest.mock('@/utils/rawData', () => ({
 jest.mock('@/styles/dashboard/dashboard.module.sass', () => ({
 	flexRootStack: 'flexRootStack',
 }));
-
-import BalanceClient from './balance-view';
-import type { AppSession } from '@/types/_initTypes';
 
 const mockSession = {
 	accessToken: 'mock-token',
@@ -253,6 +252,3 @@ describe('BalanceClient', () => {
 		});
 	});
 });
-
-
-

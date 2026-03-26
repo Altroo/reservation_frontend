@@ -3,7 +3,7 @@
 import React, { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import type { ApiErrorResponseType, ResponseDataInterface, SessionProps } from '@/types/_initTypes';
-import { getAccessTokenFromSession } from '@/store/session';
+import { useInitAccessToken } from '@/contexts/InitContext';
 import { useDeleteReservationMutation, useGetReservationQuery } from '@/store/services/reservation';
 import Styles from '@/styles/dashboard/dashboard.module.sass';
 import NavigationBar from '@/components/layouts/navigationBar/navigationBar';
@@ -98,7 +98,7 @@ interface Props extends SessionProps {
 
 const ReservationViewClient: React.FC<Props> = ({ session, id }) => {
 	const router = useRouter();
-	const token = getAccessTokenFromSession(session);
+	const token = useInitAccessToken();
 	const { data: reservation, isLoading, error } = useGetReservationQuery({ id }, { skip: !token });
 	const axiosError = useMemo(
 		() => (error ? (error as ResponseDataInterface<ApiErrorResponseType>) : undefined),
@@ -340,3 +340,6 @@ const ReservationViewClient: React.FC<Props> = ({ session, id }) => {
 };
 
 export default ReservationViewClient;
+
+
+

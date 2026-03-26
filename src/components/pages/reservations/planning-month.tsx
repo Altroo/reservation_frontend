@@ -28,7 +28,7 @@ import Styles from '@/styles/dashboard/dashboard.module.sass';
 import NavigationBar from '@/components/layouts/navigationBar/navigationBar';
 import { Protected } from '@/components/layouts/protected/protected';
 import { useGetPlanningQuery } from '@/store/services/reservation';
-import { getAccessTokenFromSession } from '@/store/session';
+import { useInitAccessToken } from '@/contexts/InitContext';
 import { formatDate } from '@/utils/helpers';
 import { PAYMENT_SOURCE_BG, MONTH_NAMES, DAY_ABBREVIATIONS } from '@/utils/rawData';
 
@@ -81,7 +81,7 @@ function buildRows(
 }
 
 const PlanningMonthClient: React.FC<SessionProps> = ({ session }) => {
-	const token = getAccessTokenFromSession(session);
+	const token = useInitAccessToken();
 	const theme = useTheme();
 	const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
@@ -390,3 +390,6 @@ const PlanningMonthClient: React.FC<SessionProps> = ({ session }) => {
 };
 
 export default PlanningMonthClient;
+
+
+

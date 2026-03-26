@@ -40,7 +40,7 @@ import {
 } from 'chart.js';
 import { Bar, Doughnut, Line } from 'react-chartjs-2';
 import { useGetDashboardStatsQuery, useGetReservationYearsQuery } from '@/store/services/reservation';
-import { getAccessTokenFromSession } from '@/store/session';
+import { useInitAccessToken } from '@/contexts/InitContext';
 import NavigationBar from '@/components/layouts/navigationBar/navigationBar';
 import { Protected } from '@/components/layouts/protected/protected';
 import Styles from '@/styles/dashboard/dashboard.module.sass';
@@ -170,7 +170,7 @@ const EmptyChart: React.FC<{ message?: string }> = ({ message }) => (
 );
 
 const ReservationDashboardClient: React.FC<SessionProps> = ({ session }) => {
-	const token = getAccessTokenFromSession(session);
+	const token = useInitAccessToken();
 	const currentYear = new Date().getFullYear();
 	const [year, setYear] = useState<number>(currentYear);
 
@@ -492,3 +492,6 @@ const ReservationDashboardClient: React.FC<SessionProps> = ({ session }) => {
 };
 
 export default ReservationDashboardClient;
+
+
+

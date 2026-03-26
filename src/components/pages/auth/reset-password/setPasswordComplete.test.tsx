@@ -45,3 +45,4 @@ describe('SetPasswordCompleteClient', () => {
 		expect(loginButtons.length).toBeGreaterThanOrEqual(1);
 	});
 });
+

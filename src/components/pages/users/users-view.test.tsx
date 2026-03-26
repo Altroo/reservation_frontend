@@ -106,3 +106,4 @@ describe('UsersViewClient', () => {
 		expect(screen.getByRole('button', { name: /supprimer/i })).toBeInTheDocument();
 	});
 });
+

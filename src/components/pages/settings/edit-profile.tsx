@@ -15,7 +15,7 @@ import { setFormikAutoErrors } from '@/utils/helpers';
 import PrimaryLoadingButton from '@/components/htmlElements/buttons/primaryLoadingButton/primaryLoadingButton';
 import type { SessionProps } from '@/types/_initTypes';
 import { useGetProfilQuery, useEditProfilMutation } from '@/store/services/account';
-import { getAccessTokenFromSession } from '@/store/session';
+import { useInitAccessToken } from '@/contexts/InitContext';
 import ApiProgress from '@/components/formikElements/apiLoading/apiProgress/apiProgress';
 import NavigationBar from '@/components/layouts/navigationBar/navigationBar';
 import { accountEditProfilAction } from '@/store/actions/accountActions';
@@ -144,7 +144,7 @@ const EditProfilClient: React.FC<SessionProps> = (props: SessionProps) => {
 	const { session } = props;
 	const theme = useTheme();
 	const isMobile = useMediaQuery(theme.breakpoints.down('md'));
-	const token = getAccessTokenFromSession(session);
+	const token = useInitAccessToken();
 
 	return (
 		<Stack direction="column" sx={{ position: 'relative' }}>
@@ -169,3 +169,6 @@ const EditProfilClient: React.FC<SessionProps> = (props: SessionProps) => {
 };
 
 export default EditProfilClient;
+
+
+

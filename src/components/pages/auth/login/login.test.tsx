@@ -211,3 +211,4 @@ describe('LoginClient', () => {
 		expect(screen.queryByText('Connexion')).toBeNull();
 	});
 });
+

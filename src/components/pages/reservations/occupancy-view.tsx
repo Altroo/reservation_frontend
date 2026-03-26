@@ -41,7 +41,7 @@ import Styles from '@/styles/dashboard/dashboard.module.sass';
 import NavigationBar from '@/components/layouts/navigationBar/navigationBar';
 import { Protected } from '@/components/layouts/protected/protected';
 import { useGetDashboardStatsQuery, useGetPlanningQuery, useGetReservationYearsQuery } from '@/store/services/reservation';
-import { getAccessTokenFromSession } from '@/store/session';
+import { useInitAccessToken } from '@/contexts/InitContext';
 import { formatDate } from '@/utils/helpers';
 import { APARTMENT_COLORS, PAYMENT_SOURCE_BG, MONTH_NAMES } from '@/utils/rawData';
 
@@ -105,7 +105,7 @@ function KpiCard({ color, icon, label, value, tooltip }: KpiCardProps) {
 }
 
 const OccupancyClient: React.FC<SessionProps> = ({ session }) => {
-	const token = getAccessTokenFromSession(session);
+	const token = useInitAccessToken();
 	const currentYear = new Date().getFullYear();
 	const [year, setYear] = useState(currentYear);
 	const [heatmapMonth, setHeatmapMonth] = useState(new Date().getMonth() + 1);
@@ -539,3 +539,6 @@ const OccupancyClient: React.FC<SessionProps> = ({ session }) => {
 };
 
 export default OccupancyClient;
+
+
+

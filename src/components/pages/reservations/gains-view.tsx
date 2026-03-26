@@ -45,7 +45,7 @@ import Styles from '@/styles/dashboard/dashboard.module.sass';
 import NavigationBar from '@/components/layouts/navigationBar/navigationBar';
 import { Protected } from '@/components/layouts/protected/protected';
 import { useGetBalanceQuery, useGetReservationYearsQuery } from '@/store/services/reservation';
-import { getAccessTokenFromSession } from '@/store/session';
+import { useInitAccessToken } from '@/contexts/InitContext';
 import { MONTH_LABELS, MONTH_NAMES, APARTMENT_COLORS } from '@/utils/rawData';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
@@ -99,7 +99,7 @@ const KpiCard: React.FC<KpiProps> = ({ icon, label, value, sub, color }) => (
 );
 
 const GainsClient: React.FC<SessionProps> = ({ session }) => {
-	const token = getAccessTokenFromSession(session);
+	const token = useInitAccessToken();
 	const currentYear = new Date().getFullYear();
 	const [year, setYear] = useState(currentYear);
 
@@ -446,3 +446,6 @@ const GainsClient: React.FC<SessionProps> = ({ session }) => {
 };
 
 export default GainsClient;
+
+
+

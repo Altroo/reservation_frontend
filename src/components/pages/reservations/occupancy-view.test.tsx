@@ -15,8 +15,8 @@ jest.mock('next/navigation', () => ({
 }));
 
 // Mock session helper
-jest.mock('@/store/session', () => ({
-	getAccessTokenFromSession: jest.fn(() => 'mock-token'),
+jest.mock('@/contexts/InitContext', () => ({
+	useInitAccessToken: jest.fn(() => 'test-token'),
 }));
 
 // Mock chart.js
@@ -365,3 +365,6 @@ describe('OccupancyClient', () => {
 		});
 	});
 });
+
+
+

@@ -43,14 +43,14 @@ import {
 	useBulkDeleteReservationsMutation,
 	useGetApartmentsQuery,
 } from '@/store/services/reservation';
-import { getAccessTokenFromSession } from '@/store/session';
+import { useInitAccessToken } from '@/contexts/InitContext';
 import { createDateRangeFilterOperator } from '@/components/shared/dateRangeFilter/dateRangeFilterOperator';
 import { createNumericFilterOperators } from '@/components/shared/numericFilter/numericFilterOperator';
 
 const ReservationsListClient: React.FC<SessionProps> = ({ session }) => {
 	const router = useRouter();
 	const { onSuccess, onError } = useToast();
-	const token = getAccessTokenFromSession(session);
+	const token = useInitAccessToken();
 
 	const { data: apartments } = useGetApartmentsQuery(undefined, { skip: !token });
 
@@ -376,3 +376,6 @@ const ReservationsListClient: React.FC<SessionProps> = ({ session }) => {
 };
 
 export default ReservationsListClient;
+
+
+

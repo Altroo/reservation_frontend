@@ -22,9 +22,8 @@ jest.mock('@/utils/hooks', () => ({
 	useToast: () => ({ onSuccess: jest.fn(), onError: jest.fn() }),
 }));
 
-jest.mock('@/store/session', () => ({
-	__esModule: true,
-	getAccessTokenFromSession: () => 'mock-token',
+jest.mock('@/contexts/InitContext', () => ({
+	useInitAccessToken: jest.fn(() => 'test-token'),
 }));
 
 // Mock reservation service hooks
@@ -302,3 +301,6 @@ describe('ReservationFormClient', () => {
 		});
 	});
 });
+
+
+

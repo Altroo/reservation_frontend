@@ -99,3 +99,4 @@ describe('SetPasswordClient', () => {
 		expect(submitButtons[0]).toBeEnabled();
 	});
 });
+

@@ -29,9 +29,8 @@ jest.mock('@/utils/hooks', () => ({
 	useAppDispatch: () => jest.fn(),
 }));
 
-jest.mock('@/store/session', () => ({
-	__esModule: true,
-	getAccessTokenFromSession: () => 'mock-token',
+jest.mock('@/contexts/InitContext', () => ({
+	useInitAccessToken: jest.fn(() => 'test-token'),
 }));
 
 // Mock NavigationBar
@@ -290,3 +289,6 @@ describe('EditProfileClient', () => {
 		expect(firstNameInput).toHaveValue('');
 	});
 });
+
+
+

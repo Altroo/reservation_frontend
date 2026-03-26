@@ -13,7 +13,7 @@ import {
 	Close as CloseIcon,
 } from '@mui/icons-material';
 import { GridColDef, GridRenderCellParams, GridFilterModel, GridLogicOperator } from '@mui/x-data-grid';
-import { getAccessTokenFromSession } from '@/store/session';
+import { useInitAccessToken } from '@/contexts/InitContext';
 import Styles from '@/styles/dashboard/dashboard.module.sass';
 import NavigationBar from '@/components/layouts/navigationBar/navigationBar';
 import { useDeleteUserMutation, useGetUsersListQuery, useBulkDeleteUsersMutation } from '@/store/services/account';
@@ -37,7 +37,7 @@ import { createDateRangeFilterOperator } from '@/components/shared/dateRangeFilt
 const UsersListClient: React.FC<SessionProps> = ({ session }: SessionProps) => {
 	const router = useRouter();
 	const { onSuccess, onError } = useToast();
-	const token = getAccessTokenFromSession(session);
+	const token = useInitAccessToken();
 
 	const [paginationModel, setPaginationModel] = useState<{ page: number; pageSize: number }>({
 		page: 0,
@@ -434,3 +434,6 @@ const UsersListClient: React.FC<SessionProps> = ({ session }: SessionProps) => {
 };
 
 export default UsersListClient;
+
+
+

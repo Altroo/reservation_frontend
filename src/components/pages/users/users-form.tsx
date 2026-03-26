@@ -48,7 +48,7 @@ import { useRouter } from 'next/navigation';
 import CustomSquareImageUploading from '@/components/formikElements/customSquareImageUploading/customSquareImageUploading';
 import { useToast } from '@/utils/hooks';
 import { useAddUserMutation, useCheckEmailMutation, useEditUserMutation, useGetUserQuery } from '@/store/services/account';
-import { getAccessTokenFromSession } from '@/store/session';
+import { useInitAccessToken } from '@/contexts/InitContext';
 import { Protected } from '@/components/layouts/protected/protected';
 
 const inputTheme = textInputTheme();
@@ -435,7 +435,7 @@ interface Props extends SessionProps {
 }
 
 const UsersFormClient: React.FC<Props> = ({ session, id }: Props) => {
-	const token = getAccessTokenFromSession(session);
+	const token = useInitAccessToken();
 	const isEditMode = id !== undefined;
 
 	return (
@@ -454,3 +454,6 @@ const UsersFormClient: React.FC<Props> = ({ session, id }: Props) => {
 };
 
 export default UsersFormClient;
+
+
+

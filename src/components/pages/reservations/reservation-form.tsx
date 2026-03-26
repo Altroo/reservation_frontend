@@ -58,7 +58,7 @@ import {
 	useGetReservationQuery,
 	useUpdateReservationMutation,
 } from '@/store/services/reservation';
-import { getAccessTokenFromSession } from '@/store/session';
+import { useInitAccessToken } from '@/contexts/InitContext';
 import { Protected } from '@/components/layouts/protected/protected';
 
 const inputTheme = textInputTheme();
@@ -491,7 +491,7 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 };
 
 const ReservationFormClient: React.FC<SessionProps & { id?: number }> = ({ session, id }) => {
-	const token = getAccessTokenFromSession(session);
+	const token = useInitAccessToken();
 	const title = id !== undefined ? 'Modifier la réservation' : 'Nouvelle réservation';
 
 	return (
@@ -506,3 +506,6 @@ const ReservationFormClient: React.FC<SessionProps & { id?: number }> = ({ sessi
 };
 
 export default ReservationFormClient;
+
+
+

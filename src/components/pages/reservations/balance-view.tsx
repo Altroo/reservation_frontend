@@ -93,7 +93,7 @@ function KpiCard({ color, icon, label, value, tooltip }: KpiCardProps) {
 }
 
 const BalanceClient: React.FC<SessionProps> = ({ session }) => {
-	const token = useInitAccessToken();
+	const token = useInitAccessToken(session);
 	const currentYear = new Date().getFullYear();
 	const [year, setYear] = useState(currentYear);
 
@@ -149,7 +149,13 @@ const BalanceClient: React.FC<SessionProps> = ({ session }) => {
 						) : (
 							<Stack spacing={3}>
 								{/* Balance KPIs */}
-								<Box sx={{ display: 'grid', gap: 2, gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(4, 1fr)' } }}>
+								<Box
+									sx={{
+										display: 'grid',
+										gap: 2,
+										gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(4, 1fr)' },
+									}}
+								>
 									<KpiCard
 										color="#1565c0"
 										icon={<AccountBalanceWalletIcon />}
@@ -186,7 +192,10 @@ const BalanceClient: React.FC<SessionProps> = ({ session }) => {
 										title="Détail des réservations"
 										subheader={`Réservations Airbnb & Virement bancaire pour ${year}`}
 										action={
-											<MuiTooltip title="Cliquez sur le statut pour marquer un montant comme retourné ou non retourné" arrow>
+											<MuiTooltip
+												title="Cliquez sur le statut pour marquer un montant comme retourné ou non retourné"
+												arrow
+											>
 												<IconButton size="small">
 													<InfoOutlinedIcon fontSize="small" sx={{ color: 'text.disabled' }} />
 												</IconButton>
@@ -202,9 +211,13 @@ const BalanceClient: React.FC<SessionProps> = ({ session }) => {
 														<TableCell sx={{ color: 'white', fontWeight: 700 }}>Client</TableCell>
 														<TableCell sx={{ color: 'white', fontWeight: 600 }}>Arrivée</TableCell>
 														<TableCell sx={{ color: 'white', fontWeight: 600 }}>Départ</TableCell>
-														<TableCell align="right" sx={{ color: 'white', fontWeight: 700 }}>Montant</TableCell>
+														<TableCell align="right" sx={{ color: 'white', fontWeight: 700 }}>
+															Montant
+														</TableCell>
 														<TableCell sx={{ color: 'white', fontWeight: 600 }}>Source</TableCell>
-														<TableCell align="center" sx={{ color: 'white', fontWeight: 700 }}>Retourné</TableCell>
+														<TableCell align="center" sx={{ color: 'white', fontWeight: 700 }}>
+															Retourné
+														</TableCell>
 													</TableRow>
 												</TableHead>
 												<TableBody>
@@ -266,9 +279,7 @@ const BalanceClient: React.FC<SessionProps> = ({ session }) => {
 											<Table size="small" sx={{ minWidth: 900 }}>
 												<TableHead>
 													<TableRow sx={{ bgcolor: 'primary.main' }}>
-														<TableCell sx={{ color: 'white', fontWeight: 700, width: 100 }}>
-															Appartement
-														</TableCell>
+														<TableCell sx={{ color: 'white', fontWeight: 700, width: 100 }}>Appartement</TableCell>
 														{MONTH_LABELS.map((m) => (
 															<TableCell
 																key={m}
@@ -335,7 +346,11 @@ const BalanceClient: React.FC<SessionProps> = ({ session }) => {
 															<TableCell
 																key={i}
 																align="right"
-																sx={{ fontWeight: 600, fontSize: '0.75rem', color: total > 0 ? 'text.primary' : 'text.disabled' }}
+																sx={{
+																	fontWeight: 600,
+																	fontSize: '0.75rem',
+																	color: total > 0 ? 'text.primary' : 'text.disabled',
+																}}
 															>
 																{total > 0 ? fmt(total) : '—'}
 															</TableCell>
@@ -349,11 +364,11 @@ const BalanceClient: React.FC<SessionProps> = ({ session }) => {
 																borderColor: 'divider',
 															}}
 														>
-													{fmt(aptNoms.reduce((s, c) => s + apartments[c].year_total, 0))}
-												</TableCell>
-											</TableRow>
+															{fmt(aptNoms.reduce((s, c) => s + apartments[c].year_total, 0))}
+														</TableCell>
+													</TableRow>
 
-											{aptNoms.length === 0 && (
+													{aptNoms.length === 0 && (
 														<TableRow>
 															<TableCell colSpan={14} align="center" sx={{ py: 4, color: 'text.secondary' }}>
 																Aucune donnée disponible pour {year}
@@ -365,7 +380,6 @@ const BalanceClient: React.FC<SessionProps> = ({ session }) => {
 										</TableContainer>
 									</CardContent>
 								</Card>
-
 							</Stack>
 						)}
 					</Box>

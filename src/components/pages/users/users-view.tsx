@@ -115,7 +115,7 @@ interface Props extends SessionProps {
 
 const UsersViewClient: React.FC<Props> = ({ session, id }) => {
 	const router = useRouter();
-	const token = useInitAccessToken();
+	const token = useInitAccessToken(session);
 	const { data: userData, isLoading, error } = useGetUserQuery({ id }, { skip: !token });
 	const axiosError = useMemo(
 		() => (error ? (error as ResponseDataInterface<ApiErrorResponseType>) : undefined),

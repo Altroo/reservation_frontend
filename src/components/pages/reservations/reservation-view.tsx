@@ -98,7 +98,7 @@ interface Props extends SessionProps {
 
 const ReservationViewClient: React.FC<Props> = ({ session, id }) => {
 	const router = useRouter();
-	const token = useInitAccessToken();
+	const token = useInitAccessToken(session);
 	const { data: reservation, isLoading, error } = useGetReservationQuery({ id }, { skip: !token });
 	const axiosError = useMemo(
 		() => (error ? (error as ResponseDataInterface<ApiErrorResponseType>) : undefined),
@@ -207,7 +207,7 @@ const ReservationViewClient: React.FC<Props> = ({ session, id }) => {
 												<Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap">
 													<Chip
 														icon={<HotelIcon />}
-													label={reservation.apartment_nom}
+														label={reservation.apartment_nom}
 														size="small"
 														variant="outlined"
 													/>
@@ -238,13 +238,7 @@ const ReservationViewClient: React.FC<Props> = ({ session, id }) => {
 											<InfoRow
 												icon={<HotelIcon />}
 												label="Appartement"
-												value={
-													<Chip
-													label={reservation.apartment_nom}
-														size="small"
-														variant="outlined"
-													/>
-												}
+												value={<Chip label={reservation.apartment_nom} size="small" variant="outlined" />}
 											/>
 											<Divider />
 											<InfoRow icon={<CalendarIcon />} label="Arrivée" value={formatDate(reservation.check_in)} />

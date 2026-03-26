@@ -83,7 +83,11 @@ function KpiCard({ color, icon, label, value, tooltip }: KpiCardProps) {
 					<Stack direction="row" alignItems="center" spacing={1.5}>
 						<Box sx={{ color }}>{icon}</Box>
 						<Box>
-							<Typography variant="caption" color="text.secondary" sx={{ textTransform: 'uppercase', letterSpacing: 0.5 }}>
+							<Typography
+								variant="caption"
+								color="text.secondary"
+								sx={{ textTransform: 'uppercase', letterSpacing: 0.5 }}
+							>
 								{label}
 							</Typography>
 							<Typography variant="h6" fontWeight={700}>
@@ -105,7 +109,7 @@ function KpiCard({ color, icon, label, value, tooltip }: KpiCardProps) {
 }
 
 const OccupancyClient: React.FC<SessionProps> = ({ session }) => {
-	const token = useInitAccessToken();
+	const token = useInitAccessToken(session);
 	const currentYear = new Date().getFullYear();
 	const [year, setYear] = useState(currentYear);
 	const [heatmapMonth, setHeatmapMonth] = useState(new Date().getMonth() + 1);
@@ -270,7 +274,7 @@ const OccupancyClient: React.FC<SessionProps> = ({ session }) => {
 									/>
 									<CardContent>
 										<Box height={300}>
-										{Object.values(occupancy).some((a) => a.occupied_days > 0) ? (
+											{Object.values(occupancy).some((a) => a.occupied_days > 0) ? (
 												<Bar
 													data={chartData}
 													options={{
@@ -294,8 +298,12 @@ const OccupancyClient: React.FC<SessionProps> = ({ session }) => {
 													height="100%"
 													sx={{ border: '1px dashed', borderColor: 'grey.300', borderRadius: 2, bgcolor: 'grey.50' }}
 												>
-													<Typography variant="h6" color="text.secondary" gutterBottom>📊</Typography>
-													<Typography variant="body2" color="text.secondary">Aucune donnée disponible</Typography>
+													<Typography variant="h6" color="text.secondary" gutterBottom>
+														📊
+													</Typography>
+													<Typography variant="body2" color="text.secondary">
+														Aucune donnée disponible
+													</Typography>
 												</Box>
 											)}
 										</Box>
@@ -389,9 +397,7 @@ const OccupancyClient: React.FC<SessionProps> = ({ session }) => {
 															<Box sx={{ display: 'flex', gap: '3px', flexWrap: 'wrap' }}>
 																{row.days.map((cell) => {
 																	const res = cell.reservation;
-																	const bg = res
-																		? PAYMENT_SOURCE_BG[res.payment_source] ?? '#555'
-																		: undefined;
+																	const bg = res ? (PAYMENT_SOURCE_BG[res.payment_source] ?? '#555') : undefined;
 
 																	const square = (
 																		<Box
@@ -409,9 +415,7 @@ const OccupancyClient: React.FC<SessionProps> = ({ session }) => {
 																				bgcolor: bg ?? 'action.hover',
 																				cursor: res ? 'pointer' : 'default',
 																				transition: 'transform .1s',
-																				'&:hover': res
-																					? { transform: 'scale(1.2)', zIndex: 2 }
-																					: undefined,
+																				'&:hover': res ? { transform: 'scale(1.2)', zIndex: 2 } : undefined,
 																			}}
 																		>
 																			{cell.day}
@@ -520,7 +524,9 @@ const OccupancyClient: React.FC<SessionProps> = ({ session }) => {
 											})}
 											{Object.keys(occupancy).length === 0 && (
 												<Box display="flex" flexDirection="column" alignItems="center" py={2}>
-													<Typography variant="h6" color="text.secondary" gutterBottom>📊</Typography>
+													<Typography variant="h6" color="text.secondary" gutterBottom>
+														📊
+													</Typography>
 													<Typography variant="body2" color="text.secondary" textAlign="center">
 														Aucune donnée disponible pour {year}
 													</Typography>

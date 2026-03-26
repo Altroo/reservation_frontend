@@ -50,7 +50,7 @@ import { createNumericFilterOperators } from '@/components/shared/numericFilter/
 const ReservationsListClient: React.FC<SessionProps> = ({ session }) => {
 	const router = useRouter();
 	const { onSuccess, onError } = useToast();
-	const token = useInitAccessToken();
+	const token = useInitAccessToken(session);
 
 	const { data: apartments } = useGetApartmentsQuery(undefined, { skip: !token });
 

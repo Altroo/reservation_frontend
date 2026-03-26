@@ -81,7 +81,7 @@ function buildRows(
 }
 
 const PlanningMonthClient: React.FC<SessionProps> = ({ session }) => {
-	const token = useInitAccessToken();
+	const token = useInitAccessToken(session);
 	const theme = useTheme();
 	const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
@@ -168,218 +168,244 @@ const PlanningMonthClient: React.FC<SessionProps> = ({ session }) => {
 							<Box display="flex" justifyContent="center" py={8}>
 								<CircularProgress />
 							</Box>
-						) : (						<>
-						{/* Planning KPIs */}
-						<Box
-							sx={{
-								display: 'grid',
-								gridTemplateColumns: { xs: '1fr 1fr', sm: 'repeat(4, 1fr)' },
-								gap: 2,
-								mb: 2,
-							}}
-						>
-							{[
-								{ label: 'Revenus du mois', value: `${fmt(monthRevenue)} MAD`, icon: <MoneyIcon fontSize="small" />, color: '#1976d2' },
-								{ label: 'Nuitées', value: nightCount.toString(), icon: <HotelIcon fontSize="small" />, color: '#ed6c02' },
-								{ label: 'Occupation', value: `${occupationPct}%`, icon: <PieIcon fontSize="small" />, color: '#2e7d32' },
-								{ label: 'Jours du mois', value: lastDay.toString(), icon: <CalendarIcon fontSize="small" />, color: '#9c27b0' },
-							].map(({ label, value, icon, color }) => (
-								<Card
-									key={label}
-									elevation={2}
+						) : (
+							<>
+								{/* Planning KPIs */}
+								<Box
 									sx={{
-										position: 'relative',
-										overflow: 'hidden',
-										'&::before': {
-											content: '""',
-											position: 'absolute',
-											top: 0,
-											left: 0,
-											width: 4,
-											height: '100%',
-											bgcolor: color,
-										},
+										display: 'grid',
+										gridTemplateColumns: { xs: '1fr 1fr', sm: 'repeat(4, 1fr)' },
+										gap: 2,
+										mb: 2,
 									}}
 								>
-									<CardContent sx={{ py: 1.5, pl: 2.5, '&:last-child': { pb: 1.5 } }}>
-										<Stack direction="row" spacing={1} alignItems="center" mb={0.5}>
-											<Box sx={{ color, display: 'flex' }}>{icon}</Box>
-											<Typography variant="caption" color="text.secondary" textTransform="uppercase" letterSpacing={0.8}>
-												{label}
-											</Typography>
-										</Stack>
-										<Typography variant="h6" fontWeight={700}>{value}</Typography>
-									</CardContent>
-								</Card>
-							))}
-						</Box>
-							<Card elevation={2} sx={{ overflowX: 'auto' }}>
-								<CardContent sx={{ p: { xs: 1, sm: 2 } }}>
-									<Box sx={{ minWidth: LABEL_WIDTH + COL_WIDTH * lastDay }}>
-										{/* Header row — day numbers */}
-										<Box display="flex" sx={{ borderBottom: '2px solid', borderColor: 'divider', mb: 0.5 }}>
-											<Box
-												sx={{
-													width: LABEL_WIDTH,
-													minWidth: LABEL_WIDTH,
-													fontWeight: 700,
-													fontSize: '0.75rem',
-													color: 'text.secondary',
-													display: 'flex',
-													alignItems: 'center',
-													pl: 1,
-												}}
-											>
-												Appart.
-											</Box>
-											{dayNumbers.map((day) => {
-												const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-												const dow = dayOfWeek(dateStr);
-												const isWeekend = dow >= 5;
-												return (
-													<Box
-														key={day}
-														sx={{
-															width: COL_WIDTH,
-															minWidth: COL_WIDTH,
-															textAlign: 'center',
-															fontSize: '0.7rem',
-															fontWeight: 600,
-															color: isWeekend ? 'error.main' : 'text.primary',
-															borderLeft: '1px solid',
-															borderColor: 'divider',
-															py: 0.5,
-														}}
+									{[
+										{
+											label: 'Revenus du mois',
+											value: `${fmt(monthRevenue)} MAD`,
+											icon: <MoneyIcon fontSize="small" />,
+											color: '#1976d2',
+										},
+										{
+											label: 'Nuitées',
+											value: nightCount.toString(),
+											icon: <HotelIcon fontSize="small" />,
+											color: '#ed6c02',
+										},
+										{
+											label: 'Occupation',
+											value: `${occupationPct}%`,
+											icon: <PieIcon fontSize="small" />,
+											color: '#2e7d32',
+										},
+										{
+											label: 'Jours du mois',
+											value: lastDay.toString(),
+											icon: <CalendarIcon fontSize="small" />,
+											color: '#9c27b0',
+										},
+									].map(({ label, value, icon, color }) => (
+										<Card
+											key={label}
+											elevation={2}
+											sx={{
+												position: 'relative',
+												overflow: 'hidden',
+												'&::before': {
+													content: '""',
+													position: 'absolute',
+													top: 0,
+													left: 0,
+													width: 4,
+													height: '100%',
+													bgcolor: color,
+												},
+											}}
+										>
+											<CardContent sx={{ py: 1.5, pl: 2.5, '&:last-child': { pb: 1.5 } }}>
+												<Stack direction="row" spacing={1} alignItems="center" mb={0.5}>
+													<Box sx={{ color, display: 'flex' }}>{icon}</Box>
+													<Typography
+														variant="caption"
+														color="text.secondary"
+														textTransform="uppercase"
+														letterSpacing={0.8}
 													>
-														<Box>{day}</Box>
-														<Box sx={{ fontSize: '0.6rem', color: 'text.secondary' }}>
-															{DAY_ABBREVIATIONS[dow]}
-														</Box>
-													</Box>
-												);
-											})}
-										</Box>
-
-										{/* Apartment rows */}
-										{rows.map((aptRow, rowIdx) => (
-											<Box
-												key={aptRow.nom}
-												display="flex"
-												sx={{
-													borderBottom: '1px solid',
-													borderColor: 'divider',
-													bgcolor: rowIdx % 2 === 0 ? 'background.default' : 'action.hover',
-													minHeight: 40,
-													alignItems: 'stretch',
-												}}
-											>
-												{/* Apartment label */}
+														{label}
+													</Typography>
+												</Stack>
+												<Typography variant="h6" fontWeight={700}>
+													{value}
+												</Typography>
+											</CardContent>
+										</Card>
+									))}
+								</Box>
+								<Card elevation={2} sx={{ overflowX: 'auto' }}>
+									<CardContent sx={{ p: { xs: 1, sm: 2 } }}>
+										<Box sx={{ minWidth: LABEL_WIDTH + COL_WIDTH * lastDay }}>
+											{/* Header row — day numbers */}
+											<Box display="flex" sx={{ borderBottom: '2px solid', borderColor: 'divider', mb: 0.5 }}>
 												<Box
 													sx={{
 														width: LABEL_WIDTH,
 														minWidth: LABEL_WIDTH,
+														fontWeight: 700,
+														fontSize: '0.75rem',
+														color: 'text.secondary',
 														display: 'flex',
 														alignItems: 'center',
 														pl: 1,
-														borderRight: '2px solid',
-														borderColor: 'divider',
 													}}
 												>
-													<Typography variant="caption" fontWeight={700} noWrap>
-													{aptRow.nom}
-													</Typography>
+													Appart.
 												</Box>
-
-												{/* Day cells */}
-												{aptRow.cells.map((cell, dayIdx) => {
-													const day = dayIdx + 1;
+												{dayNumbers.map((day) => {
 													const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
 													const dow = dayOfWeek(dateStr);
 													const isWeekend = dow >= 5;
-
 													return (
 														<Box
-															key={dayIdx}
+															key={day}
 															sx={{
 																width: COL_WIDTH,
 																minWidth: COL_WIDTH,
+																textAlign: 'center',
+																fontSize: '0.7rem',
+																fontWeight: 600,
+																color: isWeekend ? 'error.main' : 'text.primary',
 																borderLeft: '1px solid',
 																borderColor: 'divider',
-																bgcolor: isWeekend && !cell ? 'action.hover' : 'transparent',
-																position: 'relative',
-																display: 'flex',
-																alignItems: 'center',
-																justifyContent: 'center',
+																py: 0.5,
 															}}
 														>
-															{cell && (
-																<Tooltip
-																	title={
-																		<Box>
-																			<Typography variant="caption" display="block" fontWeight={600}>
-																				{cell.reservation.guest_name}
-																			</Typography>
-																			<Typography variant="caption" display="block">
-																				{formatDate(cell.reservation.check_in)} → {formatDate(cell.reservation.check_out)}
-																			</Typography>
-																			<Typography variant="caption" display="block">
-																				{Number(cell.reservation.amount).toLocaleString('fr-MA')} MAD
-																			</Typography>
-																			<Typography variant="caption" display="block">
-																				{cell.reservation.nights} nuit(s)
-																			</Typography>
-																		</Box>
-																	}
-																	arrow
-																	placement="top"
-																>
-																	<Box
-																		sx={{
-																			position: 'absolute',
-																			inset: 1,
-																			bgcolor:
-																				PAYMENT_SOURCE_BG[cell.reservation.payment_source] ?? '#555',
-																			borderRadius: `${cell.isStart ? '4px' : '0'} ${cell.isEnd ? '4px' : '0'} ${cell.isEnd ? '4px' : '0'} ${cell.isStart ? '4px' : '0'}`,
-																			display: 'flex',
-																			alignItems: 'center',
-																			justifyContent: 'flex-start',
-																			overflow: 'hidden',
-																			cursor: 'pointer',
-																			px: cell.isStart ? 0.5 : 0,
-																		}}
-																	>
-																		{cell.isStart && (
-																			<Typography
-																				noWrap
-																				sx={{
-																					fontSize: '0.6rem',
-																					color: 'white',
-																					fontWeight: 600,
-																					lineHeight: 1.2,
-																				}}
-																			>
-																				{cell.reservation.guest_name.split(' ')[0]}
-																			</Typography>
-																		)}
-																	</Box>
-																</Tooltip>
-															)}
+															<Box>{day}</Box>
+															<Box sx={{ fontSize: '0.6rem', color: 'text.secondary' }}>{DAY_ABBREVIATIONS[dow]}</Box>
 														</Box>
 													);
 												})}
 											</Box>
-										))}
 
-										{rows.length === 0 && !isLoading && (
-											<Box py={4} textAlign="center">
-												<Typography color="text.secondary">
-													Aucune réservation pour {MONTH_NAMES[month - 1]} {year}
-												</Typography>
-											</Box>
-										)}
-									</Box>
-								</CardContent>
-							</Card>
+											{/* Apartment rows */}
+											{rows.map((aptRow, rowIdx) => (
+												<Box
+													key={aptRow.nom}
+													display="flex"
+													sx={{
+														borderBottom: '1px solid',
+														borderColor: 'divider',
+														bgcolor: rowIdx % 2 === 0 ? 'background.default' : 'action.hover',
+														minHeight: 40,
+														alignItems: 'stretch',
+													}}
+												>
+													{/* Apartment label */}
+													<Box
+														sx={{
+															width: LABEL_WIDTH,
+															minWidth: LABEL_WIDTH,
+															display: 'flex',
+															alignItems: 'center',
+															pl: 1,
+															borderRight: '2px solid',
+															borderColor: 'divider',
+														}}
+													>
+														<Typography variant="caption" fontWeight={700} noWrap>
+															{aptRow.nom}
+														</Typography>
+													</Box>
+
+													{/* Day cells */}
+													{aptRow.cells.map((cell, dayIdx) => {
+														const day = dayIdx + 1;
+														const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+														const dow = dayOfWeek(dateStr);
+														const isWeekend = dow >= 5;
+
+														return (
+															<Box
+																key={dayIdx}
+																sx={{
+																	width: COL_WIDTH,
+																	minWidth: COL_WIDTH,
+																	borderLeft: '1px solid',
+																	borderColor: 'divider',
+																	bgcolor: isWeekend && !cell ? 'action.hover' : 'transparent',
+																	position: 'relative',
+																	display: 'flex',
+																	alignItems: 'center',
+																	justifyContent: 'center',
+																}}
+															>
+																{cell && (
+																	<Tooltip
+																		title={
+																			<Box>
+																				<Typography variant="caption" display="block" fontWeight={600}>
+																					{cell.reservation.guest_name}
+																				</Typography>
+																				<Typography variant="caption" display="block">
+																					{formatDate(cell.reservation.check_in)} →{' '}
+																					{formatDate(cell.reservation.check_out)}
+																				</Typography>
+																				<Typography variant="caption" display="block">
+																					{Number(cell.reservation.amount).toLocaleString('fr-MA')} MAD
+																				</Typography>
+																				<Typography variant="caption" display="block">
+																					{cell.reservation.nights} nuit(s)
+																				</Typography>
+																			</Box>
+																		}
+																		arrow
+																		placement="top"
+																	>
+																		<Box
+																			sx={{
+																				position: 'absolute',
+																				inset: 1,
+																				bgcolor: PAYMENT_SOURCE_BG[cell.reservation.payment_source] ?? '#555',
+																				borderRadius: `${cell.isStart ? '4px' : '0'} ${cell.isEnd ? '4px' : '0'} ${cell.isEnd ? '4px' : '0'} ${cell.isStart ? '4px' : '0'}`,
+																				display: 'flex',
+																				alignItems: 'center',
+																				justifyContent: 'flex-start',
+																				overflow: 'hidden',
+																				cursor: 'pointer',
+																				px: cell.isStart ? 0.5 : 0,
+																			}}
+																		>
+																			{cell.isStart && (
+																				<Typography
+																					noWrap
+																					sx={{
+																						fontSize: '0.6rem',
+																						color: 'white',
+																						fontWeight: 600,
+																						lineHeight: 1.2,
+																					}}
+																				>
+																					{cell.reservation.guest_name.split(' ')[0]}
+																				</Typography>
+																			)}
+																		</Box>
+																	</Tooltip>
+																)}
+															</Box>
+														);
+													})}
+												</Box>
+											))}
+
+											{rows.length === 0 && !isLoading && (
+												<Box py={4} textAlign="center">
+													<Typography color="text.secondary">
+														Aucune réservation pour {MONTH_NAMES[month - 1]} {year}
+													</Typography>
+												</Box>
+											)}
+										</Box>
+									</CardContent>
+								</Card>
 							</>
 						)}
 					</Box>

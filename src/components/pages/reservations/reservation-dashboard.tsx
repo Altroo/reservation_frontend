@@ -170,7 +170,7 @@ const EmptyChart: React.FC<{ message?: string }> = ({ message }) => (
 );
 
 const ReservationDashboardClient: React.FC<SessionProps> = ({ session }) => {
-	const token = useInitAccessToken();
+	const token = useInitAccessToken(session);
 	const currentYear = new Date().getFullYear();
 	const [year, setYear] = useState<number>(currentYear);
 

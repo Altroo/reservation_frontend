@@ -99,7 +99,7 @@ const KpiCard: React.FC<KpiProps> = ({ icon, label, value, sub, color }) => (
 );
 
 const GainsClient: React.FC<SessionProps> = ({ session }) => {
-	const token = useInitAccessToken();
+	const token = useInitAccessToken(session);
 	const currentYear = new Date().getFullYear();
 	const [year, setYear] = useState(currentYear);
 
@@ -177,7 +177,6 @@ const GainsClient: React.FC<SessionProps> = ({ session }) => {
 		})),
 	};
 
-
 	return (
 		<Stack direction="column" spacing={2} className={Styles.flexRootStack} mt="48px">
 			<NavigationBar title="Gains & Revenus">
@@ -241,8 +240,14 @@ const GainsClient: React.FC<SessionProps> = ({ session }) => {
 										title="Gains par appartement"
 										subheader="Vue empilée — contribution de chaque appartement par mois"
 										action={
-											<MuiTooltip title="Revenus mensuels empilés par appartement, permettant de visualiser la contribution de chaque unité" arrow placement="top">
-												<IconButton size="small"><InfoOutlinedIcon fontSize="small" /></IconButton>
+											<MuiTooltip
+												title="Revenus mensuels empilés par appartement, permettant de visualiser la contribution de chaque unité"
+												arrow
+												placement="top"
+											>
+												<IconButton size="small">
+													<InfoOutlinedIcon fontSize="small" />
+												</IconButton>
 											</MuiTooltip>
 										}
 									/>
@@ -260,10 +265,20 @@ const GainsClient: React.FC<SessionProps> = ({ session }) => {
 													}}
 												/>
 											) : (
-												<Box display="flex" flexDirection="column" alignItems="center" justifyContent="center" height="100%"
-													sx={{ bgcolor: 'grey.50', borderRadius: 2, border: '1px dashed', borderColor: 'grey.300' }}>
-													<Typography variant="h6" color="text.secondary" gutterBottom>📊</Typography>
-													<Typography variant="body2" color="text.secondary">Aucune donnée disponible pour {year}</Typography>
+												<Box
+													display="flex"
+													flexDirection="column"
+													alignItems="center"
+													justifyContent="center"
+													height="100%"
+													sx={{ bgcolor: 'grey.50', borderRadius: 2, border: '1px dashed', borderColor: 'grey.300' }}
+												>
+													<Typography variant="h6" color="text.secondary" gutterBottom>
+														📊
+													</Typography>
+													<Typography variant="body2" color="text.secondary">
+														Aucune donnée disponible pour {year}
+													</Typography>
 												</Box>
 											)}
 										</Box>
@@ -287,7 +302,12 @@ const GainsClient: React.FC<SessionProps> = ({ session }) => {
 														<Typography variant="h6" fontWeight={600} gutterBottom>
 															{MONTH_NAMES[md.month - 1]}
 														</Typography>
-														<Typography variant="body2" color="text.secondary" component="div" sx={{ pb: 1.5, borderBottom: 1, borderColor: 'divider', mb: 1.5 }}>
+														<Typography
+															variant="body2"
+															color="text.secondary"
+															component="div"
+															sx={{ pb: 1.5, borderBottom: 1, borderColor: 'divider', mb: 1.5 }}
+														>
 															Total : {fmt(md.monthTotal)} MAD
 														</Typography>
 														{md.aptBreakdown.map((ab, idx) => {
@@ -322,7 +342,11 @@ const GainsClient: React.FC<SessionProps> = ({ session }) => {
 																				},
 																			}}
 																		/>
-																		<Typography variant="body2" fontWeight={600} sx={{ minWidth: 80, textAlign: 'right' }}>
+																		<Typography
+																			variant="body2"
+																			fontWeight={600}
+																			sx={{ minWidth: 80, textAlign: 'right' }}
+																		>
 																			{fmt(ab.total)}
 																		</Typography>
 																	</Stack>
@@ -339,20 +363,30 @@ const GainsClient: React.FC<SessionProps> = ({ session }) => {
 								{aptNoms.length > 0 && (
 									<Card elevation={2}>
 										<CardHeader
-										title="Détail mensuel par appartement"
-										subheader={`Revenus en MAD — ${year}`}
-										action={
-											<MuiTooltip title="Tableau détaillé des revenus mensuels par appartement avec totaux" arrow placement="top">
-												<IconButton size="small"><InfoOutlinedIcon fontSize="small" /></IconButton>
-											</MuiTooltip>
-										}
-									/>
+											title="Détail mensuel par appartement"
+											subheader={`Revenus en MAD — ${year}`}
+											action={
+												<MuiTooltip
+													title="Tableau détaillé des revenus mensuels par appartement avec totaux"
+													arrow
+													placement="top"
+												>
+													<IconButton size="small">
+														<InfoOutlinedIcon fontSize="small" />
+													</IconButton>
+												</MuiTooltip>
+											}
+										/>
 										<CardContent sx={{ p: 0 }}>
 											<TableContainer component={Paper} elevation={0}>
 												<Table size="small" sx={{ minWidth: 700 }}>
 													<TableHead>
 														<TableRow sx={{ bgcolor: 'grey.100' }}>
-															<TableCell sx={{ fontWeight: 700, position: 'sticky', left: 0, bgcolor: 'grey.100', zIndex: 1 }}>Appartement</TableCell>
+															<TableCell
+																sx={{ fontWeight: 700, position: 'sticky', left: 0, bgcolor: 'grey.100', zIndex: 1 }}
+															>
+																Appartement
+															</TableCell>
 															{MONTH_LABELS.map((m) => (
 																<TableCell key={m} align="right" sx={{ fontWeight: 700 }}>
 																	{m}
@@ -374,7 +408,17 @@ const GainsClient: React.FC<SessionProps> = ({ session }) => {
 																	key={nom}
 																	sx={{ bgcolor: i % 2 === 0 ? 'background.default' : 'action.hover' }}
 																>
-																	<TableCell sx={{ fontWeight: 500, position: 'sticky', left: 0, bgcolor: i % 2 === 0 ? 'background.default' : 'action.hover', zIndex: 1 }}>{nom}</TableCell>
+																	<TableCell
+																		sx={{
+																			fontWeight: 500,
+																			position: 'sticky',
+																			left: 0,
+																			bgcolor: i % 2 === 0 ? 'background.default' : 'action.hover',
+																			zIndex: 1,
+																		}}
+																	>
+																		{nom}
+																	</TableCell>
 																	{Array.from({ length: 12 }, (_, mi) => {
 																		const val = apartments[nom].monthly[mi + 1]?.total ?? 0;
 																		return (
@@ -406,7 +450,17 @@ const GainsClient: React.FC<SessionProps> = ({ session }) => {
 														})}
 														{/* Month totals row */}
 														<TableRow sx={{ bgcolor: 'primary.light' }}>
-															<TableCell sx={{ fontWeight: 700, position: 'sticky', left: 0, bgcolor: 'primary.light', zIndex: 1 }}>TOTAL</TableCell>
+															<TableCell
+																sx={{
+																	fontWeight: 700,
+																	position: 'sticky',
+																	left: 0,
+																	bgcolor: 'primary.light',
+																	zIndex: 1,
+																}}
+															>
+																TOTAL
+															</TableCell>
 															{Array.from({ length: 12 }, (_, mi) => {
 																const monthTotal = aptNoms.reduce(
 																	(s, c) => s + (apartments[c].monthly[mi + 1]?.total ?? 0),

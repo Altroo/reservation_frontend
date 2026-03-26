@@ -491,7 +491,7 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 };
 
 const ReservationFormClient: React.FC<SessionProps & { id?: number }> = ({ session, id }) => {
-	const token = useInitAccessToken();
+	const token = useInitAccessToken(session);
 	const title = id !== undefined ? 'Modifier la réservation' : 'Nouvelle réservation';
 
 	return (

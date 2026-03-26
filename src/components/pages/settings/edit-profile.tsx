@@ -144,7 +144,7 @@ const EditProfilClient: React.FC<SessionProps> = (props: SessionProps) => {
 	const { session } = props;
 	const theme = useTheme();
 	const isMobile = useMediaQuery(theme.breakpoints.down('md'));
-	const token = useInitAccessToken();
+	const token = useInitAccessToken(session);
 
 	return (
 		<Stack direction="column" sx={{ position: 'relative' }}>

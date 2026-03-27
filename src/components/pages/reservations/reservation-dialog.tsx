@@ -203,14 +203,7 @@ const ReservationDialog: React.FC<ReservationDialogProps> = ({
 
 	return (
 		<LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={fr}>
-			<Dialog
-				open={open}
-				onClose={onClose}
-				fullScreen={isMobile}
-				maxWidth="md"
-				fullWidth
-				scroll="paper"
-			>
+			<Dialog open={open} onClose={onClose} fullScreen={isMobile} maxWidth="md" fullWidth scroll="paper">
 				<DialogTitle>
 					<Stack direction="row" justifyContent="space-between" alignItems="center">
 						<Typography variant="h6" fontWeight={700}>
@@ -241,13 +234,9 @@ const ReservationDialog: React.FC<ReservationDialogProps> = ({
 							</Alert>
 						)}
 
-						{formik.errors.globalError && (
-							<Alert severity="error">{formik.errors.globalError}</Alert>
-						)}
+						{formik.errors.globalError && <Alert severity="error">{formik.errors.globalError}</Alert>}
 
-						{shouldShowError && (
-							<ApiAlert errorDetails={axiosError?.data as Record<string, unknown>} />
-						)}
+						{shouldShowError && <ApiAlert errorDetails={axiosError?.data as Record<string, unknown>} />}
 
 						{/* Appartement & Client */}
 						<Box>
@@ -317,9 +306,7 @@ const ReservationDialog: React.FC<ReservationDialogProps> = ({
 								<DatePicker
 									label="Date d'arrivée *"
 									value={formik.values.check_in ? parseISO(formik.values.check_in) : null}
-									onChange={(date) =>
-										formik.setFieldValue('check_in', date ? format(date, 'yyyy-MM-dd') : '')
-									}
+									onChange={(date) => formik.setFieldValue('check_in', date ? format(date, 'yyyy-MM-dd') : '')}
 									maxDate={formik.values.check_out ? parseISO(formik.values.check_out) : undefined}
 									shouldDisableDate={shouldDisableDate}
 									disabled={isLoading}
@@ -343,9 +330,7 @@ const ReservationDialog: React.FC<ReservationDialogProps> = ({
 								<DatePicker
 									label="Date de départ *"
 									value={formik.values.check_out ? parseISO(formik.values.check_out) : null}
-									onChange={(date) =>
-										formik.setFieldValue('check_out', date ? format(date, 'yyyy-MM-dd') : '')
-									}
+									onChange={(date) => formik.setFieldValue('check_out', date ? format(date, 'yyyy-MM-dd') : '')}
 									minDate={formik.values.check_in ? parseISO(formik.values.check_in) : undefined}
 									shouldDisableDate={shouldDisableDate}
 									disabled={isLoading}
@@ -446,19 +431,14 @@ const ReservationDialog: React.FC<ReservationDialogProps> = ({
 						</Box>
 
 						{/* Actions */}
-						<Stack direction="row" justifyContent="flex-end" spacing={1.5} pt={1}>
-							<Button variant="outlined" onClick={onClose} disabled={isPending} startIcon={<CloseIcon />}>
-								Annuler
-							</Button>
-							<PrimaryLoadingButton
-								buttonText={isEditMode ? 'Mettre à jour' : 'Ajouter la réservation'}
-								loading={isPending}
-								active={!isPending}
-								type="submit"
-								startIcon={isEditMode ? <EditIcon /> : <AddIcon />}
-								onClick={() => formik.handleSubmit()}
-							/>
-						</Stack>
+						<PrimaryLoadingButton
+							buttonText={isEditMode ? 'Mettre à jour' : 'Ajouter la réservation'}
+							loading={isPending}
+							active={!isPending}
+							type="submit"
+							startIcon={isEditMode ? <EditIcon /> : <AddIcon />}
+							onClick={() => formik.handleSubmit()}
+						/>
 					</Stack>
 				</DialogContent>
 			</Dialog>

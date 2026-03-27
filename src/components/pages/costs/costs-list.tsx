@@ -19,6 +19,7 @@ import {
 	Close as CloseIcon,
 	Delete as DeleteIcon,
 	Edit as EditIcon,
+	Visibility as VisibilityIcon,
 } from '@mui/icons-material';
 import { DataGrid, GridColDef, GridRenderCellParams } from '@mui/x-data-grid';
 import { frFR } from '@mui/x-data-grid/locales';
@@ -32,7 +33,8 @@ import DarkTooltip from '@/components/htmlElements/tooltip/darkTooltip/darkToolt
 import ApiProgress from '@/components/formikElements/apiLoading/apiProgress/apiProgress';
 import { getDefaultTheme } from '@/utils/themes';
 import { formatDate, extractApiErrorMessage } from '@/utils/helpers';
-import { COSTS_ADD, COSTS_EDIT } from '@/utils/routes';
+import { COSTS_ADD, COSTS_EDIT, COSTS_VIEW } from '@/utils/routes';
+import MobileActionsMenu from '@/components/shared/mobileActionsMenu/mobileActionsMenu';
 import { useToast } from '@/utils/hooks';
 import { useGetCostsQuery, useDeleteCostMutation } from '@/store/services/reservation';
 import { useInitAccessToken } from '@/contexts/InitContext';
@@ -147,35 +149,36 @@ const CostsListClient: React.FC<SessionProps> = ({ session }) => {
 		{
 			field: 'actions',
 			headerName: 'Actions',
-			flex: 1.2,
-			minWidth: 170,
+			flex: 0.6,
+			minWidth: 60,
 			sortable: false,
 			filterable: false,
-			renderCell: (params: GridRenderCellParams<CostType>) => (
-				<Stack direction="row" spacing={0.5}>
-					<Button
-						size="small"
-						variant="outlined"
-						color="primary"
-						startIcon={<EditIcon fontSize="small" />}
-						onClick={() => router.push(COSTS_EDIT(params.row.id))}
-					>
-						Modifier
-					</Button>
-					<Button
-						size="small"
-						variant="outlined"
-						color="error"
-						startIcon={<DeleteIcon fontSize="small" />}
-						onClick={() => {
+			renderCell: (params) => {
+				const actions = [
+					{
+						label: 'Voir',
+						icon: <VisibilityIcon />,
+						onClick: () => router.push(COSTS_VIEW(params.row.id)),
+						color: 'info' as const,
+					},
+					{
+						label: 'Modifier',
+						icon: <EditIcon />,
+						onClick: () => router.push(COSTS_EDIT(params.row.id)),
+						color: 'primary' as const,
+					},
+					{
+						label: 'Supprimer',
+						icon: <DeleteIcon />,
+						onClick: () => {
 							setSelectedId(params.row.id);
 							setShowDeleteModal(true);
-						}}
-					>
-						Supprimer
-					</Button>
-				</Stack>
-			),
+						},
+						color: 'error' as const,
+					},
+				];
+				return <MobileActionsMenu actions={actions} />;
+			},
 		},
 	];
 

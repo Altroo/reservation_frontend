@@ -30,4 +30,5 @@ export const GAINS = `${SITE_ROOT}dashboard/gains`;
 export const CALENDAR = `${SITE_ROOT}dashboard/calendar`;
 export const COSTS_LIST = `${SITE_ROOT}dashboard/costs`;
 export const COSTS_ADD = `${SITE_ROOT}dashboard/costs/new`;
+export const COSTS_VIEW = (id: number) => `${SITE_ROOT}dashboard/costs/${id}`;
 export const COSTS_EDIT = (id: number) => `${SITE_ROOT}dashboard/costs/${id}/edit`;

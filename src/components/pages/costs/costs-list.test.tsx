@@ -97,7 +97,21 @@ jest.mock('@/utils/rawData', () => ({
 
 jest.mock('@/utils/routes', () => ({
 	COSTS_ADD: '/dashboard/costs/new',
+	COSTS_VIEW: (id: number) => `/dashboard/costs/${id}`,
 	COSTS_EDIT: (id: number) => `/dashboard/costs/${id}/edit`,
+}));
+
+jest.mock('@/components/shared/mobileActionsMenu/mobileActionsMenu', () => ({
+	__esModule: true,
+	default: ({ actions }: { actions: Array<{ label: string; onClick: () => void }> }) => (
+		<div data-testid="mobile-actions-menu">
+			{actions.map((a) => (
+				<button key={a.label} onClick={a.onClick}>
+					{a.label}
+				</button>
+			))}
+		</div>
+	),
 }));
 
 jest.mock('@/components/layouts/protected/protected', () => ({
@@ -225,6 +239,19 @@ describe('CostsListClient', () => {
 		render(<CostsListClient session={mockSession} />);
 		expect(screen.getByTestId('row-1')).toBeInTheDocument();
 		expect(screen.getByTestId('row-2')).toBeInTheDocument();
+	});
+
+	it('renders Voir button for each cost row', () => {
+		render(<CostsListClient session={mockSession} />);
+		const viewButtons = screen.getAllByText('Voir');
+		expect(viewButtons).toHaveLength(2);
+	});
+
+	it('navigates to view page when Voir is clicked', () => {
+		render(<CostsListClient session={mockSession} />);
+		const viewButtons = screen.getAllByText('Voir');
+		fireEvent.click(viewButtons[0]);
+		expect(mockPush).toHaveBeenCalledWith('/dashboard/costs/1');
 	});
 
 	it('renders Modifier button for each cost row', () => {

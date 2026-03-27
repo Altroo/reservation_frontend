@@ -1,6 +1,6 @@
 import axios, { AxiosHeaders } from 'axios';
 import type { AxiosInstance, AxiosResponse, InternalAxiosRequestConfig } from 'axios';
-import { signOut } from 'next-auth/react';
+import { getSession, signOut } from 'next-auth/react';
 import { SITE_ROOT } from '@/utils/routes';
 import type { APIContentTypeInterface, ApiErrorResponseType, InitStateToken } from '@/types/_initTypes';
 
@@ -75,6 +75,16 @@ export const isAuthenticatedInstance = (
 					});
 				}
 				if (error.response.status === 401) {
+					// Avoid infinite retry loops
+					if (!error.config._retried) {
+						error.config._retried = true;
+						// Force NextAuth to re-run the JWT callback and refresh the backend token
+						const freshSession = await getSession();
+						if (freshSession?.accessToken) {
+							error.config.headers['Authorization'] = `Bearer ${freshSession.accessToken}`;
+							return instance(error.config);
+						}
+					}
 					await handleUnauthorized(onUnauthorized);
 					return Promise.reject({
 						error: {

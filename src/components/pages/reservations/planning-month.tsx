@@ -29,14 +29,8 @@ import NavigationBar from '@/components/layouts/navigationBar/navigationBar';
 import { Protected } from '@/components/layouts/protected/protected';
 import { useGetPlanningQuery } from '@/store/services/reservation';
 import { useInitAccessToken } from '@/contexts/InitContext';
-import { formatDate } from '@/utils/helpers';
+import { formatDate, weekdayIndex } from '@/utils/helpers';
 import { PAYMENT_SOURCE_BG, MONTH_NAMES, DAY_ABBREVIATIONS } from '@/utils/rawData';
-
-/** Returns the weekday index (0=Mon … 6=Sun) for a given date string YYYY-MM-DD */
-function dayOfWeek(dateStr: string): number {
-	const d = new Date(dateStr + 'T00:00:00');
-	return (d.getDay() + 6) % 7; // Mon=0 … Sun=6
-}
 
 interface CellReservation {
 	reservation: ReservationListType;
@@ -132,7 +126,7 @@ const PlanningMonthClient: React.FC<SessionProps> = ({ session }) => {
 	const fmt = (val: number) => val.toLocaleString('fr-MA');
 
 	const COL_WIDTH = isMobile ? 28 : 36;
-	const LABEL_WIDTH = isMobile ? 64 : 80;
+	const LABEL_WIDTH = isMobile ? 90 : 140;
 
 	return (
 		<Stack direction="column" spacing={2} className={Styles.flexRootStack} mt="48px">
@@ -262,7 +256,7 @@ const PlanningMonthClient: React.FC<SessionProps> = ({ session }) => {
 												</Box>
 												{dayNumbers.map((day) => {
 													const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-													const dow = dayOfWeek(dateStr);
+													const dow = weekdayIndex(dateStr);
 													const isWeekend = dow >= 5;
 													return (
 														<Box
@@ -300,29 +294,34 @@ const PlanningMonthClient: React.FC<SessionProps> = ({ session }) => {
 													}}
 												>
 													{/* Apartment label */}
-													<Box
-														sx={{
-															width: LABEL_WIDTH,
-															minWidth: LABEL_WIDTH,
-															display: 'flex',
-															alignItems: 'center',
-															pl: 1,
-															borderRight: '2px solid',
-															borderColor: 'divider',
-														}}
-													>
-														<Typography variant="caption" fontWeight={700} noWrap>
-															{aptRow.nom}
-														</Typography>
-													</Box>
+													<Tooltip title={aptRow.nom} placement="right" arrow>
+														<Box
+															sx={{
+																width: LABEL_WIDTH,
+																minWidth: LABEL_WIDTH,
+																display: 'flex',
+																alignItems: 'center',
+																pl: 1,
+																borderRight: '2px solid',
+																borderColor: 'divider',
+																position: 'sticky',
+																left: 0,
+																zIndex: 1,
+																bgcolor: rowIdx % 2 === 0 ? 'background.default' : 'action.hover',
+															}}
+														>
+															<Typography variant="caption" fontWeight={700} noWrap>
+																{aptRow.nom}
+															</Typography>
+														</Box>
+													</Tooltip>
 
 													{/* Day cells */}
 													{aptRow.cells.map((cell, dayIdx) => {
 														const day = dayIdx + 1;
 														const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-														const dow = dayOfWeek(dateStr);
-														const isWeekend = dow >= 5;
-
+													const dow = weekdayIndex(dateStr);
+																											const isWeekend = dow >= 5;
 														return (
 															<Box
 																key={dayIdx}

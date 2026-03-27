@@ -133,7 +133,7 @@ const PasswordClient: React.FC = () => {
 
 	return (
 		<Stack direction="column" sx={{ position: 'relative' }}>
-			<NavigationBar title="Éditer le profil">
+			<NavigationBar title="Modifier le mot de passe">
 				<main className={`${Styles.main} ${Styles.fixMobile}`}>
 					<Box
 						sx={{

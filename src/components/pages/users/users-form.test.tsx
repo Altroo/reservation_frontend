@@ -110,10 +110,15 @@ jest.mock('@/components/formikElements/apiLoading/apiAlert/apiAlert', () => ({
 	default: () => <div data-testid="api-alert">Error</div>,
 }));
 
-jest.mock('@/utils/themes', () => ({
-	textInputTheme: jest.fn(() => ({})),
-	customDropdownTheme: jest.fn(() => ({})),
-}));
+jest.mock('@/utils/themes', () => {
+	// eslint-disable-next-line @typescript-eslint/no-require-imports
+	const { createTheme } = require('@mui/material/styles');
+	const defaultTheme = createTheme();
+	return {
+		textInputTheme: jest.fn(() => defaultTheme),
+		customDropdownTheme: jest.fn(() => defaultTheme),
+	};
+});
 
 jest.mock('@/utils/helpers', () => ({
 	getLabelForKey: jest.fn((labels: Record<string, string>, key: string) => labels[key] || key),

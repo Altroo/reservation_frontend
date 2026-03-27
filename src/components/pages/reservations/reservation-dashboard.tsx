@@ -22,7 +22,9 @@ import {
 	AttachMoney as MoneyIcon,
 	CalendarMonth as CalendarIcon,
 	TrendingUp as TrendingUpIcon,
+	TrendingDown as TrendingDownIcon,
 	EmojiEvents as TrophyIcon,
+	Savings as SavingsIcon,
 	InfoOutlined as InfoIcon,
 } from '@mui/icons-material';
 import {
@@ -45,8 +47,8 @@ import NavigationBar from '@/components/layouts/navigationBar/navigationBar';
 import { Protected } from '@/components/layouts/protected/protected';
 import Styles from '@/styles/dashboard/dashboard.module.sass';
 import type { SessionProps } from '@/types/_initTypes';
-import { MONTH_LABELS, CHART_COLORS, SOURCE_COLORS, APARTMENT_COLORS } from '@/utils/rawData';
-import type { DailyRevenueType } from '@/types/reservationTypes';
+import { MONTH_LABELS, CHART_COLORS, SOURCE_COLORS, APARTMENT_COLORS, CHART_OPTS } from '@/utils/rawData';
+import { formatNumberMA as fmt } from '@/utils/helpers';
 
 ChartJS.register(
 	CategoryScale,
@@ -61,8 +63,6 @@ ChartJS.register(
 	Filler,
 );
 
-const CHART_OPTS = { responsive: true, maintainAspectRatio: false } as const;
-const fmt = (val: number) => val.toLocaleString('fr-MA');
 
 /* ── KPI Card with left accent bar ─────────────────────────────────────────── */
 interface KpiCardProps {
@@ -172,7 +172,7 @@ const EmptyChart: React.FC<{ message?: string }> = ({ message }) => (
 const ReservationDashboardClient: React.FC<SessionProps> = ({ session }) => {
 	const token = useInitAccessToken(session);
 	const currentYear = new Date().getFullYear();
-	const [year, setYear] = useState<number>(currentYear);
+	const [year, setYear] = useState<number>(() => new Date().getFullYear());
 
 	const { data, isLoading } = useGetDashboardStatsQuery({ year }, { skip: !token });
 	const { data: yearsData } = useGetReservationYearsQuery(undefined, { skip: !token });
@@ -180,11 +180,12 @@ const ReservationDashboardClient: React.FC<SessionProps> = ({ session }) => {
 	const yearOptions = yearsData?.years ?? [currentYear];
 
 	const totalRevenue = data?.total_revenue ?? 0;
+	const annualCosts = data?.annual_costs ?? 0;
+	const netProfit = data?.net_profit ?? 0;
 	const monthlyRevenue = data?.monthly_revenue ?? [];
 	const bySource = data?.by_source ?? [];
 	const byApartment = data?.by_apartment ?? [];
 	const occupancy = data?.occupancy_by_apartment ?? {};
-	const dailyRevenue: DailyRevenueType[] = data?.daily_revenue ?? [];
 
 	const totalReservations = bySource.reduce((s, x) => s + x.count, 0);
 	const totalOccupied = Object.values(occupancy).reduce((s, a) => s + a.occupied_days, 0);
@@ -240,17 +241,17 @@ const ReservationDashboardClient: React.FC<SessionProps> = ({ session }) => {
 		],
 	};
 
-	// Daily revenue line chart
-	const dailyChartData = {
-		labels: dailyRevenue.map((d) => d.date.slice(5)),
+	// Monthly trend line chart (replaces sparse daily data)
+	const monthlyTrendData = {
+		labels: MONTH_LABELS,
 		datasets: [
 			{
-				data: dailyRevenue.map((d) => d.total),
+				data: monthlyRevenue.map((m) => m.total),
 				borderColor: CHART_COLORS.primary,
 				backgroundColor: CHART_COLORS.primaryLight,
-				tension: 0.3,
-				pointRadius: 0,
-				borderWidth: 1.5,
+				tension: 0.4,
+				pointRadius: 4,
+				borderWidth: 2,
 				fill: true,
 			},
 		],
@@ -301,7 +302,7 @@ const ReservationDashboardClient: React.FC<SessionProps> = ({ session }) => {
 								<Box
 									sx={{
 										display: 'grid',
-										gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(5, 1fr)' },
+										gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(4, 1fr)' },
 										gap: 2,
 									}}
 								>
@@ -348,6 +349,30 @@ const ReservationDashboardClient: React.FC<SessionProps> = ({ session }) => {
 									/>
 								</Box>
 
+								{/* ── Cost KPIs ───────────────────────── */}
+								<Box
+									sx={{
+										display: 'grid',
+										gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)' },
+										gap: 2,
+									}}
+								>
+									<KpiCard
+										icon={<TrendingDownIcon fontSize="small" />}
+										label="Coüts annuels"
+										value={`${fmt(annualCosts)} MAD`}
+										color="#d32f2f"
+										tooltip="Total des coüts pour l'année sélectionnée"
+									/>
+									<KpiCard
+										icon={<SavingsIcon fontSize="small" />}
+										label="Bénéfice net"
+										value={`${fmt(netProfit)} MAD`}
+										color={netProfit >= 0 ? '#2e7d32' : '#d32f2f'}
+										tooltip="Revenus totaux moins les coüts annuels"
+									/>
+								</Box>
+
 								{/* ── Monthly Revenue Bar ────────────────── */}
 								<ChartCard
 									title="Revenus mensuels"
@@ -362,20 +387,21 @@ const ReservationDashboardClient: React.FC<SessionProps> = ({ session }) => {
 									)}
 								</ChartCard>
 
-								{/* ── Daily Revenue Line ─────────────────── */}
+								{/* ── Monthly Trend Line ────────────────── */}
 								<ChartCard
-									title="Revenus journaliers"
-									subheader="Courbe annuelle des revenus par jour d'arrivée"
+									title="Tendance mensuelle des revenus"
+									subheader="Évolution des revenus mois par mois"
+									infoTooltip="Courbe de l'évolution mensuelle du chiffre d'affaires"
 									height={280}
 								>
-									{dailyRevenue.length > 0 ? (
+									{monthlyRevenue.some((m) => m.total > 0) ? (
 										<Line
-											data={dailyChartData}
+											data={monthlyTrendData}
 											options={{
 												...CHART_OPTS,
 												plugins: { legend: { display: false } },
 												scales: {
-													x: { ticks: { maxTicksLimit: 20, font: { size: 9 } } },
+													x: { ticks: { font: { size: 10 } } },
 													y: { beginAtZero: true },
 												},
 											}}

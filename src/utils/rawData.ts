@@ -75,3 +75,41 @@ export const APARTMENT_COLORS = [
 	'rgba(2, 136, 209, 0.8)',
 	'rgba(255, 193, 7, 0.8)',
 ];
+export const costCategoryItemsList = [
+	{ code: 'Entretien', value: 'Entretien' },
+	{ code: 'Charges', value: 'Charges' },
+	{ code: 'Assurance', value: 'Assurance' },
+	{ code: 'Taxes', value: 'Taxes' },
+	{ code: 'Autre', value: 'Autre' },
+] as const;
+
+export type CostCategoryChipColor = 'default' | 'primary' | 'success' | 'error' | 'warning' | 'info';
+
+export const COST_CATEGORY_CHIP_COLORS: Record<string, CostCategoryChipColor> = {
+	Entretien: 'warning',
+	Charges: 'info',
+	Assurance: 'primary',
+	Taxes: 'error',
+	Autre: 'default',
+};
+
+// Field label maps (used in Formik validation error display)
+export const RESERVATION_FIELD_LABELS: Record<string, string> = {
+	apartment: 'Appartement',
+	guest_name: 'Nom du client',
+	check_in: "Date d'arrivée",
+	check_out: 'Date de départ',
+	amount: 'Montant',
+	payment_source: 'Source de paiement',
+	notes: 'Notes',
+};
+
+export const COST_FIELD_LABELS: Record<string, string> = {
+	description: 'Description',
+	amount: 'Montant',
+	date: 'Date',
+	category: 'Catégorie',
+};
+
+// Shared Chart.js options
+export const CHART_OPTS = { responsive: true, maintainAspectRatio: false } as const;

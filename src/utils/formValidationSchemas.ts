@@ -32,6 +32,15 @@ const requiredTextField = (min: number, max: number) =>
 const requiredChoiceTextField = () =>
 	z.preprocess((val) => (val === undefined ? '' : val), z.string().nonempty({ error: INPUT_REQUIRED }));
 
+const requiredDateField = (label: string) =>
+	z.preprocess(
+		(val) => (val === undefined || val === null ? '' : String(val)),
+		z
+			.string()
+			.nonempty({ error: `${label} est requise` })
+			.regex(/^\d{4}-\d{2}-\d{2}$/, { error: 'Format de date invalide (AAAA-MM-JJ)' }),
+	);
+
 const optionalChoiceField = () =>
 	z.preprocess((val) => (val === undefined || val === null || val === '' ? undefined : val), z.string().optional());
 
@@ -110,8 +119,8 @@ export const reservationSchema = z.object({
 		z.number({ error: 'Appartement requis' }).positive({ error: 'Appartement requis' }),
 	),
 	guest_name: requiredTextField(2, 200),
-	check_in: requiredTextField(8, 10),
-	check_out: requiredTextField(8, 10),
+	check_in: requiredDateField("Date d'arrivée"),
+	check_out: requiredDateField('Date de départ'),
 	amount: z.preprocess(
 		(val) => (val === undefined || val === null ? '' : String(val)),
 		z.string().nonempty({ error: INPUT_REQUIRED }),
@@ -141,4 +150,15 @@ export const changePasswordSchema = z
 		message: 'Les mots de passe ne correspondent pas',
 		path: ['new_password2'],
 	});
+
+export const costSchema = z.object({
+	description: requiredTextField(2, 300),
+	amount: z.preprocess(
+		(val) => (val === undefined || val === null ? '' : String(val)),
+		z.string().nonempty({ error: INPUT_REQUIRED }),
+	),
+	date: requiredDateField('Date'),
+	category: requiredChoiceTextField(),
+	globalError: optionalTextField(1, 500),
+});
 

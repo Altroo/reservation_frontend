@@ -39,9 +39,8 @@ import {
 	useToggleAmountReturnedMutation,
 } from '@/store/services/reservation';
 import { useInitAccessToken } from '@/contexts/InitContext';
+import { formatNumberMA as fmt } from '@/utils/helpers';
 import { MONTH_LABELS } from '@/utils/rawData';
-
-const fmt = (val: number) => val.toLocaleString('fr-MA');
 
 interface KpiCardProps {
 	color: string;
@@ -215,7 +214,7 @@ const BalanceClient: React.FC<SessionProps> = ({ session }) => {
 											<Table size="small" sx={{ minWidth: 700 }}>
 												<TableHead>
 													<TableRow sx={{ bgcolor: 'primary.main' }}>
-														<TableCell sx={{ color: 'white', fontWeight: 700 }}>Appartement</TableCell>
+														<TableCell sx={{ color: 'white', fontWeight: 700, position: 'sticky', left: 0, zIndex: 3, bgcolor: 'primary.main' }}>Appartement</TableCell>
 														<TableCell sx={{ color: 'white', fontWeight: 700 }}>Client</TableCell>
 														<TableCell sx={{ color: 'white', fontWeight: 600 }}>Arrivée</TableCell>
 														<TableCell sx={{ color: 'white', fontWeight: 600 }}>Départ</TableCell>
@@ -241,7 +240,7 @@ const BalanceClient: React.FC<SessionProps> = ({ session }) => {
 																key={r.id}
 																sx={{ bgcolor: idx % 2 === 0 ? 'background.default' : 'action.hover' }}
 															>
-																<TableCell sx={{ fontWeight: 600 }}>{r.apartment_nom}</TableCell>
+																<TableCell sx={{ fontWeight: 600, position: 'sticky', left: 0, zIndex: 1, bgcolor: 'inherit' }}>{r.apartment_nom}</TableCell>
 																<TableCell>{r.guest_name}</TableCell>
 																<TableCell>{r.check_in}</TableCell>
 																<TableCell>{r.check_out}</TableCell>
@@ -287,7 +286,7 @@ const BalanceClient: React.FC<SessionProps> = ({ session }) => {
 											<Table size="small" sx={{ minWidth: 900 }}>
 												<TableHead>
 													<TableRow sx={{ bgcolor: 'primary.main' }}>
-														<TableCell sx={{ color: 'white', fontWeight: 700, width: 100 }}>Appartement</TableCell>
+														<TableCell sx={{ color: 'white', fontWeight: 700, width: 100, position: 'sticky', left: 0, zIndex: 3, bgcolor: 'primary.main' }}>Appartement</TableCell>
 														{MONTH_LABELS.map((m) => (
 															<TableCell
 																key={m}
@@ -315,7 +314,7 @@ const BalanceClient: React.FC<SessionProps> = ({ session }) => {
 																	bgcolor: rowIdx % 2 === 0 ? 'background.default' : 'action.hover',
 																}}
 															>
-																<TableCell sx={{ fontWeight: 600 }}>{nom}</TableCell>
+																<TableCell sx={{ fontWeight: 600, position: 'sticky', left: 0, zIndex: 1, bgcolor: 'inherit' }}>{nom}</TableCell>
 																{Array.from({ length: 12 }, (_, i) => {
 																	const monthData = apt.monthly[i + 1];
 																	const total = monthData?.total ?? 0;
@@ -349,7 +348,7 @@ const BalanceClient: React.FC<SessionProps> = ({ session }) => {
 
 													{/* Total row */}
 													<TableRow sx={{ bgcolor: 'primary.light' }}>
-														<TableCell sx={{ fontWeight: 700 }}>TOTAL</TableCell>
+														<TableCell sx={{ fontWeight: 700, position: 'sticky', left: 0, zIndex: 1, bgcolor: 'primary.light' }}>TOTAL</TableCell>
 														{totalByMonth.map((total, i) => (
 															<TableCell
 																key={i}

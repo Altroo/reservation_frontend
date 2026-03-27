@@ -219,9 +219,9 @@ describe('ReservationDashboardClient', () => {
 			expect(screen.getAllByTestId('chart-bar').length).toBeGreaterThanOrEqual(1);
 		});
 
-		it('renders daily revenue line chart', () => {
+		it('renders monthly trend line chart', () => {
 			render(<ReservationDashboardClient session={mockSession} />);
-			expect(screen.getByText('Revenus journaliers')).toBeInTheDocument();
+			expect(screen.getByText('Tendance mensuelle des revenus')).toBeInTheDocument();
 			expect(screen.getByTestId('chart-line')).toBeInTheDocument();
 		});
 

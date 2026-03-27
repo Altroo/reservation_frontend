@@ -11,10 +11,9 @@ describe('ApiAlert', () => {
 
 		render(<ApiAlert errorDetails={errorDetails} />);
 
-		// whole string is concatenated
-		expect(screen.getByText('error : Invalid request,Missing fields')).toBeInTheDocument();
-
+		// whole string is concatenated inside the alert
 		const alert = screen.getByRole('alert');
+		expect(alert).toHaveTextContent('error : Invalid request, Missing fields');
 		expect(alert).toHaveTextContent(/Invalid request/);
 		expect(alert).toHaveTextContent(/Missing fields/);
 	});

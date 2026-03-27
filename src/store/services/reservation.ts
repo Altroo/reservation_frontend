@@ -1,4 +1,5 @@
 import { createApi } from '@reduxjs/toolkit/query/react';
+import { retry } from '@reduxjs/toolkit/query';
 import { isAuthenticatedInstance } from '@/utils/helpers';
 import { axiosBaseQuery } from '@/utils/axiosBaseQuery';
 import { getInitStateToken } from '@/store/selectors';
@@ -11,17 +12,34 @@ import type {
 	DashboardStatsType,
 	PlanningMonthType,
 	BalanceType,
+	CostType,
+	CostFormType,
 } from '@/types/reservationTypes';
+
+const rawBaseQuery = axiosBaseQuery((api) =>
+	isAuthenticatedInstance(
+		() => getInitStateToken(api.getState() as RootState),
+		() => api.dispatch(initToken()),
+	),
+);
+
+// Retry up to 2 times on 503 (server overloaded/restarting) or status 0 (network failure).
+// All other errors abort immediately.
+const baseQueryWithRetry = retry(
+	async (args, api, extraOptions) => {
+		const result = await rawBaseQuery(args, api, extraOptions);
+		if (result.error && result.error.status !== 503 && result.error.status !== 0) {
+			retry.fail(result.error);
+		}
+		return result;
+	},
+	{ maxRetries: 2 },
+);
 
 export const reservationApi = createApi({
 	reducerPath: 'reservationApi',
-	tagTypes: ['Reservation', 'Apartment', 'Dashboard', 'Planning', 'Balance'],
-	baseQuery: axiosBaseQuery((api) =>
-		isAuthenticatedInstance(
-			() => getInitStateToken(api.getState() as RootState),
-			() => api.dispatch(initToken()),
-		),
-	),
+	tagTypes: ['Reservation', 'Apartment', 'Dashboard', 'Planning', 'Balance', 'Cost'],
+	baseQuery: baseQueryWithRetry,
 	endpoints: (builder) => ({
 		// ── Apartments ──────────────────────────────────────────────────────
 		getApartments: builder.query<ApartmentClass[], void>({
@@ -184,6 +202,42 @@ export const reservationApi = createApi({
 			}),
 			providesTags: ['Reservation'],
 		}),
+
+		// ── Costs ────────────────────
+		getCosts: builder.query<CostType[], { year?: number }>({
+			query: ({ year }) => ({
+				url: process.env.NEXT_PUBLIC_RESERVATION_COSTS,
+				method: 'GET',
+				params: { year },
+			}),
+			providesTags: ['Cost'],
+		}),
+
+		createCost: builder.mutation<CostType, { data: CostFormType }>({
+			query: ({ data }) => ({
+				url: process.env.NEXT_PUBLIC_RESERVATION_COSTS,
+				method: 'POST',
+				data,
+			}),
+			invalidatesTags: ['Cost', 'Dashboard'],
+		}),
+
+		updateCost: builder.mutation<CostType, { id: number; data: CostFormType }>({
+			query: ({ id, data }) => ({
+				url: `${process.env.NEXT_PUBLIC_RESERVATION_COSTS}${id}/`,
+				method: 'PUT',
+				data,
+			}),
+			invalidatesTags: ['Cost', 'Dashboard'],
+		}),
+
+		deleteCost: builder.mutation<void, { id: number }>({
+			query: ({ id }) => ({
+				url: `${process.env.NEXT_PUBLIC_RESERVATION_COSTS}${id}/`,
+				method: 'DELETE',
+			}),
+			invalidatesTags: ['Cost', 'Dashboard'],
+		}),
 	}),
 });
 
@@ -202,4 +256,8 @@ export const {
 	useToggleAmountReturnedMutation,
 	useGetReservationYearsQuery,
 	useGetOccupiedDatesQuery,
+	useGetCostsQuery,
+	useCreateCostMutation,
+	useUpdateCostMutation,
+	useDeleteCostMutation,
 } = reservationApi;

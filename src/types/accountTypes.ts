@@ -45,3 +45,19 @@ export interface PasswordResetResponse extends TokenType {
 		new_password2: string;
 	};
 }
+
+export interface UserFormValues {
+	first_name: string;
+	last_name: string;
+	email: string;
+	gender: string;
+	is_active: boolean;
+	is_staff: boolean;
+	can_view: boolean;
+	can_create: boolean;
+	can_edit: boolean;
+	can_delete: boolean;
+	avatar: string | ArrayBuffer | null;
+	avatar_cropped: string | ArrayBuffer | null;
+	globalError: string;
+}

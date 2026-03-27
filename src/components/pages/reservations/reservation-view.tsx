@@ -187,7 +187,7 @@ const ReservationViewClient: React.FC<Props> = ({ session, id }) => {
 						{isLoading ? (
 							<ApiProgress backdropColor="#FFFFFF" circularColor="#0D070B" />
 						) : (axiosError?.status as number) > 400 ? (
-							<ApiAlert errorDetails={axiosError?.data as unknown as Record<string, string[]>} />
+							<ApiAlert errorDetails={axiosError?.data as Record<string, unknown>} />
 						) : !reservation ? (
 							<Alert severity="warning">Réservation introuvable</Alert>
 						) : (

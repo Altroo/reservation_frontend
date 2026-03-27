@@ -43,13 +43,10 @@ import { Protected } from '@/components/layouts/protected/protected';
 import { useGetDashboardStatsQuery, useGetPlanningQuery, useGetReservationYearsQuery } from '@/store/services/reservation';
 import { useInitAccessToken } from '@/contexts/InitContext';
 import { formatDate } from '@/utils/helpers';
-import { APARTMENT_COLORS, PAYMENT_SOURCE_BG, MONTH_NAMES } from '@/utils/rawData';
+import { APARTMENT_COLORS, PAYMENT_SOURCE_BG, MONTH_NAMES, CHART_OPTS } from '@/utils/rawData';
+import { formatNumberMA as fmt } from '@/utils/helpers';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
-
-const CHART_OPTS = { responsive: true, maintainAspectRatio: false } as const;
-
-const fmt = (val: number) => val.toLocaleString('fr-MA');
 
 interface KpiCardProps {
 	color: string;

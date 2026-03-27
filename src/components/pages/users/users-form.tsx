@@ -2,6 +2,7 @@
 
 import React, { useState, useMemo } from 'react';
 import type { ApiErrorResponseType, ResponseDataInterface, SessionProps } from '@/types/_initTypes';
+import type { UserFormValues } from '@/types/accountTypes';
 import Styles from '@/styles/dashboard/dashboard.module.sass';
 import NavigationBar from '@/components/layouts/navigationBar/navigationBar';
 import {
@@ -52,22 +53,6 @@ import { useInitAccessToken } from '@/contexts/InitContext';
 import { Protected } from '@/components/layouts/protected/protected';
 
 const inputTheme = textInputTheme();
-
-interface UserFormValues {
-	first_name: string;
-	last_name: string;
-	email: string;
-	gender: string;
-	is_active: boolean;
-	is_staff: boolean;
-	can_view: boolean;
-	can_create: boolean;
-	can_edit: boolean;
-	can_delete: boolean;
-	avatar: string | ArrayBuffer | null;
-	avatar_cropped: string | ArrayBuffer | null;
-	globalError: string;
-}
 
 type FormikContentProps = {
 	token: string | undefined;

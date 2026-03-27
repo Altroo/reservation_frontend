@@ -7,6 +7,7 @@ beforeAll(() => {
 	process.env.NEXT_PUBLIC_RESERVATION_DASHBOARD ||= 'https://example.com/api/dashboard/';
 	process.env.NEXT_PUBLIC_RESERVATION_PLANNING ||= 'https://example.com/api/planning/';
 	process.env.NEXT_PUBLIC_RESERVATION_BALANCE ||= 'https://example.com/api/balance/';
+	process.env.NEXT_PUBLIC_RESERVATION_COSTS ||= 'https://example.com/api/costs/';
 });
 
 jest.mock('@/utils/axiosBaseQuery', () => ({
@@ -122,6 +123,51 @@ describe('reservationApi', () => {
 		it('getBalance query should complete without error', async () => {
 			const result = await storeRef.store.dispatch(
 				reservationApi.endpoints.getBalance.initiate({ year: 2024 }),
+			);
+			expect('error' in result).toBe(false);
+		});
+	});
+
+	describe('Cost endpoints', () => {
+		it('getCosts query should complete without error', async () => {
+			const result = await storeRef.store.dispatch(
+				reservationApi.endpoints.getCosts.initiate({ year: 2024 }),
+			);
+			expect('error' in result).toBe(false);
+		});
+
+		it('createCost mutation should complete without error', async () => {
+			const result = await storeRef.store.dispatch(
+				reservationApi.endpoints.createCost.initiate({
+					data: {
+						description: 'Test Cost',
+						amount: '500',
+						date: '2024-01-15',
+						category: 'Maintenance',
+					},
+				}),
+			);
+			expect('error' in result).toBe(false);
+		});
+
+		it('updateCost mutation should complete without error', async () => {
+			const result = await storeRef.store.dispatch(
+				reservationApi.endpoints.updateCost.initiate({
+					id: 1,
+					data: {
+						description: 'Updated Cost',
+						amount: '750',
+						date: '2024-02-01',
+						category: 'Utilities',
+					},
+				}),
+			);
+			expect('error' in result).toBe(false);
+		});
+
+		it('deleteCost mutation should complete without error', async () => {
+			const result = await storeRef.store.dispatch(
+				reservationApi.endpoints.deleteCost.initiate({ id: 1 }),
 			);
 			expect('error' in result).toBe(false);
 		});

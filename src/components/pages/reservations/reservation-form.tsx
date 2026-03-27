@@ -2,6 +2,7 @@
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { ApiErrorResponseType, ResponseDataInterface, SessionProps } from '@/types/_initTypes';
+import type { ReservationFormValues } from '@/types/reservationTypes';
 import Styles from '@/styles/dashboard/dashboard.module.sass';
 import NavigationBar from '@/components/layouts/navigationBar/navigationBar';
 import {
@@ -44,8 +45,8 @@ import PrimaryLoadingButton from '@/components/htmlElements/buttons/primaryLoadi
 import ApiProgress from '@/components/formikElements/apiLoading/apiProgress/apiProgress';
 import ApiAlert from '@/components/formikElements/apiLoading/apiAlert/apiAlert';
 import { reservationSchema } from '@/utils/formValidationSchemas';
-import { paymentSourceItemsList } from '@/utils/rawData';
-import { setFormikAutoErrors } from '@/utils/helpers';
+import { paymentSourceItemsList, RESERVATION_FIELD_LABELS } from '@/utils/rawData';
+import { getLabelForKey, setFormikAutoErrors } from '@/utils/helpers';
 import { textInputTheme } from '@/utils/themes';
 import { RESERVATIONS_LIST, RESERVATIONS_VIEW } from '@/utils/routes';
 import { useRouter } from 'next/navigation';
@@ -62,17 +63,6 @@ import { useInitAccessToken } from '@/contexts/InitContext';
 import { Protected } from '@/components/layouts/protected/protected';
 
 const inputTheme = textInputTheme();
-
-export interface ReservationFormValues {
-	apartment: number | '';
-	guest_name: string;
-	check_in: string;
-	check_out: string;
-	amount: string;
-	payment_source: string;
-	notes: string;
-	globalError: string;
-}
 
 type FormikContentProps = {
 	token: string | undefined;
@@ -230,7 +220,9 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 						<ul style={{ margin: '8px 0', paddingLeft: '20px' }}>
 							{validationEntries.map(([key, err]) => (
 								<li key={key}>
-									<Typography variant="body2">{err}</Typography>
+									<Typography variant="body2">
+										<strong>{getLabelForKey(RESERVATION_FIELD_LABELS, key)}</strong> : {err}
+									</Typography>
 								</li>
 							))}
 						</ul>
@@ -242,7 +234,7 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 				{isLoading ? (
 					<ApiProgress backdropColor="#FFFFFF" circularColor="#0D070B" />
 				) : shouldShowError ? (
-					<ApiAlert errorDetails={axiosError?.data as unknown as Record<string, string[]>} />
+					<ApiAlert errorDetails={axiosError?.data as Record<string, unknown>} />
 				) : (
 					<form onSubmit={formik.handleSubmit}>
 						<Stack spacing={3}>

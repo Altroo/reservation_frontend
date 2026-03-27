@@ -6,12 +6,14 @@ import { Protected } from './protected';
 // 🧩 Mock hooks module
 jest.mock('@/utils/hooks', () => ({
 	usePermission: jest.fn(),
+	useAppSelector: jest.fn(),
 }));
 
-import { usePermission } from '@/utils/hooks';
+import { usePermission, useAppSelector } from '@/utils/hooks';
 
 describe('Protected component', () => {
 	it('renders children when is_staff is true (default permission)', () => {
+		(useAppSelector as jest.Mock).mockReturnValue({ id: 1 });
 		(usePermission as jest.Mock).mockReturnValue({ is_staff: true, can_view: false, can_create: false, can_edit: false, can_delete: false });
 
 		render(
@@ -25,6 +27,7 @@ describe('Protected component', () => {
 	});
 
 	it('renders access denied message when is_staff is false (default permission)', () => {
+		(useAppSelector as jest.Mock).mockReturnValue({ id: 1 });
 		(usePermission as jest.Mock).mockReturnValue({ is_staff: false, can_view: false, can_create: false, can_edit: false, can_delete: false });
 
 		render(
@@ -39,6 +42,7 @@ describe('Protected component', () => {
 	});
 
 	it('renders children when specific permission is granted', () => {
+		(useAppSelector as jest.Mock).mockReturnValue({ id: 1 });
 		(usePermission as jest.Mock).mockReturnValue({ is_staff: false, can_view: true, can_create: false, can_edit: false, can_delete: false });
 
 		render(
@@ -52,6 +56,7 @@ describe('Protected component', () => {
 	});
 
 	it('renders access denied when specific permission is not granted', () => {
+		(useAppSelector as jest.Mock).mockReturnValue({ id: 1 });
 		(usePermission as jest.Mock).mockReturnValue({ is_staff: false, can_view: false, can_create: false, can_edit: false, can_delete: false });
 
 		render(

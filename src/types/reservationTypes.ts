@@ -68,6 +68,8 @@ export interface DailyRevenueType {
 export interface DashboardStatsType {
 	year: number;
 	total_revenue: number;
+	annual_costs: number;
+	net_profit: number;
 	by_source: SourceRevenueType[];
 	monthly_revenue: MonthlyRevenueType[];
 	by_apartment: ApartmentRevenueType[];
@@ -118,4 +120,45 @@ export interface BalanceType {
 	total_returned: number;
 	total_not_returned: number;
 	reservations: BalanceReservationType[];
+}
+// Costs
+export type CostCategoryType = 'Entretien' | 'Charges' | 'Assurance' | 'Taxes' | 'Autre';
+
+export interface CostType {
+	id: number;
+	description: string;
+	amount: string;
+	date: string;
+	category: CostCategoryType | string;
+	created_by_user: number | null;
+	created_by_user_name: string | null;
+	date_created: string;
+	date_updated: string;
+}
+
+export interface CostFormType {
+	description: string;
+	amount: string;
+	date: string;
+	category: CostCategoryType | string;
+}
+
+// Formik form state (includes globalError for form-level error display)
+export interface ReservationFormValues {
+	apartment: number | '';
+	guest_name: string;
+	check_in: string;
+	check_out: string;
+	amount: string;
+	payment_source: string;
+	notes: string;
+	globalError: string;
+}
+
+export interface CostFormValues {
+	description: string;
+	amount: string;
+	date: string;
+	category: string;
+	globalError: string;
 }

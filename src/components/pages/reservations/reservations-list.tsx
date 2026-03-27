@@ -71,6 +71,8 @@ const ReservationsListClient: React.FC<SessionProps> = ({ session }) => {
 	const {
 		data: rawData,
 		isLoading,
+		isError,
+		error,
 		refetch,
 	} = useGetReservationsListQuery(
 		{
@@ -162,7 +164,9 @@ const ReservationsListClient: React.FC<SessionProps> = ({ session }) => {
 			minWidth: 90,
 			filterable: false,
 			renderCell: (params: GridRenderCellParams<ReservationClass>) => (
-				<Chip label={params.value ?? '—'} size="small" variant="outlined" />
+				<DarkTooltip title={params.value ?? ''}>
+					<Chip label={params.value ?? '—'} size="small" variant="outlined" sx={{ maxWidth: 110 }} />
+				</DarkTooltip>
 			),
 		},
 		{
@@ -333,23 +337,39 @@ const ReservationsListClient: React.FC<SessionProps> = ({ session }) => {
 							)}
 						</Box>
 
-						<ChipSelectFilterBar filters={chipFilters} onFilterChange={setChipFilterParams} columns={1} />
+						{isError ? (
+							<Box display="flex" flexDirection="column" alignItems="center" justifyContent="center" py={8} gap={2}>
+								<Typography color="text.secondary" variant="h6" textAlign="center">
+									Impossible de charger les réservations
+								</Typography>
+								<Typography color="error.main" variant="body2" textAlign="center">
+									{(error as { data?: { message?: string } })?.data?.message ?? 'Erreur réseau ou serveur indisponible'}
+								</Typography>
+								<Button variant="outlined" onClick={() => refetch()}>
+									Réessayer
+								</Button>
+							</Box>
+						) : (
+							<>
+								<ChipSelectFilterBar filters={chipFilters} onFilterChange={setChipFilterParams} columns={1} />
 
-						<PaginatedDataGrid
-							data={data}
-							isLoading={isLoading}
-							columns={columns}
-							paginationModel={paginationModel}
-							setPaginationModel={setPaginationModel}
-							searchTerm={searchTerm}
-							setSearchTerm={setSearchTerm}
-							filterModel={filterModel}
-							onFilterModelChange={setFilterModel}
-							onCustomFilterParamsChange={setCustomFilterParams}
-							checkboxSelection
-							onSelectionChange={setSelectedIds}
-							selectedIds={selectedIds}
-						/>
+								<PaginatedDataGrid
+									data={data}
+									isLoading={isLoading}
+									columns={columns}
+									paginationModel={paginationModel}
+									setPaginationModel={setPaginationModel}
+									searchTerm={searchTerm}
+									setSearchTerm={setSearchTerm}
+									filterModel={filterModel}
+									onFilterModelChange={setFilterModel}
+									onCustomFilterParamsChange={setCustomFilterParams}
+									checkboxSelection
+									onSelectionChange={setSelectedIds}
+									selectedIds={selectedIds}
+								/>
+							</>
+						)}
 
 						{showDeleteModal && (
 							<ActionModals

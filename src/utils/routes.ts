@@ -27,3 +27,7 @@ export const PLANNING = `${SITE_ROOT}dashboard/planning`;
 export const OCCUPANCY = `${SITE_ROOT}dashboard/occupancy`;
 export const BALANCE = `${SITE_ROOT}dashboard/balance`;
 export const GAINS = `${SITE_ROOT}dashboard/gains`;
+export const CALENDAR = `${SITE_ROOT}dashboard/calendar`;
+export const COSTS_LIST = `${SITE_ROOT}dashboard/costs`;
+export const COSTS_ADD = `${SITE_ROOT}dashboard/costs/new`;
+export const COSTS_EDIT = (id: number) => `${SITE_ROOT}dashboard/costs/${id}/edit`;

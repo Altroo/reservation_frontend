@@ -20,7 +20,7 @@ import ApiProgress from '@/components/formikElements/apiLoading/apiProgress/apiP
 import NavigationBar from '@/components/layouts/navigationBar/navigationBar';
 import { accountEditProfilAction } from '@/store/actions/accountActions';
 import CustomSquareImageUploading from '@/components/formikElements/customSquareImageUploading/customSquareImageUploading';
-import { Edit as EditIcon, Groups as GroupsIcon, Person as PersonIcon } from '@mui/icons-material';
+import { Edit as EditIcon, Email as EmailIcon, Groups as GroupsIcon, Person as PersonIcon } from '@mui/icons-material';
 
 const inputTheme = textInputTheme();
 
@@ -81,6 +81,20 @@ const FormikContent: React.FC<formikContentType> = (props: formikContentType) =>
 						croppedImage={formik.values.avatar_cropped}
 						onChange={(img) => formik.setFieldValue('avatar', img)}
 						onCrop={(cropped) => formik.setFieldValue('avatar_cropped', cropped)}
+					/>
+					<CustomTextInput
+						id="email"
+						type="email"
+						value={profilData?.email ?? ''}
+						onChange={() => {}}
+						fullWidth={true}
+						size="small"
+						label="Email"
+						placeholder="Email"
+						theme={inputTheme}
+						startIcon={<EmailIcon fontSize="small" />}
+						cssClass={Styles.maxInputWidth}
+						disabled
 					/>
 					<CustomTextInput
 						id="first_name"

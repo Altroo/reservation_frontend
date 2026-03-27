@@ -119,7 +119,7 @@ describe('PasswordClient', () => {
 
 	it('renders the page title', () => {
 		renderWithProviders(<PasswordClient />);
-		expect(screen.getByText('Modifier le mot de passe')).toBeInTheDocument();
+		expect(screen.getAllByText('Modifier le mot de passe').length).toBeGreaterThan(0);
 	});
 
 	it('renders old password input', () => {
@@ -185,7 +185,7 @@ describe('PasswordClient', () => {
 		useAppSelector.mockReturnValue(undefined);
 
 		renderWithProviders(<PasswordClient />);
-		expect(screen.getByText('Modifier le mot de passe')).toBeInTheDocument();
+		expect(screen.getAllByText('Modifier le mot de passe').length).toBeGreaterThan(0);
 		expect(
 			screen.queryByText(/Il est recommandé de changer votre mot de passe par défaut/),
 		).not.toBeInTheDocument();
@@ -198,7 +198,7 @@ describe('PasswordClient', () => {
 		useAppSelector.mockReturnValue({ id: 1, email: 'test@test.com' });
 
 		renderWithProviders(<PasswordClient />);
-		expect(screen.getByText('Modifier le mot de passe')).toBeInTheDocument();
+		expect(screen.getAllByText('Modifier le mot de passe').length).toBeGreaterThan(0);
 		expect(
 			screen.queryByText(/Il est recommandé de changer votre mot de passe par défaut/),
 		).not.toBeInTheDocument();

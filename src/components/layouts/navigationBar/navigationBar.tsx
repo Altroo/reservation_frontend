@@ -35,6 +35,7 @@ import {
 	Hotel as HotelIcon,
 	BarChart as BarChartIcon,
 	Dashboard as DashboardIcon,
+	Payments as PaymentsIcon,
 } from '@mui/icons-material';
 import { useAppSelector } from '@/utils/hooks';
 import { getProfilState } from '@/store/selectors';
@@ -54,6 +55,9 @@ import {
 	BALANCE,
 	GAINS,
 	OCCUPANCY,
+	CALENDAR,
+	COSTS_LIST,
+	COSTS_ADD,
 } from '@/utils/routes';
 import { signOut, useSession } from 'next-auth/react';
 import { usePathname } from 'next/navigation';
@@ -85,6 +89,15 @@ const getNavigationMenu = (isStaff: boolean) => {
 				{ title: "Taux d'occupation", label: "Taux d'occupation", path: OCCUPANCY },
 				{ title: 'Balance', label: 'Balance', path: BALANCE },
 				{ title: 'Gains & Revenus', label: 'Gains & Revenus', path: GAINS },
+				{ title: 'Calendrier', label: 'Calendrier des réservations', path: CALENDAR },
+			],
+		},
+		couts: {
+			title: 'Coûts',
+			icon: <PaymentsIcon />,
+			items: [
+				{ title: 'Liste des coûts', label: 'Liste des coûts', path: COSTS_LIST },
+				{ title: 'Nouveau coût', label: 'Nouveau coût', path: COSTS_ADD },
 			],
 		},
 		...(isStaff && {

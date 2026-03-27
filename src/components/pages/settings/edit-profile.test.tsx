@@ -59,7 +59,7 @@ jest.mock('@/store/actions/accountActions', () => ({
 	accountEditProfilAction: jest.fn(),
 }));
 
-// Mock form sub-components
+// Mock form subcomponents
 jest.mock('@/components/formikElements/customTextInput/customTextInput', () => ({
 	__esModule: true,
 	default: ({ id, label, value }: { id: string; label: string; value: string }) => (
@@ -177,6 +177,7 @@ describe('EditProfileClient', () => {
 				gender: 'Homme',
 				avatar: '',
 				avatar_cropped: '',
+				email: 'profile@example.com',
 			},
 			isLoading: false,
 		});
@@ -287,6 +288,14 @@ describe('EditProfileClient', () => {
 		renderWithProviders(<EditProfileClient session={mockSession} />);
 		const firstNameInput = screen.getByTestId('input-first_name').querySelector('input');
 		expect(firstNameInput).toHaveValue('');
+	});
+
+	it('renders email input as read-only with profile email', () => {
+		renderWithProviders(<EditProfileClient session={mockSession} />);
+		expect(screen.getByTestId('input-email')).toBeInTheDocument();
+		expect(screen.getByText('Email')).toBeInTheDocument();
+		const emailInput = screen.getByTestId('input-email').querySelector('input');
+		expect(emailInput).toHaveValue('profile@example.com');
 	});
 });
 

@@ -187,16 +187,21 @@ export const hexToRGB = (hex: string, alpha?: number): string => {
 };
 
 export const formatDate = (value: string | null) => {
-	if (!value) return '—'; // display a placeholder for null
-	const date = new Date(value);
+	if (!value) return '—';
+	const isDateOnly = /^\d{4}-\d{2}-\d{2}$/.test(value);
+	let date: Date;
+	if (isDateOnly) {
+		const [y, m, d] = value.split('-').map(Number);
+		date = new Date(y, m - 1, d);
+	} else {
+		date = new Date(value);
+	}
 	if (Number.isNaN(date.getTime())) return '—';
 	return new Intl.DateTimeFormat('fr-FR', {
 		year: 'numeric',
 		month: 'short',
 		day: '2-digit',
-		hour: '2-digit',
-		minute: '2-digit',
-		second: '2-digit',
+		...(isDateOnly ? {} : { hour: '2-digit', minute: '2-digit' }),
 	}).format(date);
 };
 
@@ -278,3 +283,12 @@ export const extractApiErrorMessage = (error: unknown, fallback: string): string
 	}
 	return fallback;
 };
+
+/** Converts a YYYY-MM-DD date string to a weekday index (0=Mon … 6=Sun) */
+export const weekdayIndex = (dateStr: string): number => {
+	const d = new Date(dateStr + 'T00:00:00');
+	return (d.getDay() + 6) % 7;
+};
+
+/** Formats a number using the fr-MA locale (Moroccan French) */
+export const formatNumberMA = (val: number): string => val.toLocaleString('fr-MA');

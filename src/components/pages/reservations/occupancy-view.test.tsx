@@ -167,6 +167,7 @@ jest.mock('@/utils/rawData', () => ({
 
 jest.mock('@/utils/helpers', () => ({
 	formatDate: (d: string) => d,
+	formatNumberMA: (val: number) => val.toLocaleString('fr-MA'),
 }));
 
 jest.mock('@/styles/dashboard/dashboard.module.sass', () => ({

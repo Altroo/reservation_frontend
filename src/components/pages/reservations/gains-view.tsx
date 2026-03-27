@@ -38,13 +38,10 @@ import NavigationBar from '@/components/layouts/navigationBar/navigationBar';
 import { Protected } from '@/components/layouts/protected/protected';
 import { useGetBalanceQuery, useGetReservationYearsQuery } from '@/store/services/reservation';
 import { useInitAccessToken } from '@/contexts/InitContext';
-import { APARTMENT_COLORS, MONTH_LABELS, MONTH_NAMES } from '@/utils/rawData';
+import { APARTMENT_COLORS, MONTH_LABELS, MONTH_NAMES, CHART_OPTS } from '@/utils/rawData';
+import { formatNumberMA as fmt } from '@/utils/helpers';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
-
-const CHART_OPTS = { responsive: true, maintainAspectRatio: false } as const;
-
-const fmt = (val: number) => val.toLocaleString('fr-MA');
 
 /* ── KPI Card ──────────────────────────────────────────────────────────────── */
 interface KpiProps {

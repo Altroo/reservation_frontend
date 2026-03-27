@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import {
 	Box,
@@ -46,6 +46,7 @@ import {
 import { useInitAccessToken } from '@/contexts/InitContext';
 import { createDateRangeFilterOperator } from '@/components/shared/dateRangeFilter/dateRangeFilterOperator';
 import { createNumericFilterOperators } from '@/components/shared/numericFilter/numericFilterOperator';
+import { createDropdownFilterOperators } from '@/components/shared/dropdownFilter/dropdownFilter';
 
 const ReservationsListClient: React.FC<SessionProps> = ({ session }) => {
 	const router = useRouter();
@@ -87,6 +88,14 @@ const ReservationsListClient: React.FC<SessionProps> = ({ session }) => {
 	);
 
 	const data = rawData as PaginationResponseType<ReservationClass> | undefined;
+
+	const guestNameOptions = useMemo(() => {
+		const nameMap = new Map<string, string>();
+		(data?.results ?? []).forEach((r) => {
+			if (r.guest_name) nameMap.set(r.guest_name, r.guest_name);
+		});
+		return Array.from(nameMap.values()).map((name) => ({ value: name, label: name }));
+	}, [data?.results]);
 
 	const [deleteReservation] = useDeleteReservationMutation();
 	const [bulkDeleteReservations] = useBulkDeleteReservationsMutation();
@@ -174,6 +183,7 @@ const ReservationsListClient: React.FC<SessionProps> = ({ session }) => {
 			headerName: 'Client',
 			flex: 1.4,
 			minWidth: 130,
+			filterOperators: createDropdownFilterOperators(guestNameOptions, 'Tous les clients'),
 			renderCell: (params: GridRenderCellParams<ReservationClass>) => (
 				<DarkTooltip title={params.value}>
 					<Typography variant="body2" noWrap>
@@ -215,6 +225,7 @@ const ReservationsListClient: React.FC<SessionProps> = ({ session }) => {
 			headerName: 'Nuits',
 			flex: 0.5,
 			minWidth: 70,
+			filterOperators: createNumericFilterOperators(),
 			renderCell: (params: GridRenderCellParams<ReservationClass>) => (
 				<Typography variant="body2">{params.value ?? '—'}</Typography>
 			),

@@ -194,6 +194,10 @@ jest.mock('@/components/shared/numericFilter/numericFilterOperator', () => ({
 	createNumericFilterOperators: jest.fn(() => []),
 }));
 
+jest.mock('@/components/shared/dropdownFilter/dropdownFilter', () => ({
+	createDropdownFilterOperators: jest.fn(() => []),
+}));
+
 jest.mock('@/components/shared/chipSelectFilter/chipSelectFilterBar', () => ({
 	__esModule: true,
 	default: () => <div data-testid="chip-filter-bar" />,

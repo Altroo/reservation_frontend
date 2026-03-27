@@ -323,10 +323,11 @@ const PaginatedDataGrid = <T,>({
 		if (isOpening && customFilters.items.length === 0) {
 			const firstFilterableColumn = columns.find((col) => col.field !== 'actions' && col.filterable !== false);
 			if (firstFilterableColumn) {
+				const defaultOperator = firstFilterableColumn.filterOperators?.[0]?.value ?? 'contains';
 				const newItem: CustomFilterItem = {
 					id: `filter-${Date.now()}`,
 					field: firstFilterableColumn.field,
-					operator: 'contains',
+					operator: defaultOperator,
 					value: '',
 				};
 				setCustomFilters({

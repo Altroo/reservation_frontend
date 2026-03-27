@@ -20,7 +20,7 @@ export const InitEffects: React.FC = () => {
 	const skip = !accessToken || status !== 'authenticated';
 
 	const appInitializedRef = useRef(false);
-	const tokensInitializedRef = useRef(false);
+	const lastAccessTokenRef = useRef<string | null>(null);
 
 	useEffect(() => {
 		if (!appInitializedRef.current) {
@@ -31,10 +31,15 @@ export const InitEffects: React.FC = () => {
 
 	const { data: user } = useGetProfilQuery(undefined, { skip });
 
+	// Sync Redux tokens whenever the access token changes (covers initial login + every refresh)
 	useEffect(() => {
-		if (status === 'authenticated' && session && !tokensInitializedRef.current) {
+		if (status === 'authenticated' && session?.accessToken &&
+			lastAccessTokenRef.current !== session.accessToken) {
+			lastAccessTokenRef.current = session.accessToken;
 			dispatch(initAppSessionTokensAction(session));
-			tokensInitializedRef.current = true;
+		}
+		if (status !== 'authenticated') {
+			lastAccessTokenRef.current = null;
 		}
 	}, [status, session, dispatch]);
 

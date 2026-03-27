@@ -204,6 +204,10 @@ export const reservationApi = createApi({
 		}),
 
 		// ── Costs ────────────────────
+		getCostYears: builder.query<{ years: number[] }, void>({
+			query: () => ({ url: process.env.NEXT_PUBLIC_RESERVATION_COST_YEARS, method: 'GET' }),
+			providesTags: ['Cost'],
+		}),
 		getCosts: builder.query<CostType[], { year?: number }>({
 			query: ({ year }) => ({
 				url: process.env.NEXT_PUBLIC_RESERVATION_COSTS,
@@ -256,6 +260,7 @@ export const {
 	useToggleAmountReturnedMutation,
 	useGetReservationYearsQuery,
 	useGetOccupiedDatesQuery,
+	useGetCostYearsQuery,
 	useGetCostsQuery,
 	useCreateCostMutation,
 	useUpdateCostMutation,

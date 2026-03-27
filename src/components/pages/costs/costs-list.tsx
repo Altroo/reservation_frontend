@@ -43,7 +43,7 @@ import { createDropdownFilterOperators } from '@/components/shared/dropdownFilte
 import { formatDate, extractApiErrorMessage } from '@/utils/helpers';
 import { COSTS_ADD, COSTS_EDIT, COSTS_VIEW } from '@/utils/routes';
 import { useToast } from '@/utils/hooks';
-import { useGetCostsQuery, useDeleteCostMutation } from '@/store/services/reservation';
+import { useGetCostsQuery, useDeleteCostMutation, useGetCostYearsQuery } from '@/store/services/reservation';
 import { useInitAccessToken } from '@/contexts/InitContext';
 import { COST_CATEGORY_CHIP_COLORS, costCategoryItemsList } from '@/utils/rawData';
 import type { CostCategoryChipColor } from '@/utils/rawData';
@@ -57,14 +57,17 @@ const CostsListClient: React.FC<SessionProps> = ({ session }) => {
 	const [year, setYear] = useState(currentYear);
 	const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 });
 	const [searchTerm, setSearchTerm] = useState('');
+
+	const { data: costYears } = useGetCostYearsQuery(undefined, { skip: !token });
 	const [filterModel, setFilterModel] = useState<GridFilterModel>({
 		items: [],
 		logicOperator: GridLogicOperator.And,
 	});
 	const [chipFilterParams, setChipFilterParams] = useState<Record<string, string>>({});
 	const [customFilterParams, setCustomFilterParams] = useState<Record<string, string>>({});
-
 	const { data: costs, isLoading } = useGetCostsQuery({ year }, { skip: !token });
+
+	const yearOptions = costYears?.years ?? [currentYear];
 
 	const createdByOptions = useMemo(() => {
 		const nameMap = new Map<string, string>();
@@ -303,8 +306,6 @@ const CostsListClient: React.FC<SessionProps> = ({ session }) => {
 			},
 		},
 	];
-
-	const yearOptions = Array.from({ length: 5 }, (_, i) => currentYear - i);
 
 	return (
 		<Stack

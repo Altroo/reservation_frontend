@@ -327,7 +327,7 @@ const CalendarContent: React.FC<CalendarContentProps> = ({ token }) => {
 																		'&:hover': { opacity: 0.85 },
 																	}}
 																>
-																	{isStart ? res.guest_name : ''}
+																	{isStart || day === 1 ? res.guest_name : '\u00a0'}
 																</Box>
 															</Tooltip>
 														))}

@@ -30,9 +30,11 @@ jest.mock('@/utils/hooks', () => ({
 // Mock RTK Query hooks
 const mockDeleteCost = jest.fn(() => ({ unwrap: () => Promise.resolve() }));
 const mockUseGetCostsQuery = jest.fn();
+const mockUseGetCostYearsQuery = jest.fn();
 
 jest.mock('@/store/services/reservation', () => ({
 	__esModule: true,
+	useGetCostYearsQuery: (params: unknown, options: unknown) => mockUseGetCostYearsQuery(params, options),
 	useGetCostsQuery: (params: unknown, options: unknown) => mockUseGetCostsQuery(params, options),
 	useDeleteCostMutation: () => [mockDeleteCost, { isLoading: false }],
 }));
@@ -207,6 +209,10 @@ const mockCosts = [
 describe('CostsListClient', () => {
 	beforeEach(() => {
 		jest.clearAllMocks();
+		mockUseGetCostYearsQuery.mockReturnValue({
+			data: { years: [2026, 2025, 2024] },
+			isLoading: false,
+		});
 		mockUseGetCostsQuery.mockReturnValue({
 			data: mockCosts,
 			isLoading: false,

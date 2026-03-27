@@ -157,15 +157,15 @@ describe('ReservationDialog', () => {
 			expect(screen.getByTestId('submit-button')).toHaveTextContent('Ajouter la réservation');
 		});
 
-		it('renders cancel button', () => {
+		it('renders close icon button', () => {
 			render(<ReservationDialog {...baseProps} />);
-			expect(screen.getByText('Annuler')).toBeInTheDocument();
+			expect(screen.getByTestId('CloseIcon')).toBeInTheDocument();
 		});
 
-		it('calls onClose when Annuler button is clicked', () => {
+		it('calls onClose when close icon button is clicked', () => {
 			const onClose = jest.fn();
 			render(<ReservationDialog {...baseProps} onClose={onClose} />);
-			fireEvent.click(screen.getByText('Annuler'));
+			fireEvent.click(screen.getByTestId('CloseIcon').closest('button')!);
 			expect(onClose).toHaveBeenCalledTimes(1);
 		});
 	});

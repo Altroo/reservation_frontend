@@ -159,11 +159,17 @@ export const { handlers, auth } = NextAuth({
 				return null;
 			}
 
-			// Perform refresh token logic if the access token is expired
-			if (Date.now() >= parseExpirationToMs(token.access_expiration)) {
-				// Guard: if refresh token is missing or empty, force re-auth immediately
+			// Proactively refresh the access token 5 minutes before it expires.
+			// With refetchInterval polling every 4 minutes and a 15-minute access
+			// token lifetime, this ensures a refresh happens at ~t=12min instead
+			// of waiting until after expiry at t=16min.
+			const REFRESH_BUFFER_MS = 5 * 60 * 1000;
+			if (Date.now() >= parseExpirationToMs(token.access_expiration) - REFRESH_BUFFER_MS) {
+				// Guard: if refresh token is missing or empty, return stale token
+				// rather than destroying the session — the getSession() retry
+				// in the Axios interceptor will attempt recovery.
 				if (!token.refresh) {
-					return null;
+					return token;
 				}
 				try {
 					// Call your refresh token API if necessary
@@ -175,7 +181,7 @@ export const { handlers, auth } = NextAuth({
 					if (refreshed.status === 200) {
 						const refreshedAccessToken = refreshed.data.access ?? refreshed.data.accessToken;
 						if (!refreshedAccessToken) {
-							return null;
+							return token;
 						}
 
 						token.access = refreshedAccessToken;
@@ -187,15 +193,22 @@ export const { handlers, auth } = NextAuth({
 						if (refreshedAccessExpiration) {
 							token.access_expiration = String(refreshedAccessExpiration);
 						}
-						token.refresh = refreshed.data.refresh || token.refresh; // Fallback to the old refresh token if not updated
+						if (refreshed.data.refresh) {
+							token.refresh = refreshed.data.refresh;
+						}
 						if (refreshed.data.refresh_expiration) {
 							token.refresh_expiration = String(refreshed.data.refresh_expiration);
 						}
 					}
 				} catch (error) {
 					console.error('[Auth] Token refresh failed:', error instanceof Error ? error.message : error);
-					// Return null to force re-authentication
-					return null;
+					// Check if the backend explicitly rejected the refresh token (401)
+					const statusCode = (error as { error?: { status_code?: number } })?.error?.status_code;
+					if (statusCode === 401) {
+						return null;
+					}
+					// For transient errors (network, 5xx) keep the stale token so the
+					// session survives and retries on the next poll.
 				}
 			}
 			return token;

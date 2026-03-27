@@ -320,7 +320,25 @@ describe('auth.ts', () => {
 
 			const result = await callbacks.jwt({ token, account: undefined, user: undefined });
 
-			expect(result).toBeNull(); // jwt callback returns null on refresh failure
+			// Transient errors keep the stale token alive for retry
+			expect(result).not.toBeNull();
+			expect(result!.access).toBe('old-access-token');
+		});
+
+		it('should return null on 401 refresh failure', async () => {
+			jest.spyOn(console, 'error').mockImplementation(() => {});
+			mockedPostApi.mockRejectedValueOnce({ error: { status_code: 401, message: 'Token is invalid or expired' } });
+
+			const callbacks = getCallbacks();
+			const token = {
+				access: 'old-access-token',
+				refresh: 'old-refresh-token',
+				access_expiration: 0,
+			} as unknown as JWT;
+
+			const result = await callbacks.jwt({ token, account: undefined, user: undefined });
+
+			expect(result).toBeNull(); // 401 means refresh token is truly rejected
 		});
 
 		it('should not refresh when token is not expired', async () => {

@@ -36,7 +36,7 @@ describe('InitEffects', () => {
 	});
 
 	it('dispatches init app and session token actions when session is authenticated', async () => {
-		const mockSession = { user: { name: 'Test' } };
+		const mockSession = { user: { name: 'Test' }, accessToken: 'mock-access-token' };
 		(useSession as jest.Mock).mockReturnValue({ data: mockSession, status: 'authenticated' });
 
 		render(<InitEffects />);

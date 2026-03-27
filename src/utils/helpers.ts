@@ -75,10 +75,9 @@ export const isAuthenticatedInstance = (
 					});
 				}
 				if (error.response.status === 401) {
-					// Avoid infinite retry loops
-					if (!error.config._retried) {
+					// Retry once with a fresh session token before giving up
+					if (error.config && !error.config._retried) {
 						error.config._retried = true;
-						// Force NextAuth to re-run the JWT callback and refresh the backend token
 						const freshSession = await getSession();
 						if (freshSession?.accessToken) {
 							error.config.headers['Authorization'] = `Bearer ${freshSession.accessToken}`;

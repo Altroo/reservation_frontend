@@ -37,6 +37,9 @@ import MobileActionsMenu from '@/components/shared/mobileActionsMenu/mobileActio
 import DarkTooltip from '@/components/htmlElements/tooltip/darkTooltip/darkTooltip';
 import ChipSelectFilterBar from '@/components/shared/chipSelectFilter/chipSelectFilterBar';
 import type { ChipFilterConfig } from '@/components/shared/chipSelectFilter/chipSelectFilterBar';
+import { createDateRangeFilterOperator } from '@/components/shared/dateRangeFilter/dateRangeFilterOperator';
+import { createNumericFilterOperators } from '@/components/shared/numericFilter/numericFilterOperator';
+import { createDropdownFilterOperators } from '@/components/shared/dropdownFilter/dropdownFilter';
 import { formatDate, extractApiErrorMessage } from '@/utils/helpers';
 import { COSTS_ADD, COSTS_EDIT, COSTS_VIEW } from '@/utils/routes';
 import { useToast } from '@/utils/hooks';
@@ -59,8 +62,17 @@ const CostsListClient: React.FC<SessionProps> = ({ session }) => {
 		logicOperator: GridLogicOperator.And,
 	});
 	const [chipFilterParams, setChipFilterParams] = useState<Record<string, string>>({});
+	const [customFilterParams, setCustomFilterParams] = useState<Record<string, string>>({});
 
 	const { data: costs, isLoading } = useGetCostsQuery({ year }, { skip: !token });
+
+	const createdByOptions = useMemo(() => {
+		const nameMap = new Map<string, string>();
+		(costs ?? []).forEach((c) => {
+			if (c.created_by_user_name) nameMap.set(c.created_by_user_name, c.created_by_user_name);
+		});
+		return Array.from(nameMap.values()).map((name) => ({ value: name, label: name }));
+	}, [costs]);
 	const [deleteCost] = useDeleteCostMutation();
 
 	const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -85,8 +97,49 @@ const CostsListClient: React.FC<SessionProps> = ({ session }) => {
 			);
 		}
 
+		// Numeric amount filters
+		if (customFilterParams['amount'] !== undefined && customFilterParams['amount'] !== '') {
+			const val = Number(customFilterParams['amount']);
+			result = result.filter((c) => Number(c.amount) === val);
+		}
+		if (customFilterParams['amount__ne'] !== undefined && customFilterParams['amount__ne'] !== '') {
+			const val = Number(customFilterParams['amount__ne']);
+			result = result.filter((c) => Number(c.amount) !== val);
+		}
+		if (customFilterParams['amount__gt'] !== undefined && customFilterParams['amount__gt'] !== '') {
+			const val = Number(customFilterParams['amount__gt']);
+			result = result.filter((c) => Number(c.amount) > val);
+		}
+		if (customFilterParams['amount__gte'] !== undefined && customFilterParams['amount__gte'] !== '') {
+			const val = Number(customFilterParams['amount__gte']);
+			result = result.filter((c) => Number(c.amount) >= val);
+		}
+		if (customFilterParams['amount__lt'] !== undefined && customFilterParams['amount__lt'] !== '') {
+			const val = Number(customFilterParams['amount__lt']);
+			result = result.filter((c) => Number(c.amount) < val);
+		}
+		if (customFilterParams['amount__lte'] !== undefined && customFilterParams['amount__lte'] !== '') {
+			const val = Number(customFilterParams['amount__lte']);
+			result = result.filter((c) => Number(c.amount) <= val);
+		}
+
+		// Date range filters
+		if (customFilterParams['date_after']) {
+			const after = new Date(customFilterParams['date_after']);
+			result = result.filter((c) => new Date(c.date as string) >= after);
+		}
+		if (customFilterParams['date_before']) {
+			const before = new Date(customFilterParams['date_before']);
+			result = result.filter((c) => new Date(c.date as string) <= before);
+		}
+
+		// Created by dropdown filter
+		if (customFilterParams['created_by_user_name']) {
+			result = result.filter((c) => c.created_by_user_name === customFilterParams['created_by_user_name']);
+		}
+
 		return result;
-	}, [costs, chipFilterParams, searchTerm]);
+	}, [costs, chipFilterParams, searchTerm, customFilterParams]);
 
 	// Client-side pagination
 	const paginatedData = useMemo(() => {
@@ -158,6 +211,7 @@ const CostsListClient: React.FC<SessionProps> = ({ session }) => {
 			headerName: 'Montant',
 			flex: 0.9,
 			minWidth: 110,
+			filterOperators: createNumericFilterOperators(),
 			renderCell: (params: GridRenderCellParams<CostType>) => (
 				<DarkTooltip title={`${Number(params.value).toLocaleString('fr-MA')} MAD`}>
 					<Typography variant="body2" noWrap>
@@ -171,6 +225,7 @@ const CostsListClient: React.FC<SessionProps> = ({ session }) => {
 			headerName: 'Date',
 			flex: 0.9,
 			minWidth: 110,
+			filterOperators: createDateRangeFilterOperator(),
 			renderCell: (params: GridRenderCellParams<CostType>) => (
 				<DarkTooltip title={formatDate(params.value as string)}>
 					<Typography variant="body2" noWrap>
@@ -204,6 +259,7 @@ const CostsListClient: React.FC<SessionProps> = ({ session }) => {
 			headerName: 'Créé par',
 			flex: 1,
 			minWidth: 100,
+			filterOperators: createDropdownFilterOperators(createdByOptions, 'Tous les utilisateurs'),
 			renderCell: (params: GridRenderCellParams<CostType>) => (
 				<DarkTooltip title={params.value ?? ''}>
 					<Typography variant="body2" noWrap>
@@ -323,6 +379,7 @@ const CostsListClient: React.FC<SessionProps> = ({ session }) => {
 							setSearchTerm={setSearchTerm}
 							filterModel={filterModel}
 							onFilterModelChange={setFilterModel}
+							onCustomFilterParamsChange={setCustomFilterParams}
 						/>
 
 						{showDeleteModal && (

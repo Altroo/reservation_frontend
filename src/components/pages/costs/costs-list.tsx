@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
 	Box,
@@ -13,7 +13,6 @@ import {
 	Stack,
 	Typography,
 } from '@mui/material';
-import { ThemeProvider } from '@mui/material/styles';
 import {
 	Add as AddIcon,
 	Close as CloseIcon,
@@ -21,24 +20,29 @@ import {
 	Edit as EditIcon,
 	Visibility as VisibilityIcon,
 } from '@mui/icons-material';
-import { DataGrid, GridColDef, GridRenderCellParams } from '@mui/x-data-grid';
-import { frFR } from '@mui/x-data-grid/locales';
+import {
+	GridColDef,
+	GridFilterModel,
+	GridLogicOperator,
+	GridRenderCellParams,
+} from '@mui/x-data-grid';
 import type { SessionProps } from '@/types/_initTypes';
 import type { CostType } from '@/types/reservationTypes';
 import Styles from '@/styles/dashboard/dashboard.module.sass';
 import NavigationBar from '@/components/layouts/navigationBar/navigationBar';
+import PaginatedDataGrid from '@/components/shared/paginatedDataGrid/paginatedDataGrid';
 import ActionModals from '@/components/htmlElements/modals/actionModal/actionModals';
 import { Protected } from '@/components/layouts/protected/protected';
+import MobileActionsMenu from '@/components/shared/mobileActionsMenu/mobileActionsMenu';
 import DarkTooltip from '@/components/htmlElements/tooltip/darkTooltip/darkTooltip';
-import ApiProgress from '@/components/formikElements/apiLoading/apiProgress/apiProgress';
-import { getDefaultTheme } from '@/utils/themes';
+import ChipSelectFilterBar from '@/components/shared/chipSelectFilter/chipSelectFilterBar';
+import type { ChipFilterConfig } from '@/components/shared/chipSelectFilter/chipSelectFilterBar';
 import { formatDate, extractApiErrorMessage } from '@/utils/helpers';
 import { COSTS_ADD, COSTS_EDIT, COSTS_VIEW } from '@/utils/routes';
-import MobileActionsMenu from '@/components/shared/mobileActionsMenu/mobileActionsMenu';
 import { useToast } from '@/utils/hooks';
 import { useGetCostsQuery, useDeleteCostMutation } from '@/store/services/reservation';
 import { useInitAccessToken } from '@/contexts/InitContext';
-import { COST_CATEGORY_CHIP_COLORS } from '@/utils/rawData';
+import { COST_CATEGORY_CHIP_COLORS, costCategoryItemsList } from '@/utils/rawData';
 import type { CostCategoryChipColor } from '@/utils/rawData';
 
 const CostsListClient: React.FC<SessionProps> = ({ session }) => {
@@ -48,6 +52,13 @@ const CostsListClient: React.FC<SessionProps> = ({ session }) => {
 
 	const currentYear = new Date().getFullYear();
 	const [year, setYear] = useState(currentYear);
+	const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 });
+	const [searchTerm, setSearchTerm] = useState('');
+	const [filterModel, setFilterModel] = useState<GridFilterModel>({
+		items: [],
+		logicOperator: GridLogicOperator.And,
+	});
+	const [chipFilterParams, setChipFilterParams] = useState<Record<string, string>>({});
 
 	const { data: costs, isLoading } = useGetCostsQuery({ year }, { skip: !token });
 	const [deleteCost] = useDeleteCostMutation();
@@ -55,7 +66,38 @@ const CostsListClient: React.FC<SessionProps> = ({ session }) => {
 	const [showDeleteModal, setShowDeleteModal] = useState(false);
 	const [selectedId, setSelectedId] = useState<number | null>(null);
 
-	const totalAmount = (costs ?? []).reduce((sum, c) => sum + Number(c.amount), 0);
+	// Client-side filtering
+	const filteredCosts = useMemo(() => {
+		let result = costs ?? [];
+
+		const categoryParam = chipFilterParams['category'];
+		if (categoryParam) {
+			const categories = categoryParam.split(',');
+			result = result.filter((c) => categories.includes(c.category as string));
+		}
+
+		if (searchTerm.trim()) {
+			const term = searchTerm.toLowerCase();
+			result = result.filter(
+				(c) =>
+					(c.description ?? '').toLowerCase().includes(term) ||
+					(c.created_by_user_name ?? '').toLowerCase().includes(term),
+			);
+		}
+
+		return result;
+	}, [costs, chipFilterParams, searchTerm]);
+
+	// Client-side pagination
+	const paginatedData = useMemo(() => {
+		const start = paginationModel.page * paginationModel.pageSize;
+		return {
+			count: filteredCosts.length,
+			results: filteredCosts.slice(start, start + paginationModel.pageSize),
+		};
+	}, [filteredCosts, paginationModel]);
+
+	const totalAmount = filteredCosts.reduce((sum, c) => sum + Number(c.amount), 0);
 
 	const deleteHandler = async () => {
 		try {
@@ -85,11 +127,23 @@ const CostsListClient: React.FC<SessionProps> = ({ session }) => {
 		},
 	];
 
+	const chipFilters = useMemo<ChipFilterConfig[]>(
+		() => [
+			{
+				key: 'category',
+				label: 'Catégorie',
+				paramName: 'category',
+				options: costCategoryItemsList.map((c) => ({ id: c.code, nom: c.value })),
+			},
+		],
+		[],
+	);
+
 	const columns: GridColDef[] = [
 		{
 			field: 'description',
 			headerName: 'Description',
-			flex: 2,
+			flex: 1.4,
 			minWidth: 150,
 			renderCell: (params: GridRenderCellParams<CostType>) => (
 				<DarkTooltip title={params.value ?? ''}>
@@ -102,12 +156,14 @@ const CostsListClient: React.FC<SessionProps> = ({ session }) => {
 		{
 			field: 'amount',
 			headerName: 'Montant',
-			flex: 0.8,
-			minWidth: 100,
+			flex: 0.9,
+			minWidth: 110,
 			renderCell: (params: GridRenderCellParams<CostType>) => (
-				<Typography variant="body2" noWrap>
-					{Number(params.value).toLocaleString('fr-MA')} MAD
-				</Typography>
+				<DarkTooltip title={`${Number(params.value).toLocaleString('fr-MA')} MAD`}>
+					<Typography variant="body2" noWrap>
+						{Number(params.value).toLocaleString('fr-MA')} MAD
+					</Typography>
+				</DarkTooltip>
 			),
 		},
 		{
@@ -116,9 +172,11 @@ const CostsListClient: React.FC<SessionProps> = ({ session }) => {
 			flex: 0.9,
 			minWidth: 110,
 			renderCell: (params: GridRenderCellParams<CostType>) => (
-				<Typography variant="body2" noWrap>
-					{formatDate(params.value as string)}
-				</Typography>
+				<DarkTooltip title={formatDate(params.value as string)}>
+					<Typography variant="body2" noWrap>
+						{formatDate(params.value as string)}
+					</Typography>
+				</DarkTooltip>
 			),
 		},
 		{
@@ -126,14 +184,20 @@ const CostsListClient: React.FC<SessionProps> = ({ session }) => {
 			headerName: 'Catégorie',
 			flex: 0.9,
 			minWidth: 110,
-			renderCell: (params: GridRenderCellParams<CostType>) => (
-				<Chip
-					label={params.value}
-					size="small"
-					color={(COST_CATEGORY_CHIP_COLORS[params.value as string] ?? 'default') as CostCategoryChipColor}
-					variant="outlined"
-				/>
-			),
+			filterable: false,
+			renderCell: (params: GridRenderCellParams<CostType>) => {
+				const cat = params.value as string;
+				return (
+					<DarkTooltip title={cat}>
+						<Chip
+							label={cat}
+							size="small"
+							color={(COST_CATEGORY_CHIP_COLORS[cat] ?? 'default') as CostCategoryChipColor}
+							variant="outlined"
+						/>
+					</DarkTooltip>
+				);
+			},
 		},
 		{
 			field: 'created_by_user_name',
@@ -141,16 +205,18 @@ const CostsListClient: React.FC<SessionProps> = ({ session }) => {
 			flex: 1,
 			minWidth: 100,
 			renderCell: (params: GridRenderCellParams<CostType>) => (
-				<Typography variant="body2" noWrap>
-					{params.value ?? '—'}
-				</Typography>
+				<DarkTooltip title={params.value ?? ''}>
+					<Typography variant="body2" noWrap>
+						{params.value ?? '—'}
+					</Typography>
+				</DarkTooltip>
 			),
 		},
 		{
 			field: 'actions',
 			headerName: 'Actions',
-			flex: 0.6,
-			minWidth: 60,
+			flex: 1.2,
+			minWidth: 130,
 			sortable: false,
 			filterable: false,
 			renderCell: (params) => {
@@ -185,66 +251,79 @@ const CostsListClient: React.FC<SessionProps> = ({ session }) => {
 	const yearOptions = Array.from({ length: 5 }, (_, i) => currentYear - i);
 
 	return (
-		<Stack direction="column" spacing={2} className={Styles.flexRootStack} mt="48px" sx={{ overflowX: 'auto' }}>
+		<Stack
+			direction="column"
+			spacing={2}
+			className={Styles.flexRootStack}
+			mt="48px"
+			sx={{ overflowX: 'auto', overflowY: 'hidden' }}
+		>
 			<NavigationBar title="Coûts">
 				<Protected permission="can_view">
 					<>
-						<Stack
-							direction="row"
-							justifyContent="space-between"
-							alignItems="center"
-							flexWrap="wrap"
-							gap={2}
-							sx={{ px: { xs: 1, sm: 2, md: 3 }, mt: { xs: 1, sm: 2, md: 3 }, mb: 1 }}
+						<Box
+							sx={{
+								width: '100%',
+								display: 'flex',
+								justifyContent: 'flex-start',
+								gap: 2,
+								px: { xs: 1, sm: 2, md: 3 },
+								mt: { xs: 1, sm: 2, md: 3 },
+								mb: { xs: 1, sm: 2, md: 3 },
+								flexWrap: 'wrap',
+								alignItems: 'center',
+							}}
 						>
-							<Stack direction="row" spacing={2} alignItems="center">
-								<Button
-									variant="contained"
-									onClick={() => router.push(COSTS_ADD)}
-									startIcon={<AddIcon fontSize="small" />}
-									sx={{ whiteSpace: 'nowrap' }}
+							<Button
+								variant="contained"
+								onClick={() => router.push(COSTS_ADD)}
+								startIcon={<AddIcon fontSize="small" />}
+								sx={{
+									whiteSpace: 'nowrap',
+									px: { xs: 1.5, sm: 2, md: 3 },
+									py: { xs: 0.8, sm: 1, md: 1 },
+									fontSize: { xs: '0.85rem', sm: '0.9rem', md: '1rem' },
+								}}
+							>
+								Nouveau coût
+							</Button>
+							<FormControl size="small" sx={{ minWidth: 120 }}>
+								<InputLabel>Année</InputLabel>
+								<Select
+									value={year}
+									label="Année"
+									onChange={(e) => {
+										setYear(Number(e.target.value));
+										setPaginationModel((prev) => ({ ...prev, page: 0 }));
+									}}
 								>
-									Nouveau coût
-								</Button>
-								<FormControl size="small" sx={{ minWidth: 120 }}>
-									<InputLabel>Année</InputLabel>
-									<Select
-										value={year}
-										label="Année"
-										onChange={(e) => setYear(Number(e.target.value))}
-									>
-										{yearOptions.map((y) => (
-											<MenuItem key={y} value={y}>
-												{y}
-											</MenuItem>
-										))}
-									</Select>
-								</FormControl>
-							</Stack>
-							{costs && costs.length > 0 && (
-								<Typography variant="subtitle1" fontWeight={700} color="error.main">
+									{yearOptions.map((y) => (
+										<MenuItem key={y} value={y}>
+											{y}
+										</MenuItem>
+									))}
+								</Select>
+							</FormControl>
+							{filteredCosts.length > 0 && (
+								<Typography variant="subtitle1" fontWeight={700} color="error.main" sx={{ ml: 'auto' }}>
 									Total : {totalAmount.toLocaleString('fr-MA')} MAD
 								</Typography>
 							)}
-						</Stack>
-
-						<Box sx={{ px: { xs: 1, sm: 2, md: 3 }, position: 'relative' }}>
-							{isLoading && <ApiProgress backdropColor="#FFFFFF" circularColor="#0D070B" />}
-							<ThemeProvider theme={getDefaultTheme()}>
-								<DataGrid
-									rows={costs ?? []}
-									columns={columns}
-									loading={isLoading}
-									pageSizeOptions={[10, 25, 50]}
-									initialState={{ pagination: { paginationModel: { pageSize: 10 } } }}
-									localeText={frFR.components.MuiDataGrid.defaultProps.localeText}
-									disableRowSelectionOnClick
-									sx={{
-										'& .MuiDataGrid-cell': { display: 'flex', alignItems: 'center' },
-									}}
-								/>
-							</ThemeProvider>
 						</Box>
+
+						<ChipSelectFilterBar filters={chipFilters} onFilterChange={setChipFilterParams} columns={1} />
+
+						<PaginatedDataGrid
+							data={paginatedData}
+							isLoading={isLoading}
+							columns={columns}
+							paginationModel={paginationModel}
+							setPaginationModel={setPaginationModel}
+							searchTerm={searchTerm}
+							setSearchTerm={setSearchTerm}
+							filterModel={filterModel}
+							onFilterModelChange={setFilterModel}
+						/>
 
 						{showDeleteModal && (
 							<ActionModals

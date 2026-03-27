@@ -37,50 +37,52 @@ jest.mock('@/store/services/reservation', () => ({
 	useDeleteCostMutation: () => [mockDeleteCost, { isLoading: false }],
 }));
 
-// Mock DataGrid to render rows and call renderCell for action testing
-jest.mock('@mui/x-data-grid', () => ({
+// Mock PaginatedDataGrid to render rows and call renderCell for action testing
+jest.mock('@/components/shared/paginatedDataGrid/paginatedDataGrid', () => ({
 	__esModule: true,
-	DataGrid: ({
-		rows,
+	default: ({
+		data,
+		isLoading,
 		columns,
 	}: {
-		rows: Array<Record<string, unknown>>;
+		data?: { count: number; results: Array<Record<string, unknown>> };
+		isLoading?: boolean;
 		columns: Array<{
 			field: string;
 			headerName: string;
 			renderCell?: (params: { value: unknown; row: Record<string, unknown>; field: string }) => React.ReactNode;
 		}>;
-	}) => (
-		<div data-testid="data-grid">
-			{rows.map((row) => (
-				<div key={row.id as number} data-testid={`row-${row.id}`}>
-					{columns.map((col) => (
-						<div key={col.field}>
-							{col.renderCell
-								? col.renderCell({ value: row[col.field], row, field: col.field })
-								: String(row[col.field] ?? '')}
-						</div>
-					))}
-				</div>
+	}) => {
+		if (isLoading) return <div data-testid="api-loader">Loading...</div>;
+		const rows = data?.results ?? [];
+		return (
+			<div data-testid="data-grid">
+				{rows.map((row) => (
+					<div key={row.id as number} data-testid={`row-${row.id}`}>
+						{columns.map((col) => (
+							<div key={col.field}>
+								{col.renderCell
+									? col.renderCell({ value: row[col.field], row, field: col.field })
+									: String(row[col.field] ?? '')}
+							</div>
+						))}
+					</div>
+				))}
+			</div>
+		);
+	},
+}));
+
+// Mock ChipSelectFilterBar
+jest.mock('@/components/shared/chipSelectFilter/chipSelectFilterBar', () => ({
+	__esModule: true,
+	default: ({ filters }: { filters: Array<{ label: string }> }) => (
+		<div data-testid="chip-filter-bar">
+			{filters.map((f) => (
+				<span key={f.label}>{f.label}</span>
 			))}
 		</div>
 	),
-	GridColDef: {},
-	GridRenderCellParams: {},
-}));
-
-jest.mock('@mui/x-data-grid/locales', () => ({
-	frFR: { components: { MuiDataGrid: { defaultProps: { localeText: {} } } } },
-}));
-
-jest.mock('@/utils/themes', () => ({
-	getDefaultTheme: jest.fn(() => ({})),
-}));
-
-// Mock ThemeProvider to avoid MUI theme validation issues in tests
-jest.mock('@mui/material/styles', () => ({
-	...jest.requireActual('@mui/material/styles'),
-	ThemeProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
 }));
 
 jest.mock('@/utils/helpers', () => ({
@@ -93,6 +95,10 @@ jest.mock('@/utils/rawData', () => ({
 		Maintenance: 'error',
 		Utilities: 'warning',
 	},
+	costCategoryItemsList: [
+		{ code: 'Maintenance', value: 'Maintenance' },
+		{ code: 'Utilities', value: 'Utilities' },
+	],
 }));
 
 jest.mock('@/utils/routes', () => ({
@@ -152,10 +158,7 @@ jest.mock('@/components/htmlElements/tooltip/darkTooltip/darkTooltip', () => ({
 	default: ({ children }: { children: React.ReactNode }) => <>{children}</>,
 }));
 
-jest.mock('@/components/formikElements/apiLoading/apiProgress/apiProgress', () => ({
-	__esModule: true,
-	default: () => <div data-testid="api-loader">Loading...</div>,
-}));
+// ApiProgress no longer directly used by costs-list (handled by PaginatedDataGrid mock)
 
 jest.mock('@/styles/dashboard/dashboard.module.sass', () => ({
 	flexRootStack: 'flexRootStack',
@@ -306,6 +309,12 @@ describe('CostsListClient', () => {
 		});
 		render(<CostsListClient session={mockSession} />);
 		expect(screen.getByTestId('api-loader')).toBeInTheDocument();
+	});
+
+	it('renders the category chip filter bar', () => {
+		render(<CostsListClient session={mockSession} />);
+		expect(screen.getByTestId('chip-filter-bar')).toBeInTheDocument();
+		expect(screen.getByText('Catégorie')).toBeInTheDocument();
 	});
 
 	it('does not show total when costs list is empty', () => {

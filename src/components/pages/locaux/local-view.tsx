@@ -14,9 +14,13 @@ import {
 	DialogContent,
 	DialogTitle,
 	Divider,
+	FormControl,
 	FormControlLabel,
 	IconButton,
 	InputAdornment,
+	InputLabel,
+	MenuItem,
+	Select,
 	Stack,
 	Switch,
 	Table,
@@ -25,7 +29,6 @@ import {
 	TableContainer,
 	TableHead,
 	TableRow,
-	TextField,
 	Typography,
 	useMediaQuery,
 	useTheme,
@@ -62,6 +65,9 @@ import { Protected } from '@/components/layouts/protected/protected';
 import ApiProgress from '@/components/formikElements/apiLoading/apiProgress/apiProgress';
 import ApiAlert from '@/components/formikElements/apiLoading/apiAlert/apiAlert';
 import ActionModals from '@/components/htmlElements/modals/actionModal/actionModals';
+import CustomTextInput from '@/components/formikElements/customTextInput/customTextInput';
+import PrimaryLoadingButton from '@/components/htmlElements/buttons/primaryLoadingButton/primaryLoadingButton';
+import { textInputTheme } from '@/utils/themes';
 import { extractApiErrorMessage, formatDate, setFormikAutoErrors } from '@/utils/helpers';
 import { LOCAUX_EDIT, LOCAUX_LIST } from '@/utils/routes';
 import { loyerSchema } from '@/utils/formValidationSchemas';
@@ -71,6 +77,7 @@ import {
 	useGetLocalQuery,
 	useDeleteLocalMutation,
 	useGetLoyersListQuery,
+	useGetLocalYearsQuery,
 	useCreateLoyerMutation,
 	useUpdateLoyerMutation,
 	useDeleteLoyerMutation,
@@ -139,6 +146,12 @@ const LocalViewClient: React.FC<Props> = ({ session, id }) => {
 	// Loyer management
 	const currentYear = new Date().getFullYear();
 	const [loyerYear, setLoyerYear] = useState(currentYear);
+	const { data: yearsData } = useGetLocalYearsQuery(undefined, { skip: !token });
+	const loyerYearOptions = useMemo(() => {
+		const yrs = yearsData?.years ?? [];
+		if (!yrs.includes(currentYear)) return [...yrs, currentYear].sort((a, b) => b - a);
+		return [...yrs].sort((a, b) => b - a);
+	}, [yearsData, currentYear]);
 	const { data: loyersRaw } = useGetLoyersListQuery({ local: id, annee: loyerYear }, { skip: !token });
 	const loyers = useMemo(() => (Array.isArray(loyersRaw) ? loyersRaw : []) as LoyerListType[], [loyersRaw]);
 
@@ -368,13 +381,16 @@ const LocalViewClient: React.FC<Props> = ({ session, id }) => {
 													<Typography variant="h6" fontWeight={700}>Loyers</Typography>
 												</Stack>
 												<Stack direction="row" spacing={1} alignItems="center">
-													<IconButton size="small" onClick={() => setLoyerYear((y) => y - 1)}>
-														<ArrowBackIcon fontSize="small" />
-													</IconButton>
-													<Typography fontWeight={600}>{loyerYear}</Typography>
-													<IconButton size="small" onClick={() => setLoyerYear((y) => y + 1)} sx={{ transform: 'rotate(180deg)' }}>
-														<ArrowBackIcon fontSize="small" />
-													</IconButton>
+													<FormControl size="small" sx={{ minWidth: 100 }}>
+														<InputLabel>Année</InputLabel>
+														<Select value={loyerYear} label="Année" onChange={(e) => setLoyerYear(Number(e.target.value))}>
+															{loyerYearOptions.map((y) => (
+																<MenuItem key={y} value={y}>
+																	{y}
+																</MenuItem>
+															))}
+														</Select>
+													</FormControl>
 													<Protected permission="can_create">
 														<Button variant="outlined" size="small" startIcon={<AddIcon />} onClick={openAddLoyer}>
 															Ajouter
@@ -494,11 +510,14 @@ interface LoyerDialogProps {
 	onClose: () => void;
 }
 
+const inputTheme = textInputTheme();
+
 const LoyerDialog: React.FC<LoyerDialogProps> = ({ localId, year, loyer, onClose }) => {
 	const isEdit = loyer !== null;
 	const { onSuccess, onError } = useToast();
-	const [createLoyer] = useCreateLoyerMutation();
-	const [updateLoyer] = useUpdateLoyerMutation();
+	const [createLoyer, { isLoading: isCreateLoading }] = useCreateLoyerMutation();
+	const [updateLoyer, { isLoading: isUpdateLoading }] = useUpdateLoyerMutation();
+	const isPending = isCreateLoading || isUpdateLoading;
 
 	const formik = useFormik<LoyerFormValues>({
 		initialValues: {
@@ -538,35 +557,44 @@ const LoyerDialog: React.FC<LoyerDialogProps> = ({ localId, year, loyer, onClose
 				<DialogTitle>{isEdit ? 'Modifier le loyer' : 'Ajouter un loyer'}</DialogTitle>
 				<DialogContent>
 					<Stack spacing={2} sx={{ mt: 1 }}>
-						<TextField
+						<CustomTextInput
+							theme={inputTheme}
+							id="mois"
+							type="number"
 							size="small"
 							label="Mois *"
-							type="number"
-							value={formik.values.mois}
-							onChange={(e) => formik.setFieldValue('mois', e.target.value ? Number(e.target.value) : '')}
+							value={String(formik.values.mois)}
+							onChange={(e: React.ChangeEvent<HTMLInputElement>) => formik.setFieldValue('mois', e.target.value ? Number(e.target.value) : '')}
 							onBlur={formik.handleBlur('mois')}
 							error={formik.submitCount > 0 && Boolean(formik.errors.mois)}
 							helperText={formik.submitCount > 0 ? (formik.errors.mois ?? '') : ''}
 							fullWidth
+							startIcon={<CalendarMonthIcon fontSize="small" />}
 							slotProps={{ input: { inputProps: { min: 1, max: 12 } } }}
 						/>
-						<TextField
+						<CustomTextInput
+							theme={inputTheme}
+							id="annee"
+							type="number"
 							size="small"
 							label="Année *"
-							type="number"
-							value={formik.values.annee}
-							onChange={(e) => formik.setFieldValue('annee', e.target.value ? Number(e.target.value) : '')}
+							value={String(formik.values.annee)}
+							onChange={(e: React.ChangeEvent<HTMLInputElement>) => formik.setFieldValue('annee', e.target.value ? Number(e.target.value) : '')}
 							onBlur={formik.handleBlur('annee')}
 							error={formik.submitCount > 0 && Boolean(formik.errors.annee)}
 							helperText={formik.submitCount > 0 ? (formik.errors.annee ?? '') : ''}
 							fullWidth
+							startIcon={<CalendarMonthIcon fontSize="small" />}
 							slotProps={{ input: { inputProps: { min: 2000, max: 2100 } } }}
 						/>
-						<TextField
+						<CustomTextInput
+							theme={inputTheme}
+							id="montant"
+							type="text"
 							size="small"
 							label="Montant (MAD) *"
 							value={formik.values.montant}
-							onChange={(e) => {
+							onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
 								if (/^(0|[1-9]\d*)?([.,]\d*)?$/.test(e.target.value))
 									formik.setFieldValue('montant', e.target.value);
 							}}
@@ -574,9 +602,8 @@ const LoyerDialog: React.FC<LoyerDialogProps> = ({ localId, year, loyer, onClose
 							error={formik.submitCount > 0 && Boolean(formik.errors.montant)}
 							helperText={formik.submitCount > 0 ? (formik.errors.montant ?? '') : ''}
 							fullWidth
-							InputProps={{
-								startAdornment: <InputAdornment position="start"><AttachMoneyIcon fontSize="small" /></InputAdornment>,
-							}}
+							startIcon={<AttachMoneyIcon fontSize="small" />}
+							slotProps={{ input: { inputProps: { inputMode: 'decimal' } } }}
 						/>
 						<FormControlLabel
 							control={
@@ -600,11 +627,21 @@ const LoyerDialog: React.FC<LoyerDialogProps> = ({ localId, year, loyer, onClose
 										onBlur: formik.handleBlur('date_paiement'),
 										error: formik.submitCount > 0 && Boolean(formik.errors.date_paiement),
 										helperText: formik.submitCount > 0 ? (formik.errors.date_paiement ?? '') : '',
+										InputProps: {
+											startAdornment: (
+												<InputAdornment position="start">
+													<CalendarMonthIcon fontSize="small" />
+												</InputAdornment>
+											),
+										},
 									},
 								}}
 							/>
 						)}
-						<TextField
+						<CustomTextInput
+							theme={inputTheme}
+							id="notes"
+							type="text"
 							size="small"
 							label="Notes"
 							value={formik.values.notes}
@@ -613,14 +650,19 @@ const LoyerDialog: React.FC<LoyerDialogProps> = ({ localId, year, loyer, onClose
 							fullWidth
 							multiline
 							rows={3}
+							startIcon={<NotesIcon fontSize="small" />}
 						/>
 					</Stack>
 				</DialogContent>
 				<DialogActions>
 					<Button onClick={onClose}>Annuler</Button>
-					<Button type="submit" variant="contained">
-						{isEdit ? 'Mettre à jour' : 'Ajouter'}
-					</Button>
+					<PrimaryLoadingButton
+						buttonText={isEdit ? 'Mettre à jour' : 'Ajouter'}
+						loading={isPending}
+						active={!isPending}
+						type="submit"
+						startIcon={isEdit ? <EditIcon /> : <AddIcon />}
+					/>
 				</DialogActions>
 			</form>
 		</Dialog>

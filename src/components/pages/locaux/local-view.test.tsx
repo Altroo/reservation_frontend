@@ -40,6 +40,7 @@ jest.mock('@/store/services/reservation', () => ({
 	useGetLocalQuery: (params: unknown, options: unknown) => mockUseGetLocalQuery(params, options),
 	useDeleteLocalMutation: jest.fn(() => [mockDeleteLocal, { isLoading: false }]),
 	useGetLoyersListQuery: (params: unknown, options: unknown) => mockUseGetLoyersListQuery(params, options),
+	useGetLocalYearsQuery: () => ({ data: { years: [2025] }, isLoading: false }),
 	useCreateLoyerMutation: () => [mockCreateLoyer, { isLoading: false }],
 	useUpdateLoyerMutation: () => [mockUpdateLoyer, { isLoading: false }],
 	useDeleteLoyerMutation: () => [mockDeleteLoyer, { isLoading: false }],
@@ -105,6 +106,10 @@ jest.mock('@/utils/helpers', () => ({
 	formatDate: (date: string | null) => (date ? new Date(date).toLocaleDateString('fr-FR') : '—'),
 	extractApiErrorMessage: (_error: unknown, fallback: string) => fallback,
 	setFormikAutoErrors: jest.fn(),
+}));
+
+jest.mock('@/utils/themes', () => ({
+	textInputTheme: jest.fn(() => ({})),
 }));
 
 jest.mock('@/utils/rawData', () => ({

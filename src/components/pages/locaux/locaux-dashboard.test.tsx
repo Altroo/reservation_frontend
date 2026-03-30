@@ -130,15 +130,14 @@ describe('LocauxDashboardClient', () => {
 		cleanup();
 	});
 
-	it('renders the back button', () => {
+	it('renders the page title', () => {
 		render(<LocauxDashboardClient session={mockSession} />);
-		expect(screen.getByText('Liste des locaux')).toBeInTheDocument();
+		expect(screen.getByText('Dashboard des Locaux')).toBeInTheDocument();
 	});
 
-	it('navigates back to list on back button click', () => {
+	it('renders year dropdown with available years', () => {
 		render(<LocauxDashboardClient session={mockSession} />);
-		fireEvent.click(screen.getByText('Liste des locaux'));
-		expect(mockPush).toHaveBeenCalledWith('/dashboard/locaux');
+		expect(screen.getByRole('combobox')).toBeInTheDocument();
 	});
 
 	it('renders KPI cards', () => {
@@ -166,10 +165,9 @@ describe('LocauxDashboardClient', () => {
 		expect(screen.getByText('Magasin Nord')).toBeInTheDocument();
 	});
 
-	it('renders year chips when multiple years available', () => {
+	it('renders selected year in dropdown', () => {
 		render(<LocauxDashboardClient session={mockSession} />);
-		expect(screen.getByText('2025')).toBeInTheDocument();
-		expect(screen.getByText('2024')).toBeInTheDocument();
+		expect(screen.getByText(new Date().getFullYear().toString())).toBeInTheDocument();
 	});
 
 	it('navigates to local view on row click', () => {

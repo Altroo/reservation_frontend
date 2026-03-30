@@ -3,11 +3,12 @@
 import React, { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
-	Button,
 	Card,
 	CardContent,
-	Chip,
-	IconButton,
+	FormControl,
+	InputLabel,
+	MenuItem,
+	Select,
 	Stack,
 	Table,
 	TableBody,
@@ -17,11 +18,8 @@ import {
 	TableRow,
 	Tooltip,
 	Typography,
-	useMediaQuery,
-	useTheme,
 } from '@mui/material';
 import {
-	ArrowBack as ArrowBackIcon,
 	CalendarMonth as CalendarMonthIcon,
 	CheckCircle as CheckCircleIcon,
 	Cancel as CancelIcon,
@@ -32,7 +30,7 @@ import type { PlanningLocalType } from '@/types/localTypes';
 import NavigationBar from '@/components/layouts/navigationBar/navigationBar';
 import { Protected } from '@/components/layouts/protected/protected';
 import ApiProgress from '@/components/formikElements/apiLoading/apiProgress/apiProgress';
-import { LOCAUX_LIST, LOCAUX_VIEW } from '@/utils/routes';
+import { LOCAUX_VIEW } from '@/utils/routes';
 import { useGetLocalPlanningQuery, useGetLocalYearsQuery } from '@/store/services/reservation';
 import { useInitAccessToken } from '@/contexts/InitContext';
 import Styles from '@/styles/dashboard/dashboard.module.sass';
@@ -42,8 +40,6 @@ const MONTH_HEADERS = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun', 'Jul', 'Aoû',
 const LocauxPlanningClient: React.FC<SessionProps> = ({ session }) => {
 	const router = useRouter();
 	const token = useInitAccessToken(session);
-	const theme = useTheme();
-	const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
 	const currentYear = new Date().getFullYear();
 	const [year, setYear] = useState(currentYear);
@@ -86,40 +82,21 @@ const LocauxPlanningClient: React.FC<SessionProps> = ({ session }) => {
 			<NavigationBar title="Planning des Locaux">
 				<Protected permission="can_view">
 					<Stack spacing={3} sx={{ p: { xs: 2, md: 3 } }}>
-						<Stack
-							direction={isMobile ? 'column' : 'row'}
-							justifyContent="space-between"
-							alignItems={isMobile ? 'stretch' : 'center'}
-							spacing={2}
-						>
-							<Button variant="outlined" startIcon={<ArrowBackIcon />} onClick={() => router.push(LOCAUX_LIST)} sx={{ width: isMobile ? '100%' : 'auto' }}>
-								Liste des locaux
-							</Button>
-							<Stack direction="row" spacing={1} alignItems="center">
-								<IconButton size="small" onClick={() => setYear((y) => y - 1)}>
-									<ArrowBackIcon fontSize="small" />
-								</IconButton>
-								<Typography fontWeight={700} variant="h6">{year}</Typography>
-								<IconButton size="small" onClick={() => setYear((y) => y + 1)} sx={{ transform: 'rotate(180deg)' }}>
-									<ArrowBackIcon fontSize="small" />
-								</IconButton>
-							</Stack>
+						<Stack direction="row" justifyContent="space-between" alignItems="center" flexWrap="wrap" gap={1}>
+							<Typography variant="h5" fontWeight={600}>
+								Planning des Locaux
+							</Typography>
+							<FormControl size="small" sx={{ minWidth: 120 }}>
+								<InputLabel>Année</InputLabel>
+								<Select value={year} label="Année" onChange={(e) => setYear(Number(e.target.value))}>
+									{availableYears.map((y) => (
+										<MenuItem key={y} value={y}>
+											{y}
+										</MenuItem>
+									))}
+								</Select>
+							</FormControl>
 						</Stack>
-
-						{availableYears.length > 1 && (
-							<Stack direction="row" spacing={1} flexWrap="wrap">
-								{availableYears.map((y) => (
-									<Chip
-										key={y}
-										label={y}
-										size="small"
-										color={y === year ? 'primary' : 'default'}
-										variant={y === year ? 'filled' : 'outlined'}
-										onClick={() => setYear(y)}
-									/>
-								))}
-							</Stack>
-						)}
 
 						{isLoading ? (
 							<ApiProgress backdropColor="#FFFFFF" circularColor="#0D070B" />

@@ -4,11 +4,14 @@ import React, { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
 	Box,
-	Button,
 	Card,
 	CardContent,
 	Chip,
+	FormControl,
 	IconButton,
+	InputLabel,
+	MenuItem,
+	Select,
 	Stack,
 	Table,
 	TableBody,
@@ -16,16 +19,15 @@ import {
 	TableContainer,
 	TableHead,
 	TableRow,
+	Tooltip as MuiTooltip,
 	Typography,
-	useMediaQuery,
-	useTheme,
 } from '@mui/material';
 import {
-	ArrowBack as ArrowBackIcon,
 	AttachMoney as AttachMoneyIcon,
 	Business as BusinessIcon,
 	Home as HomeIcon,
 	HomeWork as HomeWorkIcon,
+	InfoOutlined as InfoIcon,
 	TrendingUp as TrendingUpIcon,
 } from '@mui/icons-material';
 import type { SessionProps } from '@/types/_initTypes';
@@ -33,7 +35,7 @@ import type { LocalDashboardLocalType } from '@/types/localTypes';
 import NavigationBar from '@/components/layouts/navigationBar/navigationBar';
 import { Protected } from '@/components/layouts/protected/protected';
 import ApiProgress from '@/components/formikElements/apiLoading/apiProgress/apiProgress';
-import { LOCAUX_LIST, LOCAUX_VIEW } from '@/utils/routes';
+import { LOCAUX_VIEW } from '@/utils/routes';
 import { TYPE_LOCAL_CHIP_COLORS } from '@/utils/rawData';
 import { useGetLocalDashboardQuery, useGetLocalYearsQuery } from '@/store/services/reservation';
 import { useInitAccessToken } from '@/contexts/InitContext';
@@ -44,19 +46,45 @@ interface KpiCardProps {
 	icon: React.ReactNode;
 	label: string;
 	value: string | number;
-	color?: string;
+	color: string;
+	tooltip?: string;
 }
 
-const KpiCard: React.FC<KpiCardProps> = ({ icon, label, value, color }) => (
-	<Card elevation={2} sx={{ borderRadius: 2, flex: 1, minWidth: 200 }}>
-		<CardContent sx={{ p: 2 }}>
-			<Stack direction="row" spacing={2} alignItems="center">
-				<Box sx={{ color: color ?? 'primary.main', display: 'flex' }}>{icon}</Box>
-				<Stack>
-					<Typography variant="caption" color="text.secondary">{label}</Typography>
-					<Typography variant="h6" fontWeight={700}>{value}</Typography>
+const KpiCard: React.FC<KpiCardProps> = ({ icon, label, value, color, tooltip }) => (
+	<Card
+		elevation={2}
+		sx={{
+			height: '100%',
+			position: 'relative',
+			overflow: 'hidden',
+			'&::before': {
+				content: '""',
+				position: 'absolute',
+				top: 0,
+				left: 0,
+				width: 4,
+				height: '100%',
+				bgcolor: color,
+			},
+		}}
+	>
+		<CardContent sx={{ pl: 2.5 }}>
+			<Stack direction="row" justifyContent="space-between" alignItems="flex-start">
+				<Stack direction="row" spacing={1.5} alignItems="center" mb={0.5}>
+					<Box sx={{ color, display: 'flex' }}>{icon}</Box>
+					<Typography variant="caption" color="text.secondary" textTransform="uppercase" letterSpacing={0.8}>
+						{label}
+					</Typography>
 				</Stack>
+				{tooltip && (
+					<MuiTooltip title={tooltip} arrow placement="top">
+						<IconButton size="small" sx={{ color: 'text.secondary', mt: -0.5 }}>
+							<InfoIcon fontSize="small" />
+						</IconButton>
+					</MuiTooltip>
+				)}
 			</Stack>
+			<Typography variant="h5" fontWeight={700}>{value}</Typography>
 		</CardContent>
 	</Card>
 );
@@ -64,8 +92,6 @@ const KpiCard: React.FC<KpiCardProps> = ({ icon, label, value, color }) => (
 const LocauxDashboardClient: React.FC<SessionProps> = ({ session }) => {
 	const router = useRouter();
 	const token = useInitAccessToken(session);
-	const theme = useTheme();
-	const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
 	const currentYear = new Date().getFullYear();
 	const [year, setYear] = useState(currentYear);
@@ -85,66 +111,50 @@ const LocauxDashboardClient: React.FC<SessionProps> = ({ session }) => {
 			<NavigationBar title="Dashboard des Locaux">
 				<Protected permission="can_view">
 					<Stack spacing={3} sx={{ p: { xs: 2, md: 3 } }}>
-						<Stack
-							direction={isMobile ? 'column' : 'row'}
-							justifyContent="space-between"
-							alignItems={isMobile ? 'stretch' : 'center'}
-							spacing={2}
-						>
-							<Button variant="outlined" startIcon={<ArrowBackIcon />} onClick={() => router.push(LOCAUX_LIST)} sx={{ width: isMobile ? '100%' : 'auto' }}>
-								Liste des locaux
-							</Button>
-							<Stack direction="row" spacing={1} alignItems="center">
-								<IconButton size="small" onClick={() => setYear((y) => y - 1)}>
-									<ArrowBackIcon fontSize="small" />
-								</IconButton>
-								<Typography fontWeight={700} variant="h6">{year}</Typography>
-								<IconButton size="small" onClick={() => setYear((y) => y + 1)} sx={{ transform: 'rotate(180deg)' }}>
-									<ArrowBackIcon fontSize="small" />
-								</IconButton>
-							</Stack>
+						<Stack direction="row" justifyContent="space-between" alignItems="center" flexWrap="wrap" gap={1}>
+							<Typography variant="h5" fontWeight={600}>
+								Dashboard des Locaux
+							</Typography>
+							<FormControl size="small" sx={{ minWidth: 120 }}>
+								<InputLabel>Année</InputLabel>
+								<Select value={year} label="Année" onChange={(e) => setYear(Number(e.target.value))}>
+									{availableYears.map((y) => (
+										<MenuItem key={y} value={y}>
+											{y}
+										</MenuItem>
+									))}
+								</Select>
+							</FormControl>
 						</Stack>
-
-						{availableYears.length > 1 && (
-							<Stack direction="row" spacing={1} flexWrap="wrap">
-								{availableYears.map((y) => (
-									<Chip
-										key={y}
-										label={y}
-										size="small"
-										color={y === year ? 'primary' : 'default'}
-										variant={y === year ? 'filled' : 'outlined'}
-										onClick={() => setYear(y)}
-									/>
-								))}
-							</Stack>
-						)}
 
 						{isLoading ? (
 							<ApiProgress backdropColor="#FFFFFF" circularColor="#0D070B" />
 						) : (
 							<>
 								{/* KPI cards */}
-								<Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} flexWrap="wrap">
+								<Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(3, 1fr)' }, gap: 2 }}>
 									<KpiCard
-										icon={<AttachMoneyIcon fontSize="large" />}
+										icon={<AttachMoneyIcon fontSize="small" />}
 										label={`Bénéfice HT ${year}`}
 										value={`${Number(dashboardData?.total_benefice_ht ?? 0).toLocaleString('fr-MA')} MAD`}
-										color="success.main"
+										color="#2e7d32"
+										tooltip="Total des loyers payés moins les loyers impayés"
 									/>
 									<KpiCard
-										icon={<HomeWorkIcon fontSize="large" />}
+										icon={<HomeWorkIcon fontSize="small" />}
 										label="En location"
 										value={dashboardData?.total_en_location ?? 0}
-										color="primary.main"
+										color="#1976d2"
+										tooltip="Nombre de locaux actuellement en location"
 									/>
 									<KpiCard
-										icon={<HomeIcon fontSize="large" />}
+										icon={<HomeIcon fontSize="small" />}
 										label="Libres"
 										value={dashboardData?.total_libres ?? 0}
-										color="warning.main"
+										color="#ed6c02"
+										tooltip="Nombre de locaux actuellement libres"
 									/>
-								</Stack>
+								</Box>
 
 								{/* Locaux table */}
 								{locaux.length === 0 ? (

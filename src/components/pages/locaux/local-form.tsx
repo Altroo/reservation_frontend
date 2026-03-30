@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
 	Alert,
@@ -65,6 +65,7 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 	const { onSuccess, onError } = useToast();
 	const isEditMode = id !== undefined;
 	const router = useRouter();
+	const topRef = useRef<HTMLDivElement | null>(null);
 
 	const { data: rawData } = useGetLocalQuery(
 		{ id: id! },
@@ -125,11 +126,18 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 	const hasValidationErrors = validationEntries.length > 0;
 	const showValidationAlert = hasValidationErrors && formik.submitCount > 0;
 
+	useEffect(() => {
+		if (formik.submitCount > 0 && hasValidationErrors) {
+			onError('Veuillez corriger les erreurs de validation avant de soumettre.');
+			topRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+		}
+	}, [formik.submitCount, hasValidationErrors, onError]);
+
 	const isLoading = isCreateLoading || isUpdateLoading || isPending;
 
 	return (
 		<LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={fr}>
-			<Stack spacing={3} sx={{ p: { xs: 2, md: 3 } }}>
+			<Stack ref={topRef} spacing={3} sx={{ p: { xs: 2, md: 3 } }}>
 				<Stack direction="row" justifyContent="space-between">
 					<Button
 						variant="outlined"

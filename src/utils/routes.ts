@@ -34,3 +34,10 @@ export const COSTS_VIEW = (id: number) => `${SITE_ROOT}dashboard/costs/${id}`;
 export const COSTS_EDIT = (id: number) => `${SITE_ROOT}dashboard/costs/${id}/edit`;
 // Notifications
 export const DASHBOARD_NOTIFICATIONS = `${SITE_ROOT}dashboard/settings/notifications`;
+// Locaux
+export const LOCAUX_LIST = `${SITE_ROOT}dashboard/locaux`;
+export const LOCAUX_ADD = `${SITE_ROOT}dashboard/locaux/new`;
+export const LOCAUX_VIEW = (id: number) => `${SITE_ROOT}dashboard/locaux/${id}`;
+export const LOCAUX_EDIT = (id: number) => `${SITE_ROOT}dashboard/locaux/${id}/edit`;
+export const LOCAUX_PLANNING = `${SITE_ROOT}dashboard/locaux/planning`;
+export const LOCAUX_DASHBOARD = `${SITE_ROOT}dashboard/locaux/dashboard`;

@@ -5,7 +5,7 @@ import { axiosBaseQuery } from '@/utils/axiosBaseQuery';
 import { getInitStateToken } from '@/store/selectors';
 import type { RootState } from '@/store/store';
 import { initToken } from '@/store/slices/_initSlice';
-import type { ApartmentClass, ReservationClass } from '@/models/classes';
+import type { ApartmentClass, ReservationClass, LocalClass, LoyerClass } from '@/models/classes';
 import type { ApiErrorResponseType, PaginationResponseType } from '@/types/_initTypes';
 import type {
 	ReservationFormType,
@@ -17,6 +17,13 @@ import type {
 	NotificationType,
 	NotificationPreferenceType,
 } from '@/types/reservationTypes';
+import type {
+	LocalFormType,
+	LocalPlanningResponse,
+	LocalDashboardResponse,
+	LocalYearsResponse,
+	LoyerFormType,
+} from '@/types/localTypes';
 
 const rawBaseQuery = axiosBaseQuery((api) =>
 	isAuthenticatedInstance(
@@ -40,7 +47,7 @@ const baseQueryWithRetry = retry(
 
 export const reservationApi = createApi({
 	reducerPath: 'reservationApi',
-	tagTypes: ['Reservation', 'Apartment', 'Dashboard', 'Planning', 'Balance', 'Cost', 'Notification', 'NotificationPreference'],
+	tagTypes: ['Reservation', 'Apartment', 'Dashboard', 'Planning', 'Balance', 'Cost', 'Notification', 'NotificationPreference', 'Local', 'Loyer', 'LocalDashboard', 'LocalPlanning'],
 	baseQuery: baseQueryWithRetry,
 	endpoints: (builder) => ({
 		// ── Apartments ──────────────────────────────────────────────────────
@@ -308,6 +315,163 @@ export const reservationApi = createApi({
 			}),
 			providesTags: ['Notification'],
 		}),
+
+		// ── Locaux ────────────────────────────────────────────────────────
+		getLocauxList: builder.query<
+			Array<Partial<LocalClass>> | PaginationResponseType<LocalClass>,
+			{
+				with_pagination?: boolean;
+				page?: number;
+				pageSize?: number;
+				search?: string;
+				type_local?: string;
+				en_location?: string;
+				[key: string]: string | number | boolean | undefined;
+			}
+		>({
+			query: ({ with_pagination, page, pageSize, search, type_local, en_location, ...rest }) => ({
+				url: process.env.NEXT_PUBLIC_LOCAL_LIST,
+				method: 'GET',
+				params: {
+					pagination: with_pagination || undefined,
+					page: with_pagination ? page : undefined,
+					page_size: with_pagination ? pageSize : undefined,
+					search,
+					type_local,
+					en_location,
+					...rest,
+				},
+			}),
+			providesTags: ['Local'],
+		}),
+
+		getLocal: builder.query<LocalClass, { id: number }>({
+			query: ({ id }) => ({
+				url: `${process.env.NEXT_PUBLIC_LOCAL_LIST}${id}/`,
+				method: 'GET',
+			}),
+			providesTags: ['Local'],
+		}),
+
+		createLocal: builder.mutation<LocalClass | ApiErrorResponseType, LocalFormType>({
+			query: (payload) => ({
+				url: process.env.NEXT_PUBLIC_LOCAL_LIST,
+				method: 'POST',
+				data: payload,
+			}),
+			invalidatesTags: ['Local', 'LocalDashboard', 'LocalPlanning'],
+		}),
+
+		updateLocal: builder.mutation<LocalClass | ApiErrorResponseType, { id: number; data: LocalFormType }>({
+			query: ({ id, data }) => ({
+				url: `${process.env.NEXT_PUBLIC_LOCAL_LIST}${id}/`,
+				method: 'PUT',
+				data,
+			}),
+			invalidatesTags: ['Local', 'LocalDashboard', 'LocalPlanning'],
+		}),
+
+		deleteLocal: builder.mutation<void, { id: number }>({
+			query: ({ id }) => ({
+				url: `${process.env.NEXT_PUBLIC_LOCAL_LIST}${id}/`,
+				method: 'DELETE',
+			}),
+			invalidatesTags: ['Local', 'LocalDashboard', 'LocalPlanning'],
+		}),
+
+		bulkDeleteLocaux: builder.mutation<void, { ids: number[] }>({
+			query: ({ ids }) => ({
+				url: `${process.env.NEXT_PUBLIC_LOCAL_LIST}bulk-delete/`,
+				method: 'DELETE',
+				data: { ids },
+			}),
+			invalidatesTags: ['Local', 'LocalDashboard', 'LocalPlanning'],
+		}),
+
+		// ── Loyers ────────────────────────────────────────────────────────
+		getLoyersList: builder.query<
+			LoyerClass[],
+			{ local?: number; annee?: number; mois?: number; paye?: string }
+		>({
+			query: ({ local, annee, mois, paye }) => ({
+				url: process.env.NEXT_PUBLIC_LOYER_LIST,
+				method: 'GET',
+				params: { local, annee, mois, paye },
+			}),
+			providesTags: ['Loyer'],
+		}),
+
+		getLoyer: builder.query<LoyerClass, { id: number }>({
+			query: ({ id }) => ({
+				url: `${process.env.NEXT_PUBLIC_LOYER_LIST}${id}/`,
+				method: 'GET',
+			}),
+			providesTags: ['Loyer'],
+		}),
+
+		createLoyer: builder.mutation<LoyerClass | ApiErrorResponseType, LoyerFormType>({
+			query: (payload) => ({
+				url: process.env.NEXT_PUBLIC_LOYER_LIST,
+				method: 'POST',
+				data: payload,
+			}),
+			invalidatesTags: ['Loyer', 'LocalDashboard', 'LocalPlanning'],
+		}),
+
+		updateLoyer: builder.mutation<LoyerClass | ApiErrorResponseType, { id: number; data: LoyerFormType }>({
+			query: ({ id, data }) => ({
+				url: `${process.env.NEXT_PUBLIC_LOYER_LIST}${id}/`,
+				method: 'PUT',
+				data,
+			}),
+			invalidatesTags: ['Loyer', 'LocalDashboard', 'LocalPlanning'],
+		}),
+
+		deleteLoyer: builder.mutation<void, { id: number }>({
+			query: ({ id }) => ({
+				url: `${process.env.NEXT_PUBLIC_LOYER_LIST}${id}/`,
+				method: 'DELETE',
+			}),
+			invalidatesTags: ['Loyer', 'LocalDashboard', 'LocalPlanning'],
+		}),
+
+		toggleLoyerPaid: builder.mutation<{ id: number; paye: boolean }, { id: number; paye: boolean }>({
+			query: ({ id, paye }) => ({
+				url: `${process.env.NEXT_PUBLIC_LOYER_LIST}${id}/toggle-paid/`,
+				method: 'PATCH',
+				data: { paye },
+			}),
+			invalidatesTags: ['Loyer', 'LocalDashboard', 'LocalPlanning'],
+		}),
+
+		// ── Local Planning ────────────────────────────────────────────────
+		getLocalPlanning: builder.query<LocalPlanningResponse, { year: number }>({
+			query: ({ year }) => ({
+				url: process.env.NEXT_PUBLIC_LOCAL_PLANNING,
+				method: 'GET',
+				params: { year },
+			}),
+			providesTags: ['LocalPlanning'],
+		}),
+
+		// ── Local Dashboard ───────────────────────────────────────────────
+		getLocalDashboard: builder.query<LocalDashboardResponse, { year: number }>({
+			query: ({ year }) => ({
+				url: process.env.NEXT_PUBLIC_LOCAL_DASHBOARD,
+				method: 'GET',
+				params: { year },
+			}),
+			providesTags: ['LocalDashboard'],
+		}),
+
+		// ── Local Years ──────────────────────────────────────────────────
+		getLocalYears: builder.query<LocalYearsResponse, void>({
+			query: () => ({
+				url: process.env.NEXT_PUBLIC_LOCAL_YEARS,
+				method: 'GET',
+			}),
+			providesTags: ['LocalDashboard'],
+		}),
 	}),
 });
 
@@ -338,4 +502,19 @@ export const {
 	useUpdateNotificationPreferencesMutation,
 	useMarkNotificationsReadMutation,
 	useGetUnreadNotificationCountQuery,
+	useGetLocauxListQuery,
+	useGetLocalQuery,
+	useCreateLocalMutation,
+	useUpdateLocalMutation,
+	useDeleteLocalMutation,
+	useBulkDeleteLocauxMutation,
+	useGetLoyersListQuery,
+	useGetLoyerQuery,
+	useCreateLoyerMutation,
+	useUpdateLoyerMutation,
+	useDeleteLoyerMutation,
+	useToggleLoyerPaidMutation,
+	useGetLocalPlanningQuery,
+	useGetLocalDashboardQuery,
+	useGetLocalYearsQuery,
 } = reservationApi;

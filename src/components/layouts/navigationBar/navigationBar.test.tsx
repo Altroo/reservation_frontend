@@ -204,4 +204,20 @@ describe('NavigationBar', () => {
 		);
 		expect(screen.getByText('Random')).toBeInTheDocument();
 	});
+
+	it('renders Locaux section with menu items', () => {
+		mockPathname = '/dashboard/locaux';
+		render(
+			<Provider store={store}>
+				<NavigationBar title="Locaux Test">
+					<div />
+				</NavigationBar>
+			</Provider>,
+		);
+		expect(screen.getByText('Locaux')).toBeInTheDocument();
+		expect(screen.getByText('Liste des locaux')).toBeInTheDocument();
+		expect(screen.getByText('Ajouter un local')).toBeInTheDocument();
+		expect(screen.getByText('Planning des loyers')).toBeInTheDocument();
+		expect(screen.getByText('Dashboard des locaux')).toBeInTheDocument();
+	});
 });

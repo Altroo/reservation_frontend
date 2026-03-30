@@ -52,6 +52,10 @@ import {
 	COSTS_ADD,
 	COSTS_LIST,
 	DASHBOARD,
+	LOCAUX_ADD,
+	LOCAUX_DASHBOARD,
+	LOCAUX_LIST,
+	LOCAUX_PLANNING,
 	DASHBOARD_EDIT_PROFILE,
 	DASHBOARD_NOTIFICATIONS,
 	DASHBOARD_PASSWORD,
@@ -110,6 +114,16 @@ const getNavigationMenu = (isStaff: boolean) => {
 			items: [
 				{ title: 'Liste des coûts', label: 'Liste des coûts', path: COSTS_LIST },
 				{ title: 'Nouveau coût', label: 'Nouveau coût', path: COSTS_ADD },
+			],
+		},
+		locaux: {
+			title: 'Locaux',
+			icon: <DomainIcon />,
+			items: [
+				{ title: 'Liste des locaux', label: 'Liste des locaux', path: LOCAUX_LIST },
+				{ title: 'Nouveau local', label: 'Ajouter un local', path: LOCAUX_ADD },
+				{ title: 'Planning', label: 'Planning des loyers', path: LOCAUX_PLANNING },
+				{ title: 'Dashboard', label: 'Dashboard des locaux', path: LOCAUX_DASHBOARD },
 			],
 		},
 		...(isStaff && {

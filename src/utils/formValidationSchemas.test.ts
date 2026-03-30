@@ -6,6 +6,8 @@ import {
 	userSchema,
 	profilSchema,
 	changePasswordSchema,
+	localSchema,
+	loyerSchema,
 } from './formValidationSchemas';
 
 describe('Zod Schema Validation', () => {
@@ -223,6 +225,113 @@ describe('Zod Schema Validation', () => {
 				new_password2: 'differentPass',
 			});
 			expect(result.success).toBe(false);
+		});
+	});
+
+	// ── localSchema ──
+	describe('localSchema', () => {
+		const validLocal = {
+			nom: 'Bureau A',
+			type_local: 'Bureau',
+			adresse: '10 Rue Example',
+			superficie: '120',
+			prix_achat: '500000',
+			prix_location_mensuel: '5000',
+			en_location: true,
+			locataire_nom: 'SARL Test',
+			date_debut_location: '2024-01-01',
+			notes: 'Notes test',
+			globalError: '',
+		};
+
+		it('validates correct local data', () => {
+			expect(() => localSchema.parse(validLocal)).not.toThrow();
+		});
+		it('fails with missing nom', () => {
+			expect(() => localSchema.parse({ ...validLocal, nom: '' })).toThrow();
+		});
+		it('fails with short nom (min 2)', () => {
+			expect(() => localSchema.parse({ ...validLocal, nom: 'A' })).toThrow();
+		});
+		it('fails with empty type_local', () => {
+			expect(() => localSchema.parse({ ...validLocal, type_local: '' })).toThrow();
+		});
+		it('fails with empty prix_achat', () => {
+			expect(() => localSchema.parse({ ...validLocal, prix_achat: '' })).toThrow();
+		});
+		it('fails with empty prix_location_mensuel', () => {
+			expect(() => localSchema.parse({ ...validLocal, prix_location_mensuel: '' })).toThrow();
+		});
+		it('handles undefined prix_achat via preprocess', () => {
+			expect(() => localSchema.parse({ ...validLocal, prix_achat: undefined })).toThrow();
+		});
+		it('accepts optional fields as empty strings', () => {
+			expect(() =>
+				localSchema.parse({ ...validLocal, adresse: '', superficie: '', locataire_nom: '', notes: '', date_debut_location: undefined }),
+			).not.toThrow();
+		});
+		it('validates date_debut_location format', () => {
+			expect(() => localSchema.parse({ ...validLocal, date_debut_location: 'not-a-date' })).toThrow();
+		});
+		it('accepts valid date_debut_location format', () => {
+			expect(() => localSchema.parse({ ...validLocal, date_debut_location: '2024-06-15' })).not.toThrow();
+		});
+		it('accepts en_location as boolean', () => {
+			expect(() => localSchema.parse({ ...validLocal, en_location: false })).not.toThrow();
+		});
+	});
+
+	// ── loyerSchema ──
+	describe('loyerSchema', () => {
+		const validLoyer = {
+			local: 1,
+			mois: 6,
+			annee: 2025,
+			montant: '5000',
+			paye: false,
+			date_paiement: undefined,
+			notes: '',
+			globalError: '',
+		};
+
+		it('validates correct loyer data', () => {
+			expect(() => loyerSchema.parse(validLoyer)).not.toThrow();
+		});
+		it('fails with missing local', () => {
+			expect(() => loyerSchema.parse({ ...validLoyer, local: undefined })).toThrow();
+		});
+		it('fails with empty local', () => {
+			expect(() => loyerSchema.parse({ ...validLoyer, local: '' })).toThrow();
+		});
+		it('fails with mois < 1', () => {
+			expect(() => loyerSchema.parse({ ...validLoyer, mois: 0 })).toThrow();
+		});
+		it('fails with mois > 12', () => {
+			expect(() => loyerSchema.parse({ ...validLoyer, mois: 13 })).toThrow();
+		});
+		it('fails with annee < 2000', () => {
+			expect(() => loyerSchema.parse({ ...validLoyer, annee: 1999 })).toThrow();
+		});
+		it('fails with annee > 2100', () => {
+			expect(() => loyerSchema.parse({ ...validLoyer, annee: 2101 })).toThrow();
+		});
+		it('fails with empty montant', () => {
+			expect(() => loyerSchema.parse({ ...validLoyer, montant: '' })).toThrow();
+		});
+		it('handles undefined montant via preprocess', () => {
+			expect(() => loyerSchema.parse({ ...validLoyer, montant: undefined })).toThrow();
+		});
+		it('validates date_paiement format', () => {
+			expect(() => loyerSchema.parse({ ...validLoyer, date_paiement: 'bad-date' })).toThrow();
+		});
+		it('accepts valid date_paiement', () => {
+			expect(() => loyerSchema.parse({ ...validLoyer, paye: true, date_paiement: '2025-06-15' })).not.toThrow();
+		});
+		it('accepts paye as boolean', () => {
+			expect(() => loyerSchema.parse({ ...validLoyer, paye: true })).not.toThrow();
+		});
+		it('handles empty mois via preprocess', () => {
+			expect(() => loyerSchema.parse({ ...validLoyer, mois: '' })).toThrow();
 		});
 	});
 });

@@ -162,3 +162,52 @@ export const costSchema = z.object({
 	globalError: optionalTextField(1, 500),
 });
 
+export const localSchema = z.object({
+	nom: requiredTextField(2, 200),
+	type_local: requiredChoiceTextField(),
+	adresse: optionalTextField(1, 500),
+	superficie: optionalTextField(1, 20),
+	prix_achat: z.preprocess(
+		(val) => (val === undefined || val === null ? '' : String(val)),
+		z.string().nonempty({ error: INPUT_REQUIRED }),
+	),
+	prix_location_mensuel: z.preprocess(
+		(val) => (val === undefined || val === null ? '' : String(val)),
+		z.string().nonempty({ error: INPUT_REQUIRED }),
+	),
+	en_location: z.boolean(),
+	locataire_nom: optionalTextField(1, 200),
+	date_debut_location: z.preprocess(
+		(val) => (val === undefined || val === null || val === '' ? undefined : String(val)),
+		z.string().regex(/^\d{4}-\d{2}-\d{2}$/, { error: 'Format de date invalide (AAAA-MM-JJ)' }).optional(),
+	),
+	notes: optionalTextField(1, 2000),
+	globalError: optionalTextField(1, 500),
+});
+
+export const loyerSchema = z.object({
+	local: z.preprocess(
+		(val) => (val === undefined || val === '' || val === null ? undefined : Number(val)),
+		z.number({ error: 'Local requis' }).positive({ error: 'Local requis' }),
+	),
+	mois: z.preprocess(
+		(val) => (val === undefined || val === '' || val === null ? undefined : Number(val)),
+		z.number({ error: 'Mois requis' }).min(1, { error: 'Mois invalide' }).max(12, { error: 'Mois invalide' }),
+	),
+	annee: z.preprocess(
+		(val) => (val === undefined || val === '' || val === null ? undefined : Number(val)),
+		z.number({ error: 'Année requise' }).min(2000, { error: 'Année invalide' }).max(2100, { error: 'Année invalide' }),
+	),
+	montant: z.preprocess(
+		(val) => (val === undefined || val === null ? '' : String(val)),
+		z.string().nonempty({ error: INPUT_REQUIRED }),
+	),
+	paye: z.boolean(),
+	date_paiement: z.preprocess(
+		(val) => (val === undefined || val === null || val === '' ? undefined : String(val)),
+		z.string().regex(/^\d{4}-\d{2}-\d{2}$/, { error: 'Format de date invalide (AAAA-MM-JJ)' }).optional(),
+	),
+	notes: optionalTextField(1, 2000),
+	globalError: optionalTextField(1, 500),
+});
+

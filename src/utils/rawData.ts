@@ -113,3 +113,38 @@ export const COST_FIELD_LABELS: Record<string, string> = {
 
 // Shared Chart.js options
 export const CHART_OPTS = { responsive: true, maintainAspectRatio: false } as const;
+
+// ── Locaux ───────────────────────────────────────────────────────────────────
+
+export const typeLocalItemsList = [
+	{ code: 'Bureau', value: 'Bureau' },
+	{ code: 'Magasin', value: 'Magasin' },
+] as const;
+
+export const TYPE_LOCAL_CHIP_COLORS: Record<string, ChipColor> = {
+	Bureau: 'primary',
+	Magasin: 'warning',
+};
+
+export const LOCAL_FIELD_LABELS: Record<string, string> = {
+	nom: 'Nom',
+	type_local: 'Type',
+	adresse: 'Adresse',
+	superficie: 'Superficie',
+	prix_achat: "Prix d'achat",
+	prix_location_mensuel: 'Loyer mensuel',
+	en_location: 'En location',
+	locataire_nom: 'Locataire',
+	date_debut_location: 'Début de location',
+	notes: 'Notes',
+};
+
+export const LOYER_FIELD_LABELS: Record<string, string> = {
+	local: 'Local',
+	mois: 'Mois',
+	annee: 'Année',
+	montant: 'Montant',
+	paye: 'Payé',
+	date_paiement: 'Date de paiement',
+	notes: 'Notes',
+};

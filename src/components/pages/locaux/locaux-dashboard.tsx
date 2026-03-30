@@ -21,6 +21,8 @@ import {
 	TableRow,
 	Tooltip as MuiTooltip,
 	Typography,
+	useMediaQuery,
+	useTheme,
 } from '@mui/material';
 import {
 	AttachMoney as AttachMoneyIcon,
@@ -92,6 +94,8 @@ const KpiCard: React.FC<KpiCardProps> = ({ icon, label, value, color, tooltip })
 const LocauxDashboardClient: React.FC<SessionProps> = ({ session }) => {
 	const router = useRouter();
 	const token = useInitAccessToken(session);
+	const theme = useTheme();
+	const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
 	const currentYear = new Date().getFullYear();
 	const [year, setYear] = useState(currentYear);
@@ -171,6 +175,45 @@ const LocauxDashboardClient: React.FC<SessionProps> = ({ session }) => {
 												<TrendingUpIcon color="primary" />
 												<Typography variant="h6" fontWeight={700}>Rentabilité par local</Typography>
 											</Stack>
+											{isMobile ? (
+												<Stack spacing={1.5}>
+													{locaux.map((local) => {
+														const typeColor = (TYPE_LOCAL_CHIP_COLORS[local.type_local] ?? 'default') as ChipColor;
+														return (
+															<Card
+																key={local.id}
+																elevation={1}
+																sx={{ cursor: 'pointer', '&:hover': { bgcolor: 'action.hover' } }}
+																onClick={() => router.push(LOCAUX_VIEW(local.id))}
+															>
+																<CardContent sx={{ py: 1.5, px: 2, '&:last-child': { pb: 1.5 } }}>
+																	<Stack direction="row" justifyContent="space-between" alignItems="center" mb={1}>
+																		<Typography variant="body2" fontWeight={600}>{local.nom}</Typography>
+																		<Stack direction="row" spacing={0.5}>
+																			<Chip label={local.type_local} size="small" color={typeColor} variant="outlined" />
+																			<Chip label={local.en_location ? 'Loué' : 'Libre'} size="small" color={local.en_location ? 'success' : 'default'} variant="outlined" />
+																		</Stack>
+																	</Stack>
+																	<Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 0.5 }}>
+																		<Typography variant="caption" color="text.secondary">Loyers payés</Typography>
+																		<Typography variant="caption" color="success.main" fontWeight={600} textAlign="right">
+																			{Number(local.loyers_payes).toLocaleString('fr-MA')} MAD
+																		</Typography>
+																		<Typography variant="caption" color="text.secondary">Loyers impayés</Typography>
+																		<Typography variant="caption" color="error.main" fontWeight={600} textAlign="right">
+																			{Number(local.loyers_impayes).toLocaleString('fr-MA')} MAD
+																		</Typography>
+																		<Typography variant="caption" color="text.secondary">Rentabilité</Typography>
+																		<Typography variant="caption" fontWeight={700} color="primary" textAlign="right">
+																			{local.rentabilite}%
+																		</Typography>
+																	</Box>
+																</CardContent>
+															</Card>
+														);
+													})}
+												</Stack>
+											) : (
 											<TableContainer>
 												<Table size="small">
 													<TableHead>
@@ -230,6 +273,7 @@ const LocauxDashboardClient: React.FC<SessionProps> = ({ session }) => {
 													</TableBody>
 												</Table>
 											</TableContainer>
+											)}
 										</CardContent>
 									</Card>
 								)}

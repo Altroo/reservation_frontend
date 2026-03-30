@@ -29,6 +29,7 @@ jest.mock('@/utils/hooks', () => ({
 
 // Mock RTK Query hooks
 const mockDeleteCost = jest.fn(() => ({ unwrap: () => Promise.resolve() }));
+const mockBulkDeleteCosts = jest.fn(() => ({ unwrap: () => Promise.resolve() }));
 const mockUseGetCostsQuery = jest.fn();
 const mockUseGetCostYearsQuery = jest.fn();
 
@@ -37,6 +38,7 @@ jest.mock('@/store/services/reservation', () => ({
 	useGetCostYearsQuery: (params: unknown, options: unknown) => mockUseGetCostYearsQuery(params, options),
 	useGetCostsQuery: (params: unknown, options: unknown) => mockUseGetCostsQuery(params, options),
 	useDeleteCostMutation: () => [mockDeleteCost, { isLoading: false }],
+	useBulkDeleteCostsMutation: () => [mockBulkDeleteCosts, { isLoading: false }],
 }));
 
 // Mock PaginatedDataGrid to render rows and call renderCell for action testing

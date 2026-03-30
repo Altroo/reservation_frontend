@@ -32,7 +32,7 @@ import { createDropdownFilterOperators } from '@/components/shared/dropdownFilte
 import { extractApiErrorMessage, formatDate } from '@/utils/helpers';
 import { COSTS_ADD, COSTS_EDIT, COSTS_VIEW } from '@/utils/routes';
 import { useToast } from '@/utils/hooks';
-import { useDeleteCostMutation, useGetCostsQuery, useGetCostYearsQuery } from '@/store/services/reservation';
+import { useDeleteCostMutation, useBulkDeleteCostsMutation, useGetCostsQuery, useGetCostYearsQuery } from '@/store/services/reservation';
 import { useInitAccessToken } from '@/contexts/InitContext';
 import type { CostCategoryChipColor } from '@/utils/rawData';
 import { COST_CATEGORY_CHIP_COLORS, costCategoryItemsList } from '@/utils/rawData';
@@ -68,9 +68,12 @@ const CostsListClient: React.FC<SessionProps> = ({ session }) => {
 		return Array.from(nameMap.values()).map((name) => ({ value: name, label: name }));
 	}, [costs]);
 	const [deleteCost] = useDeleteCostMutation();
+	const [bulkDeleteCosts] = useBulkDeleteCostsMutation();
 
 	const [showDeleteModal, setShowDeleteModal] = useState(false);
 	const [selectedId, setSelectedId] = useState<number | null>(null);
+	const [selectedIds, setSelectedIds] = useState<number[]>([]);
+	const [showBulkDeleteModal, setShowBulkDeleteModal] = useState(false);
 
 	// Client-side filtering
 	const filteredCosts = useMemo(() => {
@@ -169,6 +172,35 @@ const CostsListClient: React.FC<SessionProps> = ({ session }) => {
 			text: 'Supprimer',
 			active: true,
 			onClick: deleteHandler,
+			icon: <DeleteIcon />,
+			color: '#D32F2F',
+		},
+	];
+
+	const bulkDeleteHandler = async () => {
+		try {
+			await bulkDeleteCosts({ ids: selectedIds }).unwrap();
+			onSuccess(`${selectedIds.length} coût(s) supprimé(s) avec succès`);
+			setSelectedIds([]);
+		} catch (err) {
+			onError(extractApiErrorMessage(err, 'Erreur lors de la suppression des coûts'));
+		} finally {
+			setShowBulkDeleteModal(false);
+		}
+	};
+
+	const bulkDeleteModalActions = [
+		{
+			text: 'Annuler',
+			active: false,
+			onClick: () => setShowBulkDeleteModal(false),
+			icon: <CloseIcon />,
+			color: '#6B6B6B',
+		},
+		{
+			text: `Supprimer (${selectedIds.length})`,
+			active: true,
+			onClick: bulkDeleteHandler,
 			icon: <DeleteIcon />,
 			color: '#D32F2F',
 		},
@@ -385,8 +417,17 @@ const CostsListClient: React.FC<SessionProps> = ({ session }) => {
 								<Typography variant="subtitle1" fontWeight={700} color="error.main" sx={{ ml: 'auto' }}>
 									Total : {totalAmount.toLocaleString('fr-MA')} MAD
 								</Typography>
-							)}
-						</Box>
+							)}						{selectedIds.length > 0 && (
+							<Button
+								variant="outlined"
+								color="error"
+								onClick={() => setShowBulkDeleteModal(true)}
+								startIcon={<DeleteIcon fontSize="small" />}
+								sx={{ whiteSpace: 'nowrap' }}
+							>
+								Supprimer ({selectedIds.length})
+							</Button>
+						)}						</Box>
 
 						<ChipSelectFilterBar filters={chipFilters} onFilterChange={setChipFilterParams} columns={1} />
 
@@ -401,6 +442,9 @@ const CostsListClient: React.FC<SessionProps> = ({ session }) => {
 							filterModel={filterModel}
 							onFilterModelChange={setFilterModel}
 							onCustomFilterParamsChange={setCustomFilterParams}
+							checkboxSelection
+							onSelectionChange={setSelectedIds}
+							selectedIds={selectedIds}
 						/>
 
 						{showDeleteModal && (
@@ -408,6 +452,15 @@ const CostsListClient: React.FC<SessionProps> = ({ session }) => {
 								title="Supprimer le coût"
 								body="Êtes-vous sûr de vouloir supprimer ce coût ? Cette action est irréversible."
 								actions={deleteModalActions}
+							/>
+						)}
+
+						{showBulkDeleteModal && (
+							<ActionModals
+								title={`Supprimer ${selectedIds.length} coût(s)`}
+								body="Cette action supprimera définitivement les coûts sélectionnés."
+								actions={bulkDeleteModalActions}
+								onClose={() => setShowBulkDeleteModal(false)}
 							/>
 						)}
 					</>

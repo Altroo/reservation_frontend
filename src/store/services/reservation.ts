@@ -252,6 +252,15 @@ export const reservationApi = createApi({
 			invalidatesTags: ['Cost', 'Dashboard'],
 		}),
 
+		bulkDeleteCosts: builder.mutation<void, { ids: number[] }>({
+			query: ({ ids }) => ({
+				url: `${process.env.NEXT_PUBLIC_RESERVATION_COSTS}bulk-delete/`,
+				method: 'DELETE',
+				data: { ids },
+			}),
+			invalidatesTags: ['Cost', 'Dashboard'],
+		}),
+
 		// ── Apartments detail ─────────────────────────────────────────────
 		updateApartment: builder.mutation<ApartmentClass, { id: number; data: { nom: string } }>({
 			query: ({ id, data }) => ({
@@ -497,6 +506,7 @@ export const {
 	useCreateCostMutation,
 	useUpdateCostMutation,
 	useDeleteCostMutation,
+	useBulkDeleteCostsMutation,
 	useGetNotificationsQuery,
 	useGetNotificationPreferencesQuery,
 	useUpdateNotificationPreferencesMutation,

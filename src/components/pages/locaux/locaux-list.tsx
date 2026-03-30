@@ -395,6 +395,7 @@ const LocauxListClient: React.FC<SessionProps> = ({ session }) => {
 							onCustomFilterParamsChange={setCustomFilterParams}
 							checkboxSelection
 							onSelectionChange={setSelectedIds}
+							selectedIds={selectedIds}
 						/>
 
 						{showDeleteModal && (

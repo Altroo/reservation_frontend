@@ -23,11 +23,13 @@ jest.mock('@/contexts/InitContext', () => ({
 // Mock RTK Query hooks
 const mockUseGetLocalPlanningQuery = jest.fn();
 const mockUseGetLocalYearsQuery = jest.fn();
+const mockToggleLoyerPaid = jest.fn().mockResolvedValue({});
 
 jest.mock('@/store/services/reservation', () => ({
 	__esModule: true,
 	useGetLocalPlanningQuery: (params: unknown, options: unknown) => mockUseGetLocalPlanningQuery(params, options),
 	useGetLocalYearsQuery: (params: unknown, options: unknown) => mockUseGetLocalYearsQuery(params, options),
+	useToggleLoyerPaidMutation: () => [mockToggleLoyerPaid, { isLoading: false }],
 }));
 
 jest.mock('@/components/layouts/protected/protected', () => ({
@@ -122,7 +124,7 @@ describe('LocauxPlanningClient', () => {
 
 	it('renders the page title', () => {
 		render(<LocauxPlanningClient session={mockSession} />);
-		expect(screen.getByText('Planning des Locaux')).toBeInTheDocument();
+		expect(screen.getByText(`Planning des Locaux ${new Date().getFullYear()}`)).toBeInTheDocument();
 	});
 
 	it('renders year dropdown', () => {
@@ -155,9 +157,7 @@ describe('LocauxPlanningClient', () => {
 
 	it('renders legend items', () => {
 		render(<LocauxPlanningClient session={mockSession} />);
-		expect(screen.getByText('Payé')).toBeInTheDocument();
-		expect(screen.getByText('Impayé')).toBeInTheDocument();
-		expect(screen.getByText('Pas de loyer')).toBeInTheDocument();
+		expect(screen.getByText('Détail des loyers par local')).toBeInTheDocument();
 	});
 
 	it('navigates to local view on local name click', () => {
@@ -172,7 +172,7 @@ describe('LocauxPlanningClient', () => {
 			isLoading: true,
 		});
 		render(<LocauxPlanningClient session={mockSession} />);
-		expect(screen.getByTestId('api-loader')).toBeInTheDocument();
+		expect(screen.getByRole('progressbar')).toBeInTheDocument();
 	});
 
 	it('shows empty state when no locaux', () => {

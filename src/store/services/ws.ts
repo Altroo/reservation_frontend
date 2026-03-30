@@ -1,7 +1,8 @@
 import type { EventChannel } from 'redux-saga';
 import { END, eventChannel } from 'redux-saga';
-import { WSMaintenanceAction, WSUserAvatarAction } from '@/store/actions/wsActions';
+import { WSMaintenanceAction, WSUserAvatarAction, WSNotificationAction } from '@/store/actions/wsActions';
 import { WSAction, WSEnvelope } from '@/types/wsTypes';
+import type { NotificationType } from '@/types/reservationTypes';
 
 const isObjectRecord = (value: unknown): value is Record<string, unknown> => {
 	return typeof value === 'object' && value !== null;
@@ -52,6 +53,19 @@ export function initWebsocket(token: string): EventChannel<WSAction> {
 							} else if (signalType === 'MAINTENANCE') {
 								if (typeof message.maintenance === 'boolean') {
 									emitter(WSMaintenanceAction(message.maintenance));
+								}
+							} else if (signalType === 'NOTIFICATION') {
+								if (typeof message.id === 'number' && typeof message.title === 'string') {
+									const notification: NotificationType = {
+										id: message.id,
+										reservation_id: typeof message.reservation_id === 'number' ? message.reservation_id : null,
+										title: message.title,
+										message: typeof message.message === 'string' ? message.message : '',
+										notification_type: (message.notification_type === 'check_in' || message.notification_type === 'check_out') ? message.notification_type : 'check_in',
+										is_read: typeof message.is_read === 'boolean' ? message.is_read : false,
+										date_created: typeof message.date_created === 'string' ? message.date_created : new Date().toISOString(),
+									};
+									emitter(WSNotificationAction(notification));
 								}
 							}
 						}

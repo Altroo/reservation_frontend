@@ -11,9 +11,16 @@ import {
 	Button,
 	Card,
 	CardContent,
+	Dialog,
+	DialogActions,
+	DialogContent,
+	DialogContentText,
+	DialogTitle,
 	Divider,
+	IconButton,
 	InputAdornment,
 	Stack,
+	TextField,
 	Typography,
 	useMediaQuery,
 	useTheme,
@@ -29,6 +36,7 @@ import {
 	Notes as NotesIcon,
 	Person as PersonIcon,
 	Warning as WarningIcon,
+	Delete as DeleteIcon,
 } from '@mui/icons-material';
 import { useFormik } from 'formik';
 import { toFormikValidationSchema } from 'zod-formik-adapter';
@@ -46,7 +54,7 @@ import ApiProgress from '@/components/formikElements/apiLoading/apiProgress/apiP
 import ApiAlert from '@/components/formikElements/apiLoading/apiAlert/apiAlert';
 import { reservationSchema } from '@/utils/formValidationSchemas';
 import { paymentSourceItemsList, RESERVATION_FIELD_LABELS } from '@/utils/rawData';
-import { getLabelForKey, setFormikAutoErrors } from '@/utils/helpers';
+import { getLabelForKey, setFormikAutoErrors, extractApiErrorMessage } from '@/utils/helpers';
 import { textInputTheme } from '@/utils/themes';
 import { RESERVATIONS_LIST, RESERVATIONS_VIEW } from '@/utils/routes';
 import { useRouter } from 'next/navigation';
@@ -58,6 +66,8 @@ import {
 	useGetOccupiedDatesQuery,
 	useGetReservationQuery,
 	useUpdateReservationMutation,
+	useUpdateApartmentMutation,
+	useDeleteApartmentMutation,
 } from '@/store/services/reservation';
 import { useInitAccessToken } from '@/contexts/InitContext';
 import { Protected } from '@/components/layouts/protected/protected';
@@ -87,6 +97,16 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 	const [createReservation, { isLoading: isCreateLoading, error: createError }] = useCreateReservationMutation();
 	const [updateReservation, { isLoading: isUpdateLoading, error: updateError }] = useUpdateReservationMutation();
 	const [addApartment] = useAddApartmentMutation();
+	const [updateApartment] = useUpdateApartmentMutation();
+	const [deleteApartment] = useDeleteApartmentMutation();
+
+	// Apartment edit/delete state
+	const [editAptId, setEditAptId] = useState<number | null>(null);
+	const [editAptName, setEditAptName] = useState('');
+	const [editAptError, setEditAptError] = useState<string | null>(null);
+	const [deleteAptId, setDeleteAptId] = useState<number | null>(null);
+	const [deleteAptName, setDeleteAptName] = useState('');
+	const [aptActionLoading, setAptActionLoading] = useState(false);
 
 	const error = isEditMode ? updateError : createError;
 	const axiosError: ResponseDataInterface<ApiErrorResponseType> | undefined = useMemo(
@@ -161,6 +181,49 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 		},
 		[occupiedRanges],
 	);
+
+	const handleEditAptOpen = (aptId: number, aptName: string) => {
+		setEditAptId(aptId);
+		setEditAptName(aptName);
+		setEditAptError(null);
+	};
+
+	const handleEditAptSubmit = async () => {
+		if (!editAptId || !editAptName.trim()) return;
+		setAptActionLoading(true);
+		try {
+			await updateApartment({ id: editAptId, data: { nom: editAptName.trim() } }).unwrap();
+			onSuccess("L'appartement a été renommé avec succès.");
+			setEditAptId(null);
+		} catch (e) {
+			setEditAptError(extractApiErrorMessage(e, "Échec du renommage de l'appartement."));
+		} finally {
+			setAptActionLoading(false);
+		}
+	};
+
+	const handleDeleteAptOpen = (aptId: number, aptName: string) => {
+		setDeleteAptId(aptId);
+		setDeleteAptName(aptName);
+	};
+
+	const handleDeleteAptConfirm = async () => {
+		if (!deleteAptId) return;
+		setAptActionLoading(true);
+		try {
+			await deleteApartment({ id: deleteAptId }).unwrap();
+			onSuccess("L'appartement a été supprimé avec succès.");
+			if (formik.values.apartment === deleteAptId) {
+				await formik.setFieldValue('apartment', '');
+			}
+			setDeleteAptId(null);
+		} catch (e) {
+			onError(extractApiErrorMessage(e, "Impossible de supprimer cet appartement."));
+			setDeleteAptId(null);
+		} finally {
+			setAptActionLoading(false);
+		}
+	};
 
 	const paymentSourceItems: DropDownType[] = useMemo(
 		() => paymentSourceItemsList.map((p) => ({ code: p.value, value: p.code })),
@@ -267,14 +330,34 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 											disabled={isLoading}
 											startIcon={<HotelIcon fontSize="small" />}
 											endIcon={
-												<Button
-													size="small"
-													variant="outlined"
-													onClick={() => setOpenApartmentModal(true)}
-													sx={{ ml: 1 }}
-												>
-													Ajouter
-												</Button>
+												<Stack direction="row" spacing={0.5} alignItems="center" sx={{ ml: 1 }}>
+													{selectedApartment && (
+														<>
+															<IconButton
+																size="small"
+																onClick={() => handleEditAptOpen(Number(selectedApartment.value), selectedApartment.code)}
+																title="Renommer"
+															>
+																<EditIcon fontSize="small" />
+															</IconButton>
+															<IconButton
+																size="small"
+																onClick={() => handleDeleteAptOpen(Number(selectedApartment.value), selectedApartment.code)}
+																title="Supprimer"
+																color="error"
+															>
+																<DeleteIcon fontSize="small" />
+															</IconButton>
+														</>
+													)}
+													<Button
+														size="small"
+														variant="outlined"
+														onClick={() => setOpenApartmentModal(true)}
+													>
+														Ajouter
+													</Button>
+												</Stack>
 											}
 										/>
 										<CustomTextInput
@@ -478,6 +561,50 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 					formik.setFieldValue('apartment', newId);
 				}}
 			/>
+
+			{/* Edit apartment dialog */}
+			<Dialog open={editAptId !== null} onClose={() => setEditAptId(null)}>
+				<DialogTitle>Renommer l&apos;appartement</DialogTitle>
+				<DialogContent>
+					<TextField
+						autoFocus
+						margin="dense"
+						label="Nouveau nom"
+						fullWidth
+						size="small"
+						value={editAptName}
+						onChange={(e) => {
+							setEditAptName(e.target.value);
+							if (editAptError) setEditAptError(null);
+						}}
+						error={Boolean(editAptError)}
+						helperText={editAptError ?? ''}
+					/>
+				</DialogContent>
+				<DialogActions>
+					<Button onClick={() => setEditAptId(null)}>Annuler</Button>
+					<Button onClick={handleEditAptSubmit} variant="contained" disabled={aptActionLoading || !editAptName.trim()}>
+						Renommer
+					</Button>
+				</DialogActions>
+			</Dialog>
+
+			{/* Delete apartment confirmation dialog */}
+			<Dialog open={deleteAptId !== null} onClose={() => setDeleteAptId(null)}>
+				<DialogTitle>Supprimer l&apos;appartement</DialogTitle>
+				<DialogContent>
+					<DialogContentText>
+						Êtes-vous sûr de vouloir supprimer l&apos;appartement &quot;{deleteAptName}&quot; ?
+						Cette action est irréversible.
+					</DialogContentText>
+				</DialogContent>
+				<DialogActions>
+					<Button onClick={() => setDeleteAptId(null)}>Annuler</Button>
+					<Button onClick={handleDeleteAptConfirm} color="error" variant="contained" disabled={aptActionLoading}>
+						Supprimer
+					</Button>
+				</DialogActions>
+			</Dialog>
 		</LocalizationProvider>
 	);
 };

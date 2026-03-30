@@ -45,6 +45,8 @@ jest.mock('@/store/services/reservation', () => ({
 	useCreateReservationMutation: () => [mockCreateReservation, { isLoading: false, error: undefined }],
 	useUpdateReservationMutation: () => [mockUpdateReservation, { isLoading: false, error: undefined }],
 	useAddApartmentMutation: () => [jest.fn(), { isLoading: false }],
+	useUpdateApartmentMutation: () => [jest.fn().mockResolvedValue({ data: {} }), { isLoading: false }],
+	useDeleteApartmentMutation: () => [jest.fn().mockResolvedValue({ data: {} }), { isLoading: false }],
 	useGetOccupiedDatesQuery: () => ({ data: [], isLoading: false }),
 }));
 

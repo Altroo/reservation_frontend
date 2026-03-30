@@ -10,6 +10,14 @@ jest.mock('@/store/slices/accountSlice', () => ({
 	__esModule: true,
 	default: (state = { account: true }) => state,
 }));
+jest.mock('@/store/slices/wsSlice', () => ({
+	__esModule: true,
+	default: (state = { ws: true }) => state,
+}));
+jest.mock('@/store/slices/notificationSlice', () => ({
+	__esModule: true,
+	default: (state = { notification: true }) => state,
+}));
 
 function makeApiMock(name: string) {
 	const dummyMiddleware: Middleware = () => (next) => (action) => next(action);
@@ -25,6 +33,11 @@ jest.mock('@/store/services/account', () => ({
 	accountApi: makeApiMock('accountApi'),
 	profilApi: makeApiMock('profilApi'),
 	usersApi: makeApiMock('usersApi'),
+}));
+
+jest.mock('@/store/services/reservation', () => ({
+	__esModule: true,
+	reservationApi: makeApiMock('reservationApi'),
 }));
 
 jest.mock('@/store/sagas', () => ({
@@ -57,9 +70,12 @@ describe('makeStore', () => {
 		const state = store.getState() as RootState;
 		expect(state).toHaveProperty('_init');
 		expect(state).toHaveProperty('account');
+		expect(state).toHaveProperty('ws');
+		expect(state).toHaveProperty('notification');
 		expect(state).toHaveProperty('accountApi');
 		expect(state).toHaveProperty('profilApi');
 		expect(state).toHaveProperty('usersApi');
+		expect(state).toHaveProperty('reservationApi');
 	});
 
 	it('store has a sagaTask set after makeStore', () => {

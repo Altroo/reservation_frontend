@@ -2,17 +2,7 @@
 
 import React, { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import {
-	Box,
-	Button,
-	Chip,
-	FormControl,
-	InputLabel,
-	MenuItem,
-	Select,
-	Stack,
-	Typography,
-} from '@mui/material';
+import { Box, Button, Chip, FormControl, InputLabel, MenuItem, Select, Stack, Typography } from '@mui/material';
 import {
 	Add as AddIcon,
 	Close as CloseIcon,
@@ -20,12 +10,11 @@ import {
 	Edit as EditIcon,
 	Visibility as VisibilityIcon,
 } from '@mui/icons-material';
-import {
-	GridColDef,
-	GridFilterModel,
-	GridLogicOperator,
-	GridRenderCellParams,
-} from '@mui/x-data-grid';
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
+import { fr } from 'date-fns/locale';
+import { GridColDef, GridFilterModel, GridLogicOperator, GridRenderCellParams } from '@mui/x-data-grid';
 import type { SessionProps } from '@/types/_initTypes';
 import type { CostType } from '@/types/reservationTypes';
 import Styles from '@/styles/dashboard/dashboard.module.sass';
@@ -35,18 +24,18 @@ import ActionModals from '@/components/htmlElements/modals/actionModal/actionMod
 import { Protected } from '@/components/layouts/protected/protected';
 import MobileActionsMenu from '@/components/shared/mobileActionsMenu/mobileActionsMenu';
 import DarkTooltip from '@/components/htmlElements/tooltip/darkTooltip/darkTooltip';
-import ChipSelectFilterBar from '@/components/shared/chipSelectFilter/chipSelectFilterBar';
 import type { ChipFilterConfig } from '@/components/shared/chipSelectFilter/chipSelectFilterBar';
+import ChipSelectFilterBar from '@/components/shared/chipSelectFilter/chipSelectFilterBar';
 import { createDateRangeFilterOperator } from '@/components/shared/dateRangeFilter/dateRangeFilterOperator';
 import { createNumericFilterOperators } from '@/components/shared/numericFilter/numericFilterOperator';
 import { createDropdownFilterOperators } from '@/components/shared/dropdownFilter/dropdownFilter';
-import { formatDate, extractApiErrorMessage } from '@/utils/helpers';
+import { extractApiErrorMessage, formatDate } from '@/utils/helpers';
 import { COSTS_ADD, COSTS_EDIT, COSTS_VIEW } from '@/utils/routes';
 import { useToast } from '@/utils/hooks';
-import { useGetCostsQuery, useDeleteCostMutation, useGetCostYearsQuery } from '@/store/services/reservation';
+import { useDeleteCostMutation, useGetCostsQuery, useGetCostYearsQuery } from '@/store/services/reservation';
 import { useInitAccessToken } from '@/contexts/InitContext';
-import { COST_CATEGORY_CHIP_COLORS, costCategoryItemsList } from '@/utils/rawData';
 import type { CostCategoryChipColor } from '@/utils/rawData';
+import { COST_CATEGORY_CHIP_COLORS, costCategoryItemsList } from '@/utils/rawData';
 
 const CostsListClient: React.FC<SessionProps> = ({ session }) => {
 	const router = useRouter();
@@ -55,6 +44,7 @@ const CostsListClient: React.FC<SessionProps> = ({ session }) => {
 
 	const currentYear = new Date().getFullYear();
 	const [year, setYear] = useState(currentYear);
+	const [month, setMonth] = useState<number | undefined>(undefined);
 	const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 });
 	const [searchTerm, setSearchTerm] = useState('');
 
@@ -65,7 +55,7 @@ const CostsListClient: React.FC<SessionProps> = ({ session }) => {
 	});
 	const [chipFilterParams, setChipFilterParams] = useState<Record<string, string>>({});
 	const [customFilterParams, setCustomFilterParams] = useState<Record<string, string>>({});
-	const { data: costs, isLoading } = useGetCostsQuery({ year }, { skip: !token });
+	const { data: costs, isLoading } = useGetCostsQuery({ year, month }, { skip: !token });
 
 	const yearOptions = costYears?.years ?? [currentYear];
 
@@ -344,6 +334,35 @@ const CostsListClient: React.FC<SessionProps> = ({ session }) => {
 							>
 								Nouveau coût
 							</Button>
+							<LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={fr}>
+								<DatePicker
+									views={['month']}
+									openTo="month"
+									label="Mois"
+									value={month !== undefined ? new Date(year, month - 1, 1) : null}
+									onChange={(date) => {
+										if (date) {
+											setMonth(date.getMonth() + 1);
+										} else {
+											setMonth(undefined);
+										}
+										setPaginationModel((prev) => ({ ...prev, page: 0 }));
+									}}
+									slotProps={{
+										textField: {
+											size: 'small',
+											sx: { minWidth: 150 },
+										},
+										field: {
+											clearable: true,
+											onClear: () => {
+												setMonth(undefined);
+												setPaginationModel((prev) => ({ ...prev, page: 0 }));
+											},
+										},
+									}}
+								/>
+							</LocalizationProvider>{' '}
 							<FormControl size="small" sx={{ minWidth: 120 }}>
 								<InputLabel>Année</InputLabel>
 								<Select

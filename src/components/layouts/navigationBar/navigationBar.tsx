@@ -1,63 +1,68 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { styled, ThemeProvider } from '@mui/material/styles';
 import MuiAppBar, { type AppBarProps as MuiAppBarProps } from '@mui/material/AppBar';
 import {
+	Accordion,
+	AccordionDetails,
+	AccordionSummary,
+	Badge,
 	Box,
-	Drawer,
-	Toolbar,
-	List,
-	Typography,
+	Button,
 	Divider,
+	Drawer,
 	IconButton,
+	List,
 	ListItem,
 	ListItemButton,
 	ListItemIcon,
 	ListItemText,
-	Accordion,
-	AccordionDetails,
-	AccordionSummary,
-	Button,
+	Popover,
 	Skeleton,
 	Stack,
+	Toolbar,
 	Tooltip,
-	useTheme,
+	Typography,
 	useMediaQuery,
+	useTheme,
 } from '@mui/material';
 import {
-	Menu as MenuIcon,
-	ExpandMore as ExpandMoreIcon,
-	Logout as LogoutIcon,
-	People as PeopleIcon,
-	Settings as SettingsIcon,
-	Domain as DomainIcon,
-	Hotel as HotelIcon,
 	BarChart as BarChartIcon,
 	Dashboard as DashboardIcon,
+	Domain as DomainIcon,
+	DoneAll as DoneAllIcon,
+	ExpandMore as ExpandMoreIcon,
+	Hotel as HotelIcon,
+	Logout as LogoutIcon,
+	Menu as MenuIcon,
+	Notifications as NotificationsIcon,
 	Payments as PaymentsIcon,
+	People as PeopleIcon,
+	Settings as SettingsIcon,
 } from '@mui/icons-material';
-import { useAppSelector } from '@/utils/hooks';
-import { getProfilState } from '@/store/selectors';
+import { useAppDispatch, useAppSelector } from '@/utils/hooks';
+import { getProfilState, getUnreadNotificationCount } from '@/store/selectors';
 import { cookiesDeleter } from '@/utils/apiHelpers';
 import {
 	AUTH_LOGIN,
 	BACKEND_SITE_ADMIN,
+	BALANCE,
+	CALENDAR,
+	COSTS_ADD,
+	COSTS_LIST,
+	DASHBOARD,
 	DASHBOARD_EDIT_PROFILE,
+	DASHBOARD_NOTIFICATIONS,
 	DASHBOARD_PASSWORD,
+	GAINS,
+	OCCUPANCY,
+	PLANNING,
+	RESERVATIONS_ADD,
+	RESERVATIONS_LIST,
 	SITE_ROOT,
 	USERS_ADD,
 	USERS_LIST,
-	DASHBOARD,
-	RESERVATIONS_LIST,
-	RESERVATIONS_ADD,
-	PLANNING,
-	BALANCE,
-	GAINS,
-	OCCUPANCY,
-	CALENDAR,
-	COSTS_LIST,
-	COSTS_ADD,
 } from '@/utils/routes';
 import { signOut, useSession } from 'next-auth/react';
 import { usePathname } from 'next/navigation';
@@ -65,6 +70,13 @@ import { navigationBarTheme } from '@/utils/themes';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Desktop, TabletAndMobile } from '@/utils/clientHelpers';
+import {
+	useGetNotificationsQuery,
+	useGetUnreadNotificationCountQuery,
+	useMarkNotificationsReadMutation,
+} from '@/store/services/reservation';
+import { setUnreadCount } from '@/store/slices/notificationSlice';
+import { formatDate } from '@/utils/helpers';
 
 const getNavigationMenu = (isStaff: boolean) => {
 	return {
@@ -116,6 +128,7 @@ const getNavigationMenu = (isStaff: boolean) => {
 			items: [
 				{ title: 'Mon Profil', label: 'Mon Profil', path: DASHBOARD_EDIT_PROFILE },
 				{ title: 'Mot de passe', label: 'Changer le mot de passe', path: DASHBOARD_PASSWORD },
+				{ title: 'Notifications', label: 'Préférences de notifications', path: DASHBOARD_NOTIFICATIONS },
 			],
 		},
 	};
@@ -183,6 +196,31 @@ const NavigationBar = (props: Props) => {
 	const { data: session, status } = useSession();
 	const { avatar_cropped, first_name, last_name, gender, is_staff } = useAppSelector(getProfilState);
 	const navigationMenu = useMemo(() => getNavigationMenu(is_staff), [is_staff]);
+	const dispatch = useAppDispatch();
+
+	// Notification state
+	const unreadCount = useAppSelector(getUnreadNotificationCount);
+	const { data: unreadCountData } = useGetUnreadNotificationCountQuery(undefined, { skip: status !== 'authenticated' });
+	const { data: notifications } = useGetNotificationsQuery(undefined, { skip: status !== 'authenticated' });
+	const [markRead] = useMarkNotificationsReadMutation();
+	const [notifAnchor, setNotifAnchor] = useState<HTMLElement | null>(null);
+
+	useEffect(() => {
+		if (unreadCountData?.count !== undefined) {
+			dispatch(setUnreadCount(unreadCountData.count));
+		}
+	}, [unreadCountData, dispatch]);
+
+	const handleNotifOpen = (e: React.MouseEvent<HTMLElement>) => {
+		setNotifAnchor(e.currentTarget);
+	};
+	const handleNotifClose = () => {
+		setNotifAnchor(null);
+	};
+	const handleMarkAllRead = async () => {
+		await markRead({});
+		dispatch(setUnreadCount(0));
+	};
 
 	const loading = status === 'loading';
 
@@ -267,12 +305,7 @@ const NavigationBar = (props: Props) => {
 						<Stack direction="row" justifyContent="space-between" alignItems="center" width="100%">
 							<Stack direction="row" alignItems="center" spacing={1}>
 								{isMobile && (
-									<IconButton
-										color="inherit"
-										aria-label="toggle drawer"
-										onClick={handleDrawerToggle}
-										size="small"
-									>
+									<IconButton color="inherit" aria-label="toggle drawer" onClick={handleDrawerToggle} size="small">
 										<MenuIcon />
 									</IconButton>
 								)}
@@ -283,9 +316,21 @@ const NavigationBar = (props: Props) => {
 							<Stack direction="row" spacing={1}>
 								{!loading && session && (
 									<>
+										<IconButton color="inherit" onClick={handleNotifOpen}>
+											<Badge badgeContent={unreadCount} color="error" max={99}>
+												<NotificationsIcon />
+											</Badge>
+										</IconButton>
 										<Desktop>
 											{is_staff && (
-												<Button variant="text" color="inherit" href={BACKEND_SITE_ADMIN} target="_blank" rel="noopener" endIcon={<DomainIcon />}>
+												<Button
+													variant="text"
+													color="inherit"
+													href={BACKEND_SITE_ADMIN}
+													target="_blank"
+													rel="noopener"
+													endIcon={<DomainIcon />}
+												>
 													Administration
 												</Button>
 											)}
@@ -427,6 +472,60 @@ const NavigationBar = (props: Props) => {
 						))}
 					</List>
 				</Drawer>
+				<Popover
+					open={Boolean(notifAnchor)}
+					anchorEl={notifAnchor}
+					onClose={handleNotifClose}
+					anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+					transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+					slotProps={{ paper: { sx: { width: 360, maxHeight: 420 } } }}
+				>
+					<Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ px: 2, py: 1.5 }}>
+						<Typography variant="subtitle1" fontWeight={700}>
+							Notifications
+						</Typography>
+						{unreadCount > 0 && (
+							<Tooltip title="Tout marquer comme lu">
+								<IconButton size="small" onClick={handleMarkAllRead}>
+									<DoneAllIcon fontSize="small" />
+								</IconButton>
+							</Tooltip>
+						)}
+					</Stack>
+					<Divider />
+					<Box sx={{ maxHeight: 340, overflow: 'auto' }}>
+						{notifications && notifications.length > 0 ? (
+							notifications.map((n) => (
+								<Box
+									key={n.id}
+									sx={{
+										px: 2,
+										py: 1.5,
+										backgroundColor: n.is_read ? 'transparent' : 'action.hover',
+										borderBottom: '1px solid',
+										borderColor: 'divider',
+									}}
+								>
+									<Typography variant="body2" fontWeight={n.is_read ? 400 : 700}>
+										{n.title}
+									</Typography>
+									<Typography variant="caption" color="text.secondary">
+										{n.message}
+									</Typography>
+									<Typography variant="caption" display="block" color="text.disabled" mt={0.5}>
+										{formatDate(n.date_created)}
+									</Typography>
+								</Box>
+							))
+						) : (
+							<Box sx={{ p: 3, textAlign: 'center' }}>
+								<Typography variant="body2" color="text.secondary">
+									Aucune notification
+								</Typography>
+							</Box>
+						)}
+					</Box>
+				</Popover>
 				<Main open={open}>{props.children}</Main>
 			</Box>
 		</ThemeProvider>

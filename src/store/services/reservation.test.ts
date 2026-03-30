@@ -8,6 +8,10 @@ beforeAll(() => {
 	process.env.NEXT_PUBLIC_RESERVATION_PLANNING ||= 'https://example.com/api/planning/';
 	process.env.NEXT_PUBLIC_RESERVATION_BALANCE ||= 'https://example.com/api/balance/';
 	process.env.NEXT_PUBLIC_RESERVATION_COSTS ||= 'https://example.com/api/costs/';
+	process.env.NEXT_PUBLIC_RESERVATION_NOTIFICATIONS ||= 'https://example.com/api/notifications/';
+	process.env.NEXT_PUBLIC_RESERVATION_NOTIFICATION_PREFERENCES ||= 'https://example.com/api/notifications/preferences/';
+	process.env.NEXT_PUBLIC_RESERVATION_NOTIFICATION_MARK_READ ||= 'https://example.com/api/notifications/mark-read/';
+	process.env.NEXT_PUBLIC_RESERVATION_NOTIFICATION_UNREAD_COUNT ||= 'https://example.com/api/notifications/unread-count/';
 });
 
 jest.mock('@/utils/axiosBaseQuery', () => ({
@@ -28,6 +32,20 @@ describe('reservationApi', () => {
 		it('addApartment mutation should complete without error', async () => {
 			const result = await storeRef.store.dispatch(
 				reservationApi.endpoints.addApartment.initiate({ data: { nom: 'Apt Test' } }),
+			);
+			expect('error' in result).toBe(false);
+		});
+
+		it('updateApartment mutation should complete without error', async () => {
+			const result = await storeRef.store.dispatch(
+				reservationApi.endpoints.updateApartment.initiate({ id: 1, data: { nom: 'Apt Updated' } }),
+			);
+			expect('error' in result).toBe(false);
+		});
+
+		it('deleteApartment mutation should complete without error', async () => {
+			const result = await storeRef.store.dispatch(
+				reservationApi.endpoints.deleteApartment.initiate({ id: 1 }),
 			);
 			expect('error' in result).toBe(false);
 		});
@@ -168,6 +186,47 @@ describe('reservationApi', () => {
 		it('deleteCost mutation should complete without error', async () => {
 			const result = await storeRef.store.dispatch(
 				reservationApi.endpoints.deleteCost.initiate({ id: 1 }),
+			);
+			expect('error' in result).toBe(false);
+		});
+	});
+
+	describe('Notification endpoints', () => {
+		it('getNotifications query should complete without error', async () => {
+			const result = await storeRef.store.dispatch(
+				reservationApi.endpoints.getNotifications.initiate(),
+			);
+			expect('error' in result).toBe(false);
+		});
+
+		it('getNotificationPreferences query should complete without error', async () => {
+			const result = await storeRef.store.dispatch(
+				reservationApi.endpoints.getNotificationPreferences.initiate(),
+			);
+			expect('error' in result).toBe(false);
+		});
+
+		it('updateNotificationPreferences mutation should complete without error', async () => {
+			const result = await storeRef.store.dispatch(
+				reservationApi.endpoints.updateNotificationPreferences.initiate({
+					notify_check_in: true,
+					notify_check_out: false,
+					reminder_minutes: 60,
+				}),
+			);
+			expect('error' in result).toBe(false);
+		});
+
+		it('markNotificationsRead mutation should complete without error', async () => {
+			const result = await storeRef.store.dispatch(
+				reservationApi.endpoints.markNotificationsRead.initiate({ ids: [1, 2] }),
+			);
+			expect('error' in result).toBe(false);
+		});
+
+		it('getUnreadNotificationCount query should complete without error', async () => {
+			const result = await storeRef.store.dispatch(
+				reservationApi.endpoints.getUnreadNotificationCount.initiate(),
 			);
 			expect('error' in result).toBe(false);
 		});

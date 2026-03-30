@@ -162,3 +162,34 @@ export interface CostFormValues {
 	category: string;
 	globalError: string;
 }
+
+// Notifications
+export type NotificationTypeValue = 'check_in' | 'check_out';
+
+export interface NotificationType {
+	id: number;
+	reservation_id: number | null;
+	title: string;
+	message: string;
+	notification_type: NotificationTypeValue;
+	is_read: boolean;
+	date_created: string;
+}
+
+export type ReminderMinutesValue = 0 | 15 | 30 | 60 | 120 | 1440 | 2880;
+
+export interface NotificationPreferenceType {
+	id: number;
+	notify_check_in: boolean;
+	notify_check_out: boolean;
+	reminder_minutes: ReminderMinutesValue;
+	date_created: string;
+	date_updated: string;
+}
+
+export interface NotificationPreferenceFormValues {
+	notify_check_in: boolean;
+	notify_check_out: boolean;
+	reminder_minutes: ReminderMinutesValue;
+	globalError: string;
+}

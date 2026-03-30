@@ -6,6 +6,8 @@ import type { Action } from 'redux';
 import { eventChannel } from 'redux-saga';
 import * as Types from '@/store/actions';
 import { setWSMaintenance } from '@/store/slices/wsSlice';
+import { incrementUnreadCount, setLatestNotification } from '@/store/slices/notificationSlice';
+import type { NotificationType } from '@/types/reservationTypes';
 
 jest.mock('@/store/services/ws', () => ({
 	initWebsocket: jest.fn(),
@@ -13,6 +15,14 @@ jest.mock('@/store/services/ws', () => ({
 
 jest.mock('@/store/selectors', () => ({
 	getAccessToken: jest.fn(),
+}));
+
+jest.mock('@/store/services/reservation', () => ({
+	reservationApi: {
+		util: {
+			invalidateTags: jest.fn((tags: string[]) => ({ type: 'reservationApi/invalidateTags', payload: tags })),
+		},
+	},
 }));
 
 describe('watchWS saga', () => {
@@ -74,5 +84,44 @@ describe('watchWS saga', () => {
 
 		expect(initWebsocket).toHaveBeenCalledWith(mockToken);
 		expect(dispatched).toContainEqual(setWSMaintenance(true));
+	});
+
+	it('should handle WS_NOTIFICATION by dispatching notification actions', async () => {
+		const dispatched: Action[] = [];
+		const mockToken = 'mock-token';
+		const mockNotification: NotificationType = {
+			id: 1,
+			reservation_id: 10,
+			title: 'Arrivée — Test Guest',
+			message: 'Test Guest arrive le 2026-04-01.',
+			notification_type: 'check_in',
+			is_read: false,
+			date_created: '2026-03-30T10:00:00Z',
+		};
+		const mockAction = { type: Types.WS_NOTIFICATION, notification: mockNotification };
+
+		(getAccessToken as jest.Mock).mockReturnValue(mockToken);
+
+		const mockChannel = eventChannel((emit) => {
+			const timer = setTimeout(() => emit(mockAction), 10);
+			return () => clearTimeout(timer);
+		});
+
+		(initWebsocket as jest.Mock).mockReturnValue(mockChannel);
+
+		const task = runSaga(
+			{
+				dispatch: (action: Action) => dispatched.push(action),
+				getState: () => ({ auth: { token: mockToken } }),
+			},
+			watchWS,
+		);
+
+		setTimeout(() => task.cancel(), 100);
+		await task.toPromise();
+
+		expect(initWebsocket).toHaveBeenCalledWith(mockToken);
+		expect(dispatched).toContainEqual(incrementUnreadCount());
+		expect(dispatched).toContainEqual(setLatestNotification(mockNotification));
 	});
 });

@@ -14,6 +14,8 @@ import type {
 	BalanceType,
 	CostType,
 	CostFormType,
+	NotificationType,
+	NotificationPreferenceType,
 } from '@/types/reservationTypes';
 
 const rawBaseQuery = axiosBaseQuery((api) =>
@@ -38,7 +40,7 @@ const baseQueryWithRetry = retry(
 
 export const reservationApi = createApi({
 	reducerPath: 'reservationApi',
-	tagTypes: ['Reservation', 'Apartment', 'Dashboard', 'Planning', 'Balance', 'Cost'],
+	tagTypes: ['Reservation', 'Apartment', 'Dashboard', 'Planning', 'Balance', 'Cost', 'Notification', 'NotificationPreference'],
 	baseQuery: baseQueryWithRetry,
 	endpoints: (builder) => ({
 		// ── Apartments ──────────────────────────────────────────────────────
@@ -208,11 +210,11 @@ export const reservationApi = createApi({
 			query: () => ({ url: process.env.NEXT_PUBLIC_RESERVATION_COST_YEARS, method: 'GET' }),
 			providesTags: ['Cost'],
 		}),
-		getCosts: builder.query<CostType[], { year?: number }>({
-			query: ({ year }) => ({
+		getCosts: builder.query<CostType[], { year?: number; month?: number }>({
+			query: ({ year, month }) => ({
 				url: process.env.NEXT_PUBLIC_RESERVATION_COSTS,
 				method: 'GET',
-				params: { year },
+				params: { year, month },
 			}),
 			providesTags: ['Cost'],
 		}),
@@ -242,12 +244,78 @@ export const reservationApi = createApi({
 			}),
 			invalidatesTags: ['Cost', 'Dashboard'],
 		}),
+
+		// ── Apartments detail ─────────────────────────────────────────────
+		updateApartment: builder.mutation<ApartmentClass, { id: number; data: { nom: string } }>({
+			query: ({ id, data }) => ({
+				url: `${process.env.NEXT_PUBLIC_RESERVATION_APARTMENTS}${id}/`,
+				method: 'PUT',
+				data,
+			}),
+			invalidatesTags: ['Apartment', 'Reservation', 'Planning', 'Balance'],
+		}),
+
+		deleteApartment: builder.mutation<void, { id: number }>({
+			query: ({ id }) => ({
+				url: `${process.env.NEXT_PUBLIC_RESERVATION_APARTMENTS}${id}/`,
+				method: 'DELETE',
+			}),
+			invalidatesTags: ['Apartment'],
+		}),
+
+		// ── Notifications ────────────────────────────────────────────────
+		getNotifications: builder.query<NotificationType[], void>({
+			query: () => ({
+				url: process.env.NEXT_PUBLIC_RESERVATION_NOTIFICATIONS,
+				method: 'GET',
+			}),
+			providesTags: ['Notification'],
+		}),
+
+		getNotificationPreferences: builder.query<NotificationPreferenceType, void>({
+			query: () => ({
+				url: process.env.NEXT_PUBLIC_RESERVATION_NOTIFICATION_PREFERENCES,
+				method: 'GET',
+			}),
+			providesTags: ['NotificationPreference'],
+		}),
+
+		updateNotificationPreferences: builder.mutation<
+			NotificationPreferenceType,
+			{ notify_check_in: boolean; notify_check_out: boolean; reminder_minutes: number }
+		>({
+			query: (data) => ({
+				url: process.env.NEXT_PUBLIC_RESERVATION_NOTIFICATION_PREFERENCES,
+				method: 'PUT',
+				data,
+			}),
+			invalidatesTags: ['NotificationPreference'],
+		}),
+
+		markNotificationsRead: builder.mutation<void, { ids?: number[] }>({
+			query: (data) => ({
+				url: process.env.NEXT_PUBLIC_RESERVATION_NOTIFICATION_MARK_READ,
+				method: 'POST',
+				data,
+			}),
+			invalidatesTags: ['Notification'],
+		}),
+
+		getUnreadNotificationCount: builder.query<{ count: number }, void>({
+			query: () => ({
+				url: process.env.NEXT_PUBLIC_RESERVATION_NOTIFICATION_UNREAD_COUNT,
+				method: 'GET',
+			}),
+			providesTags: ['Notification'],
+		}),
 	}),
 });
 
 export const {
 	useGetApartmentsQuery,
 	useAddApartmentMutation,
+	useUpdateApartmentMutation,
+	useDeleteApartmentMutation,
 	useGetReservationsListQuery,
 	useGetReservationQuery,
 	useCreateReservationMutation,
@@ -265,4 +333,9 @@ export const {
 	useCreateCostMutation,
 	useUpdateCostMutation,
 	useDeleteCostMutation,
+	useGetNotificationsQuery,
+	useGetNotificationPreferencesQuery,
+	useUpdateNotificationPreferencesMutation,
+	useMarkNotificationsReadMutation,
+	useGetUnreadNotificationCountQuery,
 } = reservationApi;

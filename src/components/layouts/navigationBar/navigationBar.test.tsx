@@ -39,22 +39,50 @@ jest.mock('next-auth/react', () => ({
 
 const mockUseIsClient = jest.fn(() => true);
 const mockUseAppSelector = jest.fn();
+const mockDispatch = jest.fn();
 jest.mock('@/utils/hooks', () => ({
 	useAppSelector: (fn: unknown) => mockUseAppSelector(fn),
+	useAppDispatch: () => mockDispatch,
 	useIsClient: () => mockUseIsClient(),
 }));
+
+jest.mock('@/store/services/reservation', () => {
+	const actual = jest.requireActual('@/store/services/reservation');
+	return {
+		...actual,
+		useGetNotificationsQuery: () => ({ data: [], isLoading: false }),
+		useGetUnreadNotificationCountQuery: () => ({ data: { count: 0 }, isLoading: false }),
+		useMarkNotificationsReadMutation: () => [jest.fn(), { isLoading: false }],
+	};
+});
+
+jest.mock('@/store/slices/notificationSlice', () => ({
+	setUnreadCount: jest.fn((v: number) => ({ type: 'notification/setUnreadCount', payload: v })),
+}));
+
+const mockProfileData = {
+	avatar_cropped: undefined as string | undefined,
+	first_name: 'John',
+	last_name: 'Doe',
+	gender: 'Homme',
+	is_staff: false,
+};
 
 describe('NavigationBar', () => {
 	beforeEach(() => {
 		jest.clearAllMocks();
 		mockPathname = '/dashboard';
-		mockUseAppSelector.mockImplementation(() => ({
-			avatar_cropped: undefined,
-			first_name: 'John',
-			last_name: 'Doe',
-			gender: 'Homme',
-			is_staff: false,
-		}));
+		mockProfileData.avatar_cropped = undefined;
+		mockProfileData.first_name = 'John';
+		mockProfileData.last_name = 'Doe';
+		mockProfileData.gender = 'Homme';
+		mockProfileData.is_staff = false;
+		mockUseAppSelector.mockImplementation((selector: (...args: unknown[]) => unknown) => {
+			if (selector.name === 'getUnreadNotificationCount') {
+				return 0;
+			}
+			return mockProfileData;
+		});
 		mockUseSession.mockImplementation(() => ({ data: {}, status: 'authenticated' }));
 		mockIsMobile = false;
 	});
@@ -99,13 +127,10 @@ describe('NavigationBar', () => {
 	});
 
 	it('shows Bienvenue greeting for Femme gender', () => {
-		mockUseAppSelector.mockImplementation(() => ({
-			avatar_cropped: undefined,
-			first_name: 'Marie',
-			last_name: 'C',
-			gender: 'Femme',
-			is_staff: false,
-		}));
+		mockProfileData.first_name = 'Marie';
+		mockProfileData.last_name = 'C';
+		mockProfileData.gender = 'Femme';
+		mockProfileData.is_staff = false;
 		render(
 			<Provider store={store}>
 				<NavigationBar title="t2">
@@ -118,15 +143,11 @@ describe('NavigationBar', () => {
 		).toBeTruthy();
 	});
 
-
 	it('shows Utilisateurs section for staff users', () => {
-		mockUseAppSelector.mockImplementation(() => ({
-			avatar_cropped: undefined,
-			first_name: 'Admin',
-			last_name: 'User',
-			gender: 'Homme',
-			is_staff: true,
-		}));
+		mockProfileData.first_name = 'Admin';
+		mockProfileData.last_name = 'User';
+		mockProfileData.gender = 'Homme';
+		mockProfileData.is_staff = true;
 		render(
 			<Provider store={store}>
 				<NavigationBar title="Admin">
@@ -148,12 +169,13 @@ describe('NavigationBar', () => {
 		expect(screen.queryByText('Utilisateurs')).not.toBeInTheDocument();
 	});
 
-
 	it('drawer toggle button only appears on mobile', async () => {
 		mockIsMobile = false;
 		const { rerender } = render(
 			<Provider store={store}>
-				<NavigationBar title="D"><div /></NavigationBar>
+				<NavigationBar title="D">
+					<div />
+				</NavigationBar>
 			</Provider>,
 		);
 		expect(screen.queryByLabelText('toggle drawer')).not.toBeInTheDocument();
@@ -161,7 +183,9 @@ describe('NavigationBar', () => {
 		mockIsMobile = true;
 		rerender(
 			<Provider store={store}>
-				<NavigationBar title="D2"><div /></NavigationBar>
+				<NavigationBar title="D2">
+					<div />
+				</NavigationBar>
 			</Provider>,
 		);
 		const toggleBtn = screen.getByLabelText('toggle drawer');

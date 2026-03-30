@@ -32,3 +32,5 @@ export const COSTS_LIST = `${SITE_ROOT}dashboard/costs`;
 export const COSTS_ADD = `${SITE_ROOT}dashboard/costs/new`;
 export const COSTS_VIEW = (id: number) => `${SITE_ROOT}dashboard/costs/${id}`;
 export const COSTS_EDIT = (id: number) => `${SITE_ROOT}dashboard/costs/${id}/edit`;
+// Notifications
+export const DASHBOARD_NOTIFICATIONS = `${SITE_ROOT}dashboard/settings/notifications`;

@@ -5,6 +5,7 @@ import { rootSaga } from '@/store/sagas';
 import _initReducer from '@/store/slices/_initSlice';
 import accountReducer from '@/store/slices/accountSlice';
 import wsReducer from '@/store/slices/wsSlice';
+import notificationReducer from '@/store/slices/notificationSlice';
 import { accountApi, profilApi, usersApi } from '@/store/services/account';
 import { reservationApi } from '@/store/services/reservation';
 
@@ -12,6 +13,7 @@ const rootReducer = combineReducers({
 	_init: _initReducer,
 	account: accountReducer,
 	ws: wsReducer,
+	notification: notificationReducer,
 	[accountApi.reducerPath]: accountApi.reducer,
 	[profilApi.reducerPath]: profilApi.reducer,
 	[usersApi.reducerPath]: usersApi.reducer,

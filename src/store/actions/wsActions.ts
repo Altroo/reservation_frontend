@@ -1,4 +1,5 @@
 import * as types from './index';
+import type { NotificationType } from '@/types/reservationTypes';
 
 export const WSUserAvatarAction = (pk: number, avatar: string) => {
 	return {
@@ -12,5 +13,12 @@ export const WSMaintenanceAction = (maintenance: boolean) => {
 	return {
 		type: types.WS_MAINTENANCE,
 		maintenance,
+	};
+};
+
+export const WSNotificationAction = (notification: NotificationType) => {
+	return {
+		type: types.WS_NOTIFICATION,
+		notification,
 	};
 };

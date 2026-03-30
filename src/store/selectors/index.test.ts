@@ -1,4 +1,4 @@
-import { getInitStateToken, getAccessToken, getProfilState } from './index';
+import { getInitStateToken, getAccessToken, getProfilState, getWSMaintenanceState, getUnreadNotificationCount } from './index';
 import { UserClass } from '@/models/classes';
 
 describe('Redux selectors', () => {
@@ -35,6 +35,13 @@ describe('Redux selectors', () => {
 		account: {
 			profil: mockUser,
 		},
+		ws: {
+			maintenance: false,
+		},
+		notification: {
+			unreadCount: 7,
+			latestNotification: null,
+		},
 	};
 
 	it('getInitStateToken returns the initStateToken object', () => {
@@ -50,5 +57,15 @@ describe('Redux selectors', () => {
 	it('getProfilState returns the profil UserClass instance', () => {
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		expect(getProfilState(mockState as any)).toBe(mockUser);
+	});
+
+	it('getWSMaintenanceState returns the maintenance boolean', () => {
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		expect(getWSMaintenanceState(mockState as any)).toBe(false);
+	});
+
+	it('getUnreadNotificationCount returns the unread count', () => {
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		expect(getUnreadNotificationCount(mockState as any)).toBe(7);
 	});
 });

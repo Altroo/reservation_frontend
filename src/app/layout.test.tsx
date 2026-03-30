@@ -108,45 +108,22 @@ beforeEach(() => {
 });
 
 describe('RootLayout', () => {
-	it('renders children wrapped with providers when session exists', async () => {
-		const sessionValue: Session = { user: { pk: 1, email: 'test@site.com' } };
-		mockAuth.mockResolvedValueOnce(sessionValue);
-
-		let RootLayout: (props: { children: React.ReactNode }) => Promise<unknown>;
+	it('renders children wrapped with providers (session fetched client-side)', () => {
+		let RootLayout: (props: { children: React.ReactNode }) => unknown;
 		jest.isolateModules(() => {
 			// eslint-disable-next-line @typescript-eslint/no-require-imports
 			const mod = require('./layout');
 			RootLayout = mod.default;
 		});
 
-		const result = await RootLayout!({ children: React.createElement('div', null, 'CHILD_CONTENT') });
-		const html = renderToStaticMarkup(result as unknown as React.ReactElement);
-		const decoded = html.replace(/&quot;/g, '"');
-
-		expect(decoded).toContain('SESSION_PROVIDER');
-		expect(decoded).toContain('"pk":1');
-		expect(decoded).toContain('"email":"test@site.com"');
-		expect(decoded).toContain('INIT_EFFECTS');
-		expect(decoded).toContain('TOAST_PROVIDER');
-		expect(decoded).toContain('CHILD_CONTENT');
-	});
-
-	it('renders children wrapped with providers when no session', async () => {
-		mockAuth.mockResolvedValueOnce(null);
-
-		let RootLayout: (props: { children: React.ReactNode }) => Promise<unknown>;
-		jest.isolateModules(() => {
-			// eslint-disable-next-line @typescript-eslint/no-require-imports
-			const mod = require('./layout');
-			RootLayout = mod.default;
-		});
-
-		const result = await RootLayout!({ children: React.createElement('div', null, 'CHILD_CONTENT') });
+		const result = RootLayout!({ children: React.createElement('div', null, 'CHILD_CONTENT') });
 		const html = renderToStaticMarkup(result as unknown as React.ReactElement);
 
-		expect(html).toContain('SESSION_PROVIDER:null');
+		expect(html).toContain('SESSION_PROVIDER');
 		expect(html).toContain('INIT_EFFECTS');
 		expect(html).toContain('TOAST_PROVIDER');
 		expect(html).toContain('CHILD_CONTENT');
+		// auth() is not called — session is fetched client-side by SessionProvider
+		expect(mockAuth).not.toHaveBeenCalled();
 	});
 });

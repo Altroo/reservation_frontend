@@ -14,7 +14,6 @@ import {
 	Dialog,
 	DialogActions,
 	DialogContent,
-	DialogContentText,
 	DialogTitle,
 	Divider,
 	IconButton,
@@ -31,6 +30,7 @@ import {
 	AttachMoney as AttachMoneyIcon,
 	CalendarMonth as CalendarMonthIcon,
 	CreditCard as CreditCardIcon,
+	Close as CloseIcon,
 	Edit as EditIcon,
 	Hotel as HotelIcon,
 	Notes as NotesIcon,
@@ -48,6 +48,7 @@ import { format, parseISO, isWithinInterval, subDays } from 'date-fns';
 import CustomTextInput from '@/components/formikElements/customTextInput/customTextInput';
 import CustomAutoCompleteSelect from '@/components/formikElements/customAutoCompleteSelect/customAutoCompleteSelect';
 import AddEntityModal from '@/components/shared/addEntityModal/addEntityModal';
+import ActionModals from '@/components/htmlElements/modals/actionModal/actionModals';
 import type { DropDownType } from '@/types/accountTypes';
 import PrimaryLoadingButton from '@/components/htmlElements/buttons/primaryLoadingButton/primaryLoadingButton';
 import ApiProgress from '@/components/formikElements/apiLoading/apiProgress/apiProgress';
@@ -590,21 +591,17 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 			</Dialog>
 
 			{/* Delete apartment confirmation dialog */}
-			<Dialog open={deleteAptId !== null} onClose={() => setDeleteAptId(null)}>
-				<DialogTitle>Supprimer l&apos;appartement</DialogTitle>
-				<DialogContent>
-					<DialogContentText>
-						Êtes-vous sûr de vouloir supprimer l&apos;appartement &quot;{deleteAptName}&quot; ?
-						Cette action est irréversible.
-					</DialogContentText>
-				</DialogContent>
-				<DialogActions>
-					<Button onClick={() => setDeleteAptId(null)}>Annuler</Button>
-					<Button onClick={handleDeleteAptConfirm} color="error" variant="contained" disabled={aptActionLoading}>
-						Supprimer
-					</Button>
-				</DialogActions>
-			</Dialog>
+			{deleteAptId !== null && (
+				<ActionModals
+					title="Supprimer l'appartement"
+					body={`Êtes-vous sûr de vouloir supprimer l'appartement "${deleteAptName}" ? Cette action est irréversible.`}
+					actions={[
+						{ text: 'Annuler', active: false, onClick: () => setDeleteAptId(null), icon: <CloseIcon />, color: '#6B6B6B' },
+						{ text: 'Supprimer', active: true, onClick: handleDeleteAptConfirm, icon: <DeleteIcon />, color: '#D32F2F', disabled: aptActionLoading },
+					]}
+					onClose={() => setDeleteAptId(null)}
+				/>
+			)}
 		</LocalizationProvider>
 	);
 };

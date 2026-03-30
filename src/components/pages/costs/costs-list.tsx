@@ -43,8 +43,9 @@ const CostsListClient: React.FC<SessionProps> = ({ session }) => {
 	const token = useInitAccessToken(session);
 
 	const currentYear = new Date().getFullYear();
+	const currentMonth = new Date().getMonth() + 1;
 	const [year, setYear] = useState(currentYear);
-	const [month, setMonth] = useState<number | undefined>(undefined);
+	const [month, setMonth] = useState<number | undefined>(currentMonth);
 	const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 });
 	const [searchTerm, setSearchTerm] = useState('');
 

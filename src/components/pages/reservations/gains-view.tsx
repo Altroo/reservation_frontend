@@ -36,7 +36,7 @@ import type { SessionProps } from '@/types/_initTypes';
 import Styles from '@/styles/dashboard/dashboard.module.sass';
 import NavigationBar from '@/components/layouts/navigationBar/navigationBar';
 import { Protected } from '@/components/layouts/protected/protected';
-import { useGetBalanceQuery, useGetReservationYearsQuery } from '@/store/services/reservation';
+import { useGetBalanceQuery, useGetReservationYearsQuery, useGetBuildingsQuery } from '@/store/services/reservation';
 import { useInitAccessToken } from '@/contexts/InitContext';
 import { APARTMENT_COLORS, MONTH_LABELS, MONTH_NAMES, CHART_OPTS } from '@/utils/rawData';
 import { formatNumberMA as fmt } from '@/utils/helpers';
@@ -91,9 +91,11 @@ const GainsClient: React.FC<SessionProps> = ({ session }) => {
 	const token = useInitAccessToken(session);
 	const currentYear = new Date().getFullYear();
 	const [year, setYear] = useState(currentYear);
+	const [buildingId, setBuildingId] = useState<number | ''>('');
 
-	const { data, isLoading } = useGetBalanceQuery({ year }, { skip: !token });
+	const { data, isLoading } = useGetBalanceQuery({ year, ...(buildingId ? { building: buildingId } : {}) }, { skip: !token });
 	const { data: yearsData } = useGetReservationYearsQuery(undefined, { skip: !token });
+	const { data: buildingsData } = useGetBuildingsQuery(undefined, { skip: !token });
 
 	const yearOptions = yearsData?.years ?? [currentYear];
 
@@ -175,16 +177,31 @@ const GainsClient: React.FC<SessionProps> = ({ session }) => {
 							<Typography variant="h5" fontWeight={600}>
 								Gains & Revenus {year}
 							</Typography>
-							<FormControl size="small" sx={{ minWidth: 120 }}>
-								<InputLabel>Année</InputLabel>
-								<Select value={year} label="Année" onChange={(e) => setYear(Number(e.target.value))}>
-									{yearOptions.map((y) => (
-										<MenuItem key={y} value={y}>
-											{y}
-										</MenuItem>
-									))}
-								</Select>
-							</FormControl>
+							<Stack direction="row" spacing={1}>
+								<FormControl size="small" sx={{ minWidth: 160 }}>
+									<InputLabel>Résidence</InputLabel>
+									<Select
+										value={buildingId}
+										label="Résidence"
+										onChange={(e) => setBuildingId(e.target.value as number | '')}
+									>
+										<MenuItem value="">Toutes</MenuItem>
+										{(buildingsData ?? []).map((b) => (
+											<MenuItem key={b.id} value={b.id}>{b.nom}</MenuItem>
+										))}
+									</Select>
+								</FormControl>
+								<FormControl size="small" sx={{ minWidth: 120 }}>
+									<InputLabel>Année</InputLabel>
+									<Select value={year} label="Année" onChange={(e) => setYear(Number(e.target.value))}>
+										{yearOptions.map((y) => (
+											<MenuItem key={y} value={y}>
+												{y}
+											</MenuItem>
+										))}
+									</Select>
+								</FormControl>
+							</Stack>
 						</Stack>
 
 						{isLoading ? (

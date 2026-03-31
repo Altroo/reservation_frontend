@@ -16,8 +16,12 @@ import {
 	DialogContent,
 	DialogTitle,
 	Divider,
+	FormControl,
 	IconButton,
 	InputAdornment,
+	InputLabel,
+	MenuItem,
+	Select,
 	Stack,
 	TextField,
 	Typography,
@@ -69,6 +73,7 @@ import {
 	useUpdateReservationMutation,
 	useUpdateApartmentMutation,
 	useDeleteApartmentMutation,
+	useGetBuildingsQuery,
 } from '@/store/services/reservation';
 import { useInitAccessToken } from '@/contexts/InitContext';
 import { Protected } from '@/components/layouts/protected/protected';
@@ -94,6 +99,7 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 	);
 
 	const { data: apartments, isLoading: isApartmentsLoading } = useGetApartmentsQuery(undefined, { skip: !token });
+	const { data: buildings } = useGetBuildingsQuery(undefined, { skip: !token });
 
 	const [createReservation, { isLoading: isCreateLoading, error: createError }] = useCreateReservationMutation();
 	const [updateReservation, { isLoading: isUpdateLoading, error: updateError }] = useUpdateReservationMutation();
@@ -104,6 +110,7 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 	// Apartment edit/delete state
 	const [editAptId, setEditAptId] = useState<number | null>(null);
 	const [editAptName, setEditAptName] = useState('');
+	const [editAptBuilding, setEditAptBuilding] = useState<number | ''>('');
 	const [editAptError, setEditAptError] = useState<string | null>(null);
 	const [deleteAptId, setDeleteAptId] = useState<number | null>(null);
 	const [deleteAptName, setDeleteAptName] = useState('');
@@ -186,6 +193,8 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 	const handleEditAptOpen = (aptId: number, aptName: string) => {
 		setEditAptId(aptId);
 		setEditAptName(aptName);
+		const apt = apartments?.find((a) => a.id === aptId);
+		setEditAptBuilding(apt?.building ?? '');
 		setEditAptError(null);
 	};
 
@@ -193,8 +202,8 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 		if (!editAptId || !editAptName.trim()) return;
 		setAptActionLoading(true);
 		try {
-			await updateApartment({ id: editAptId, data: { nom: editAptName.trim() } }).unwrap();
-			onSuccess("L'appartement a été renommé avec succès.");
+			await updateApartment({ id: editAptId, data: { nom: editAptName.trim(), building: editAptBuilding === '' ? null : editAptBuilding } }).unwrap();
+			onSuccess("L'appartement a été modifié avec succès.");
 			setEditAptId(null);
 		} catch (e) {
 			setEditAptError(extractApiErrorMessage(e, "Échec du renommage de l'appartement."));
@@ -561,11 +570,12 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 				onSuccess={(newId) => {
 					formik.setFieldValue('apartment', newId);
 				}}
+				buildings={buildings}
 			/>
 
 			{/* Edit apartment dialog */}
 			<Dialog open={editAptId !== null} onClose={() => setEditAptId(null)}>
-				<DialogTitle>Renommer l&apos;appartement</DialogTitle>
+				<DialogTitle>Modifier l&apos;appartement</DialogTitle>
 				<DialogContent>
 					<TextField
 						autoFocus
@@ -581,11 +591,28 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 						error={Boolean(editAptError)}
 						helperText={editAptError ?? ''}
 					/>
+					{buildings && buildings.length > 0 && (
+						<FormControl fullWidth size="small" sx={{ mt: 2 }}>
+							<InputLabel>Résidence</InputLabel>
+							<Select
+								value={editAptBuilding}
+								label="Résidence"
+								onChange={(e) => setEditAptBuilding(e.target.value as number | '')}
+							>
+								<MenuItem value="">
+									<em>Aucune</em>
+								</MenuItem>
+								{buildings.map((b) => (
+									<MenuItem key={b.id} value={b.id}>{b.nom}</MenuItem>
+								))}
+							</Select>
+						</FormControl>
+					)}
 				</DialogContent>
 				<DialogActions>
 					<Button onClick={() => setEditAptId(null)}>Annuler</Button>
 					<Button onClick={handleEditAptSubmit} variant="contained" disabled={aptActionLoading || !editAptName.trim()}>
-						Renommer
+						Enregistrer
 					</Button>
 				</DialogActions>
 			</Dialog>

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Modal, Box, Typography, Button } from '@mui/material';
+import { Modal, Box, Typography, Button, FormControl, InputLabel, Select, MenuItem } from '@mui/material';
 import CustomTextInput from '@/components/formikElements/customTextInput/customTextInput';
 import type { ApiErrorResponseType } from '@/types/_initTypes';
 import type { Theme } from '@mui/material/styles';
@@ -10,12 +10,14 @@ type AddEntityModalProps = {
 	label: string;
 	icon: React.ReactNode;
 	inputTheme: Theme;
-	mutationFn: (args: { data: { nom: string } }) => Promise<unknown>;
+	mutationFn: (args: { data: { nom: string; building?: number | null } }) => Promise<unknown>;
 	onSuccess?: (newEntityId: number) => void;
+	buildings?: { id: number; nom: string }[];
 };
 
-const AddEntityModal: React.FC<AddEntityModalProps> = ({ open, setOpen, label, icon, inputTheme, mutationFn, onSuccess }) => {
+const AddEntityModal: React.FC<AddEntityModalProps> = ({ open, setOpen, label, icon, inputTheme, mutationFn, onSuccess, buildings }) => {
 	const [newName, setNewName] = useState('');
+	const [selectedBuilding, setSelectedBuilding] = useState<number | ''>('');
 	const [error, setError] = useState<string | null>(null);
 
 	return (
@@ -59,6 +61,25 @@ const AddEntityModal: React.FC<AddEntityModalProps> = ({ open, setOpen, label, i
 					startIcon={icon}
 				/>
 
+				{buildings && buildings.length > 0 && (
+					<FormControl fullWidth size="small" sx={{ mt: 2 }}>
+						<InputLabel id={`building-select-label-${label}`}>Résidence</InputLabel>
+						<Select
+							labelId={`building-select-label-${label}`}
+							value={selectedBuilding}
+							label="Résidence"
+							onChange={(e) => setSelectedBuilding(e.target.value as number | '')}
+						>
+							<MenuItem value="">
+								<em>Aucune</em>
+							</MenuItem>
+							{buildings.map((b) => (
+								<MenuItem key={b.id} value={b.id}>{b.nom}</MenuItem>
+							))}
+						</Select>
+					</FormControl>
+				)}
+
 				<Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2, gap: 1 }}>
 					<Button onClick={() => setOpen(false)}>Annuler</Button>
 					<Button
@@ -70,7 +91,8 @@ const AddEntityModal: React.FC<AddEntityModalProps> = ({ open, setOpen, label, i
 							}
 							
 							try {
-								const result = await mutationFn({ data: { nom: newName.trim() } });
+								const buildingValue = selectedBuilding === '' ? null : selectedBuilding;
+								const result = await mutationFn({ data: { nom: newName.trim(), ...(buildings ? { building: buildingValue } : {}) } });
 								
 								// Check if result contains an error (RTK Query pattern)
 								if (result && typeof result === 'object' && 'error' in result) {
@@ -99,6 +121,7 @@ const AddEntityModal: React.FC<AddEntityModalProps> = ({ open, setOpen, label, i
 								// Success - close modal and update field
 								setOpen(false);
 								setNewName('');
+								setSelectedBuilding('');
 								setError(null);
 								
 								// Extract the ID from the result and call onSuccess if provided

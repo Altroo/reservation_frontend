@@ -48,6 +48,7 @@ jest.mock('@/store/services/reservation', () => ({
 	useUpdateApartmentMutation: () => [jest.fn().mockResolvedValue({ data: {} }), { isLoading: false }],
 	useDeleteApartmentMutation: () => [jest.fn().mockResolvedValue({ data: {} }), { isLoading: false }],
 	useGetOccupiedDatesQuery: () => ({ data: [], isLoading: false }),
+	useGetBuildingsQuery: () => ({ data: [{ id: 1, nom: 'Building A' }], isLoading: false }),
 }));
 
 // Mock form sub-components

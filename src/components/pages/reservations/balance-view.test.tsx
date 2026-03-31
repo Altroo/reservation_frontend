@@ -84,6 +84,7 @@ jest.mock('@/store/services/reservation', () => ({
 		return { data: { years: [y, y - 1] } };
 	},
 	useToggleAmountReturnedMutation: () => [mockToggleAmountReturned],
+	useGetBuildingsQuery: () => ({ data: [{ id: 1, nom: 'Building A' }], isLoading: false }),
 }));
 
 // Mock layout components

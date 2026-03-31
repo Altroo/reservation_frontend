@@ -47,6 +47,7 @@ jest.mock('@/store/services/reservation', () => ({
 	useUpdateLoyerMutation: () => [mockUpdateLoyer, { isLoading: false }],
 	useDeleteLoyerMutation: () => [mockDeleteLoyer, { isLoading: false }],
 	useToggleLoyerPaidMutation: () => [mockToggleLoyerPaid, { isLoading: false }],
+	useGetBuildingsQuery: () => ({ data: [{ id: 1, nom: 'Building A' }], isLoading: false }),
 }));
 
 // Mock form sub-components

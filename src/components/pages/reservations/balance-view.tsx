@@ -37,6 +37,7 @@ import {
 	useGetBalanceQuery,
 	useGetReservationYearsQuery,
 	useToggleAmountReturnedMutation,
+	useGetBuildingsQuery,
 } from '@/store/services/reservation';
 import { useInitAccessToken } from '@/contexts/InitContext';
 import { formatNumberMA as fmt } from '@/utils/helpers';
@@ -103,10 +104,12 @@ const BalanceClient: React.FC<SessionProps> = ({ session }) => {
 	const token = useInitAccessToken(session);
 	const currentYear = new Date().getFullYear();
 	const [year, setYear] = useState(currentYear);
+	const [buildingId, setBuildingId] = useState<number | ''>('');
 
-	const { data, isLoading } = useGetBalanceQuery({ year }, { skip: !token });
+	const { data, isLoading } = useGetBalanceQuery({ year, ...(buildingId ? { building: buildingId } : {}) }, { skip: !token });
 	const { data: yearsData } = useGetReservationYearsQuery(undefined, { skip: !token });
 	const [toggleAmountReturned] = useToggleAmountReturnedMutation();
+	const { data: buildingsData } = useGetBuildingsQuery(undefined, { skip: !token });
 
 	const yearOptions = yearsData?.years ?? [currentYear];
 
@@ -137,16 +140,31 @@ const BalanceClient: React.FC<SessionProps> = ({ session }) => {
 							<Typography variant="h5" fontWeight={600}>
 								Balance {year}
 							</Typography>
-							<FormControl size="small" sx={{ minWidth: 120 }}>
-								<InputLabel>Année</InputLabel>
-								<Select value={year} label="Année" onChange={(e) => setYear(Number(e.target.value))}>
-									{yearOptions.map((y) => (
-										<MenuItem key={y} value={y}>
-											{y}
-										</MenuItem>
-									))}
-								</Select>
-							</FormControl>
+							<Stack direction="row" spacing={1}>
+								<FormControl size="small" sx={{ minWidth: 160 }}>
+									<InputLabel>Résidence</InputLabel>
+									<Select
+										value={buildingId}
+										label="Résidence"
+										onChange={(e) => setBuildingId(e.target.value as number | '')}
+									>
+										<MenuItem value="">Toutes</MenuItem>
+										{(buildingsData ?? []).map((b) => (
+											<MenuItem key={b.id} value={b.id}>{b.nom}</MenuItem>
+										))}
+									</Select>
+								</FormControl>
+								<FormControl size="small" sx={{ minWidth: 120 }}>
+									<InputLabel>Année</InputLabel>
+									<Select value={year} label="Année" onChange={(e) => setYear(Number(e.target.value))}>
+										{yearOptions.map((y) => (
+											<MenuItem key={y} value={y}>
+												{y}
+											</MenuItem>
+										))}
+									</Select>
+								</FormControl>
+							</Stack>
 						</Stack>
 
 						{isLoading ? (

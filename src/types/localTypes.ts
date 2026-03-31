@@ -23,6 +23,7 @@ export interface LocalListType {
 
 export interface LocalFormType {
 	nom: string;
+	building: number | '' | null;
 	type_local: TypeLocalType | '';
 	adresse: string;
 	superficie: string;

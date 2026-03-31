@@ -164,6 +164,10 @@ export const costSchema = z.object({
 
 export const localSchema = z.object({
 	nom: requiredTextField(2, 200),
+	building: z.preprocess(
+		(val) => (val === undefined || val === null || val === '' ? null : Number(val)),
+		z.number().positive().nullable(),
+	),
 	type_local: requiredChoiceTextField(),
 	adresse: optionalTextField(1, 500),
 	superficie: optionalTextField(1, 20),

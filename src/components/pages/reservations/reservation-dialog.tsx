@@ -55,6 +55,7 @@ import {
 	useGetOccupiedDatesQuery,
 	useGetReservationQuery,
 	useUpdateReservationMutation,
+	useGetBuildingsQuery,
 } from '@/store/services/reservation';
 
 const inputTheme = textInputTheme();
@@ -94,6 +95,7 @@ const ReservationDialog: React.FC<ReservationDialogProps> = ({
 	const { data: apartments, isLoading: isApartmentsLoading } = useGetApartmentsQuery(undefined, {
 		skip: !token,
 	});
+	const { data: buildings } = useGetBuildingsQuery(undefined, { skip: !token });
 
 	const [createReservation, { isLoading: isCreateLoading, error: createError }] = useCreateReservationMutation();
 	const [updateReservation, { isLoading: isUpdateLoading, error: updateError }] = useUpdateReservationMutation();
@@ -453,6 +455,7 @@ const ReservationDialog: React.FC<ReservationDialogProps> = ({
 				onSuccess={(newId) => {
 					formik.setFieldValue('apartment', newId);
 				}}
+				buildings={buildings}
 			/>
 		</LocalizationProvider>
 	);

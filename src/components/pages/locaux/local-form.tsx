@@ -79,6 +79,7 @@ import {
 	useUpdateLoyerMutation,
 	useDeleteLoyerMutation,
 	useToggleLoyerPaidMutation,
+	useGetBuildingsQuery,
 } from '@/store/services/reservation';
 import { useInitAccessToken } from '@/contexts/InitContext';
 import type { DropDownType } from '@/types/accountTypes';
@@ -105,6 +106,7 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 
 	const [createLocal, { isLoading: isCreateLoading }] = useCreateLocalMutation();
 	const [updateLocal, { isLoading: isUpdateLoading }] = useUpdateLocalMutation();
+	const { data: buildingsData } = useGetBuildingsQuery(undefined, { skip: !token });
 	const [isPending, setIsPending] = useState(false);
 
 	// Loyer management (edit mode only)
@@ -137,6 +139,7 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 	const formik = useFormik<LocalFormValues>({
 		initialValues: {
 			nom: rawData?.nom ?? '',
+			building: rawData?.building ?? '',
 			type_local: (rawData?.type_local ?? '') as LocalFormValues['type_local'],
 			adresse: rawData?.adresse ?? '',
 			superficie: rawData?.superficie ?? '',
@@ -155,13 +158,14 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 			setIsPending(true);
 			// eslint-disable-next-line @typescript-eslint/no-unused-vars
 			const { globalError, ...fields } = data;
+			const payload = { ...fields, building: fields.building === '' ? null : fields.building };
 			try {
 				if (isEditMode) {
-					await updateLocal({ id: id!, data: fields }).unwrap();
+					await updateLocal({ id: id!, data: payload as typeof fields }).unwrap();
 					onSuccess('Local mis à jour avec succès.');
 					router.push(LOCAUX_LIST);
 				} else {
-					const result = await createLocal(fields).unwrap() as { id: number };
+					const result = await createLocal(payload as typeof fields).unwrap() as { id: number };
 					onSuccess('Local ajouté avec succès.');
 					router.push(LOCAUX_EDIT(result.id));
 				}
@@ -307,6 +311,23 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 											startIcon={<BusinessIcon fontSize="small" />}
 										/>
 									</Stack>
+									{buildingsData && buildingsData.length > 0 && (
+										<FormControl fullWidth size="small">
+											<InputLabel>Résidence</InputLabel>
+											<Select
+												value={formik.values.building}
+												label="Résidence"
+												onChange={(e) => formik.setFieldValue('building', e.target.value)}
+											>
+												<MenuItem value="">
+													<em>Aucune</em>
+												</MenuItem>
+												{buildingsData.map((b) => (
+													<MenuItem key={b.id} value={b.id}>{b.nom}</MenuItem>
+												))}
+											</Select>
+										</FormControl>
+									)}
 									<CustomTextInput
 										theme={inputTheme}
 										id="adresse"

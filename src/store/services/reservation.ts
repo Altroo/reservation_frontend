@@ -57,7 +57,7 @@ export const reservationApi = createApi({
 			providesTags: ['Apartment'],
 		}),
 
-		addApartment: builder.mutation<ApartmentClass, { data: { nom: string } }>({
+		addApartment: builder.mutation<ApartmentClass, { data: { nom: string; building?: number | null } }>({
 			query: ({ data }) => ({
 				url: process.env.NEXT_PUBLIC_RESERVATION_APARTMENTS,
 				method: 'POST',
@@ -170,11 +170,11 @@ export const reservationApi = createApi({
 		}),
 
 		// ── Balance ──────────────────────────────────────────────────────────
-		getBalance: builder.query<BalanceType, { year?: number }>({
-			query: ({ year }) => ({
+		getBalance: builder.query<BalanceType, { year?: number; building?: number }>({
+			query: ({ year, building }) => ({
 				url: process.env.NEXT_PUBLIC_RESERVATION_BALANCE,
 				method: 'GET',
-				params: { year },
+				params: { year, building },
 			}),
 			providesTags: ['Balance'],
 		}),
@@ -263,7 +263,7 @@ export const reservationApi = createApi({
 		}),
 
 		// ── Apartments detail ─────────────────────────────────────────────
-		updateApartment: builder.mutation<ApartmentClass, { id: number; data: { nom: string } }>({
+		updateApartment: builder.mutation<ApartmentClass, { id: number; data: { nom: string; building?: number | null } }>({
 			query: ({ id, data }) => ({
 				url: `${process.env.NEXT_PUBLIC_RESERVATION_APARTMENTS}${id}/`,
 				method: 'PUT',

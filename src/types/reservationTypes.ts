@@ -3,12 +3,16 @@ export type PaymentSourceType = 'Booking' | 'Airbnb' | 'Cash' | 'Bank';
 export interface ApartmentType {
 	id: number;
 	nom: string;
+	building: number | null;
+	building_nom: string | null;
 }
 
 export interface ReservationListType {
 	id: number;
 	apartment: number;
 	apartment_nom: string;
+	apartment_building: number | null;
+	apartment_building_nom: string | null;
 	guest_name: string;
 	check_in: string;
 	check_out: string;

@@ -30,12 +30,23 @@ jest.mock('@/contexts/InitContext', () => ({
 const mockUseGetLocalQuery = jest.fn();
 const mockCreateLocal = jest.fn();
 const mockUpdateLocal = jest.fn();
+const mockDeleteLoyer = jest.fn(() => ({ unwrap: () => Promise.resolve() }));
+const mockToggleLoyerPaid = jest.fn(() => ({ unwrap: () => Promise.resolve() }));
+const mockCreateLoyer = jest.fn(() => ({ unwrap: () => Promise.resolve() }));
+const mockUpdateLoyer = jest.fn(() => ({ unwrap: () => Promise.resolve() }));
+const mockUseGetLoyersListQuery = jest.fn();
 
 jest.mock('@/store/services/reservation', () => ({
 	__esModule: true,
 	useGetLocalQuery: (params: unknown, options: unknown) => mockUseGetLocalQuery(params, options),
 	useCreateLocalMutation: () => [mockCreateLocal, { isLoading: false }],
 	useUpdateLocalMutation: () => [mockUpdateLocal, { isLoading: false }],
+	useGetLoyersListQuery: (params: unknown, options: unknown) => mockUseGetLoyersListQuery(params, options),
+	useGetLocalYearsQuery: () => ({ data: { years: [2025] }, isLoading: false }),
+	useCreateLoyerMutation: () => [mockCreateLoyer, { isLoading: false }],
+	useUpdateLoyerMutation: () => [mockUpdateLoyer, { isLoading: false }],
+	useDeleteLoyerMutation: () => [mockDeleteLoyer, { isLoading: false }],
+	useToggleLoyerPaidMutation: () => [mockToggleLoyerPaid, { isLoading: false }],
 }));
 
 // Mock form sub-components
@@ -88,6 +99,8 @@ jest.mock('@/utils/themes', () => ({
 jest.mock('@/utils/helpers', () => ({
 	getLabelForKey: jest.fn((_labels: unknown, key: string) => key),
 	setFormikAutoErrors: jest.fn(),
+	extractApiErrorMessage: (_error: unknown, fallback: string) => fallback,
+	formatDate: (date: string | null) => (date ? new Date(date).toLocaleDateString('fr-FR') : '—'),
 }));
 
 jest.mock('@/utils/rawData', () => ({
@@ -100,6 +113,7 @@ jest.mock('@/utils/rawData', () => ({
 
 jest.mock('@/utils/formValidationSchemas', () => ({
 	localSchema: { parse: jest.fn() },
+	loyerSchema: { parse: jest.fn() },
 }));
 
 jest.mock('zod-formik-adapter', () => ({
@@ -108,11 +122,38 @@ jest.mock('zod-formik-adapter', () => ({
 
 jest.mock('@/utils/routes', () => ({
 	LOCAUX_LIST: '/dashboard/locaux',
+	LOCAUX_EDIT: (id: number) => `/dashboard/locaux/${id}/edit`,
 }));
 
 jest.mock('@/styles/dashboard/dashboard.module.sass', () => ({
 	flexRootStack: 'flexRootStack',
 	submitButton: 'submitButton',
+}));
+
+// Mock ActionModals
+jest.mock('@/components/htmlElements/modals/actionModal/actionModals', () => ({
+	__esModule: true,
+	default: ({
+		title,
+		body,
+		actions,
+	}: {
+		title: string;
+		body: string;
+		actions: Array<{ text: string; onClick: () => void }>;
+	}) => (
+		<div data-testid="action-modal" role="dialog">
+			<h2>{title}</h2>
+			<p>{body}</p>
+			<div>
+				{actions.map((action) => (
+					<button key={action.text} onClick={action.onClick}>
+						{action.text}
+					</button>
+				))}
+			</div>
+		</div>
+	),
 }));
 
 // Mock MUI date pickers
@@ -153,11 +194,62 @@ const mockSession: AppSession = {
 	},
 };
 
+const mockLocalData = {
+	id: 1,
+	nom: 'Bureau Test',
+	type_local: 'Bureau',
+	adresse: '10 Rue',
+	superficie: '100',
+	prix_achat: '500000',
+	prix_location_mensuel: '5000',
+	en_location: false,
+	locataire_nom: '',
+	date_debut_location: null,
+	notes: '',
+};
+
+const mockLoyers = [
+	{
+		id: 10,
+		local: 1,
+		local_nom: 'Bureau Test',
+		mois: 1,
+		annee: 2025,
+		montant: '5000',
+		paye: true,
+		date_paiement: '2025-01-15',
+		notes: '',
+		created_by_user: 1,
+		created_by_user_name: 'Admin',
+		date_created: '2025-01-01T00:00:00Z',
+		date_updated: '2025-01-15T00:00:00Z',
+	},
+	{
+		id: 11,
+		local: 1,
+		local_nom: 'Bureau Test',
+		mois: 2,
+		annee: 2025,
+		montant: '5000',
+		paye: false,
+		date_paiement: null,
+		notes: '',
+		created_by_user: 1,
+		created_by_user_name: 'Admin',
+		date_created: '2025-02-01T00:00:00Z',
+		date_updated: '2025-02-01T00:00:00Z',
+	},
+];
+
 describe('LocalFormClient', () => {
 	beforeEach(() => {
 		jest.clearAllMocks();
 		mockUseGetLocalQuery.mockReturnValue({
 			data: undefined,
+			isLoading: false,
+		});
+		mockUseGetLoyersListQuery.mockReturnValue({
+			data: [],
 			isLoading: false,
 		});
 	});
@@ -211,33 +303,30 @@ describe('LocalFormClient', () => {
 				expect.objectContaining({ skip: true }),
 			);
 		});
+		it('does not render loyers section in add mode', () => {
+			render(<LocalFormClient session={mockSession} />);
+			expect(screen.queryByText('Loyers')).not.toBeInTheDocument();
+		});
 	});
 
 	describe('Edit Mode (with id)', () => {
-		it('renders submit button with update text', () => {
+		beforeEach(() => {
 			mockUseGetLocalQuery.mockReturnValue({
-				data: {
-					id: 1,
-					nom: 'Bureau Test',
-					type_local: 'Bureau',
-					adresse: '10 Rue',
-					superficie: '100',
-					prix_achat: '500000',
-					prix_location_mensuel: '5000',
-					en_location: false,
-					locataire_nom: '',
-					date_debut_location: null,
-					notes: '',
-				},
+				data: mockLocalData,
 				isLoading: false,
 			});
+			mockUseGetLoyersListQuery.mockReturnValue({
+				data: mockLoyers,
+				isLoading: false,
+			});
+		});
 
+		it('renders submit button with update text', () => {
 			render(<LocalFormClient session={mockSession} id={1} />);
 			expect(screen.getByTestId('submit-button')).toHaveTextContent('Mettre à jour');
 		});
 
 		it('renders back button with list text in edit mode', () => {
-			mockUseGetLocalQuery.mockReturnValue({ data: undefined, isLoading: false });
 			render(<LocalFormClient session={mockSession} id={1} />);
 			expect(screen.getByText('Liste des locaux')).toBeInTheDocument();
 		});
@@ -248,6 +337,42 @@ describe('LocalFormClient', () => {
 				expect.objectContaining({ id: 1 }),
 				expect.objectContaining({ skip: false }),
 			);
+		});
+
+		it('renders Loyers section in edit mode', () => {
+			render(<LocalFormClient session={mockSession} id={1} />);
+			expect(screen.getByText('Loyers')).toBeInTheDocument();
+		});
+
+		it('renders Ajouter loyer button in edit mode', () => {
+			render(<LocalFormClient session={mockSession} id={1} />);
+			expect(screen.getByText('Ajouter')).toBeInTheDocument();
+		});
+
+		it('renders loyer rows in edit mode', () => {
+			render(<LocalFormClient session={mockSession} id={1} />);
+			expect(screen.getByText('Jan')).toBeInTheDocument();
+			expect(screen.getByText('Fév')).toBeInTheDocument();
+		});
+
+		it('renders loyer paid/unpaid chips in edit mode', () => {
+			render(<LocalFormClient session={mockSession} id={1} />);
+			expect(screen.getByText('Payé')).toBeInTheDocument();
+			expect(screen.getByText('Impayé')).toBeInTheDocument();
+		});
+
+		it('shows empty loyer message when no loyers', () => {
+			mockUseGetLoyersListQuery.mockReturnValue({
+				data: [],
+				isLoading: false,
+			});
+			render(<LocalFormClient session={mockSession} id={1} />);
+			expect(screen.getByText(/Aucun loyer enregistré/)).toBeInTheDocument();
+		});
+
+		it('renders loyer Actions column header', () => {
+			render(<LocalFormClient session={mockSession} id={1} />);
+			expect(screen.getByText('Actions')).toBeInTheDocument();
 		});
 	});
 

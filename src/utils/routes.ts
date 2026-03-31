@@ -41,3 +41,8 @@ export const LOCAUX_VIEW = (id: number) => `${SITE_ROOT}dashboard/locaux/${id}`;
 export const LOCAUX_EDIT = (id: number) => `${SITE_ROOT}dashboard/locaux/${id}/edit`;
 export const LOCAUX_PLANNING = `${SITE_ROOT}dashboard/locaux/planning`;
 export const LOCAUX_DASHBOARD = `${SITE_ROOT}dashboard/locaux/dashboard`;
+// Buildings
+export const BUILDINGS_LIST = `${SITE_ROOT}dashboard/buildings`;
+export const BUILDINGS_ADD = `${SITE_ROOT}dashboard/buildings/new`;
+export const BUILDINGS_VIEW = (id: number) => `${SITE_ROOT}dashboard/buildings/${id}`;
+export const BUILDINGS_EDIT = (id: number) => `${SITE_ROOT}dashboard/buildings/${id}/edit`;

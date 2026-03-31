@@ -148,3 +148,7 @@ export const LOYER_FIELD_LABELS: Record<string, string> = {
 	date_paiement: 'Date de paiement',
 	notes: 'Notes',
 };
+
+export const BUILDING_FIELD_LABELS: Record<string, string> = {
+	nom: 'Nom',
+};

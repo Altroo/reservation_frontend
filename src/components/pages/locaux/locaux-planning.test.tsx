@@ -30,6 +30,7 @@ jest.mock('@/store/services/reservation', () => ({
 	useGetLocalPlanningQuery: (params: unknown, options: unknown) => mockUseGetLocalPlanningQuery(params, options),
 	useGetLocalYearsQuery: (params: unknown, options: unknown) => mockUseGetLocalYearsQuery(params, options),
 	useToggleLoyerPaidMutation: () => [mockToggleLoyerPaid, { isLoading: false }],
+	useGetBuildingsQuery: () => ({ data: [] }),
 }));
 
 jest.mock('@/components/layouts/protected/protected', () => ({
@@ -129,7 +130,7 @@ describe('LocauxPlanningClient', () => {
 
 	it('renders year dropdown', () => {
 		render(<LocauxPlanningClient session={mockSession} />);
-		expect(screen.getByRole('combobox')).toBeInTheDocument();
+		expect(screen.getAllByRole('combobox').length).toBeGreaterThanOrEqual(1);
 	});
 
 	it('renders year display', () => {

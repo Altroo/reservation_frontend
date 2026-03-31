@@ -9,20 +9,12 @@ import {
 	Card,
 	CardContent,
 	Chip,
-	Dialog,
-	DialogActions,
-	DialogContent,
-	DialogTitle,
 	Divider,
 	FormControl,
-	FormControlLabel,
-	IconButton,
-	InputAdornment,
 	InputLabel,
 	MenuItem,
 	Select,
 	Stack,
-	Switch,
 	Table,
 	TableBody,
 	TableCell,
@@ -34,14 +26,12 @@ import {
 	useTheme,
 } from '@mui/material';
 import {
-	Add as AddIcon,
 	ArrowBack as ArrowBackIcon,
 	AttachMoney as AttachMoneyIcon,
 	Business as BusinessIcon,
 	CalendarMonth as CalendarMonthIcon,
 	CalendarToday as CalendarTodayIcon,
 	Check as CheckIcon,
-	Close as CloseIcon,
 	Delete as DeleteIcon,
 	Edit as EditIcon,
 	LocationOn as LocationOnIcon,
@@ -51,26 +41,15 @@ import {
 	SquareFoot as SquareFootIcon,
 	TrendingUp as TrendingUpIcon,
 } from '@mui/icons-material';
-import { DatePicker } from '@mui/x-date-pickers/DatePicker';
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
-import { fr } from 'date-fns/locale';
-import { format, parseISO } from 'date-fns';
-import { useFormik } from 'formik';
-import { toFormikValidationSchema } from 'zod-formik-adapter';
 import type { SessionProps, ApiErrorResponseType, ResponseDataInterface } from '@/types/_initTypes';
-import type { LoyerListType, LoyerFormValues } from '@/types/localTypes';
+import type { LoyerListType } from '@/types/localTypes';
 import NavigationBar from '@/components/layouts/navigationBar/navigationBar';
 import { Protected } from '@/components/layouts/protected/protected';
 import ApiProgress from '@/components/formikElements/apiLoading/apiProgress/apiProgress';
 import ApiAlert from '@/components/formikElements/apiLoading/apiAlert/apiAlert';
 import ActionModals from '@/components/htmlElements/modals/actionModal/actionModals';
-import CustomTextInput from '@/components/formikElements/customTextInput/customTextInput';
-import PrimaryLoadingButton from '@/components/htmlElements/buttons/primaryLoadingButton/primaryLoadingButton';
-import { textInputTheme } from '@/utils/themes';
-import { extractApiErrorMessage, formatDate, setFormikAutoErrors } from '@/utils/helpers';
+import { extractApiErrorMessage, formatDate } from '@/utils/helpers';
 import { LOCAUX_EDIT, LOCAUX_LIST } from '@/utils/routes';
-import { loyerSchema } from '@/utils/formValidationSchemas';
 import { TYPE_LOCAL_CHIP_COLORS } from '@/utils/rawData';
 import { useToast } from '@/utils/hooks';
 import {
@@ -78,9 +57,6 @@ import {
 	useDeleteLocalMutation,
 	useGetLoyersListQuery,
 	useGetLocalYearsQuery,
-	useCreateLoyerMutation,
-	useUpdateLoyerMutation,
-	useDeleteLoyerMutation,
 	useToggleLoyerPaidMutation,
 } from '@/store/services/reservation';
 import { useInitAccessToken } from '@/contexts/InitContext';
@@ -156,11 +132,6 @@ const LocalViewClient: React.FC<Props> = ({ session, id }) => {
 	const loyers = useMemo(() => (Array.isArray(loyersRaw) ? loyersRaw : []) as LoyerListType[], [loyersRaw]);
 
 	const [toggleLoyerPaid] = useToggleLoyerPaidMutation();
-	const [deleteLoyer] = useDeleteLoyerMutation();
-	const [showLoyerDialog, setShowLoyerDialog] = useState(false);
-	const [editingLoyer, setEditingLoyer] = useState<LoyerListType | null>(null);
-	const [showDeleteLoyerModal, setShowDeleteLoyerModal] = useState(false);
-	const [selectedLoyerId, setSelectedLoyerId] = useState<number | null>(null);
 
 	const handleDelete = async () => {
 		try {
@@ -183,44 +154,15 @@ const LocalViewClient: React.FC<Props> = ({ session, id }) => {
 		}
 	};
 
-	const handleDeleteLoyer = async () => {
-		if (!selectedLoyerId) return;
-		try {
-			await deleteLoyer({ id: selectedLoyerId }).unwrap();
-			onSuccess('Loyer supprimé avec succès');
-		} catch (err) {
-			onError(extractApiErrorMessage(err, 'Erreur lors de la suppression'));
-		} finally {
-			setShowDeleteLoyerModal(false);
-			setSelectedLoyerId(null);
-		}
-	};
-
-	const openAddLoyer = () => {
-		setEditingLoyer(null);
-		setShowLoyerDialog(true);
-	};
-
-	const openEditLoyer = (loyer: LoyerListType) => {
-		setEditingLoyer(loyer);
-		setShowLoyerDialog(true);
-	};
-
 	const deleteModalActions = [
 		{ text: 'Annuler', active: false, onClick: () => setShowDeleteModal(false), icon: <ArrowBackIcon />, color: '#6B6B6B' },
 		{ text: 'Supprimer', active: true, onClick: handleDelete, icon: <DeleteIcon />, color: '#D32F2F' },
 	];
 
-	const deleteLoyerModalActions = [
-		{ text: 'Annuler', active: false, onClick: () => setShowDeleteLoyerModal(false), icon: <CloseIcon />, color: '#6B6B6B' },
-		{ text: 'Supprimer', active: true, onClick: handleDeleteLoyer, icon: <DeleteIcon />, color: '#D32F2F' },
-	];
-
 	const typeColor = (TYPE_LOCAL_CHIP_COLORS[local?.type_local as string] ?? 'default') as ChipColor;
 
 	return (
-		<LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={fr}>
-			<Stack direction="column" spacing={2} className={Styles.flexRootStack} mt="32px">
+		<Stack direction="column" spacing={2} className={Styles.flexRootStack} mt="32px">
 				<NavigationBar title="Détails du local">
 					<Protected permission="can_view">
 						<Stack spacing={3} sx={{ p: { xs: 2, md: 3 }, mt: 2 }}>
@@ -380,23 +322,16 @@ const LocalViewClient: React.FC<Props> = ({ session, id }) => {
 													<PaidIcon color="primary" />
 													<Typography variant="h6" fontWeight={700}>Loyers</Typography>
 												</Stack>
-												<Stack direction="row" spacing={1} alignItems="center">
-													<FormControl size="small" sx={{ minWidth: 100 }}>
-														<InputLabel>Année</InputLabel>
-														<Select value={loyerYear} label="Année" onChange={(e) => setLoyerYear(Number(e.target.value))}>
-															{loyerYearOptions.map((y) => (
-																<MenuItem key={y} value={y}>
-																	{y}
-																</MenuItem>
-															))}
-														</Select>
-													</FormControl>
-													<Protected permission="can_create">
-														<Button variant="outlined" size="small" startIcon={<AddIcon />} onClick={openAddLoyer}>
-															Ajouter
-														</Button>
-													</Protected>
-												</Stack>
+												<FormControl size="small" sx={{ minWidth: 100 }}>
+													<InputLabel>Année</InputLabel>
+													<Select value={loyerYear} label="Année" onChange={(e) => setLoyerYear(Number(e.target.value))}>
+														{loyerYearOptions.map((y) => (
+															<MenuItem key={y} value={y}>
+																{y}
+															</MenuItem>
+														))}
+													</Select>
+												</FormControl>
 											</Stack>
 											<Divider sx={{ mb: 2 }} />
 
@@ -413,7 +348,6 @@ const LocalViewClient: React.FC<Props> = ({ session, id }) => {
 																<TableCell>Montant</TableCell>
 																<TableCell>Statut</TableCell>
 																<TableCell>Paiement</TableCell>
-																<TableCell align="right">Actions</TableCell>
 															</TableRow>
 														</TableHead>
 														<TableBody>
@@ -435,27 +369,6 @@ const LocalViewClient: React.FC<Props> = ({ session, id }) => {
 																			/>
 																		</TableCell>
 																		<TableCell>{loyer.date_paiement ? formatDate(loyer.date_paiement) : '—'}</TableCell>
-																		<TableCell align="right">
-																			<Stack direction="row" spacing={0.5} justifyContent="flex-end">
-																				<Protected permission="can_edit">
-																					<IconButton size="small" onClick={() => openEditLoyer(loyer)}>
-																						<EditIcon fontSize="small" />
-																					</IconButton>
-																				</Protected>
-																				<Protected permission="can_delete">
-																					<IconButton
-																						size="small"
-																						color="error"
-																						onClick={() => {
-																							setSelectedLoyerId(loyer.id);
-																							setShowDeleteLoyerModal(true);
-																						}}
-																					>
-																						<DeleteIcon fontSize="small" />
-																					</IconButton>
-																				</Protected>
-																			</Stack>
-																		</TableCell>
 																	</TableRow>
 																))}
 														</TableBody>
@@ -480,192 +393,7 @@ const LocalViewClient: React.FC<Props> = ({ session, id }) => {
 					/>
 				)}
 
-				{showDeleteLoyerModal && (
-					<ActionModals
-						title="Supprimer ce loyer ?"
-						body="Êtes-vous sûr de vouloir supprimer ce loyer ? Cette action est irréversible."
-						actions={deleteLoyerModalActions}
-						titleIcon={<DeleteIcon />}
-						titleIconColor="#D32F2F"
-					/>
-				)}
-
-				{showLoyerDialog && (
-					<LoyerDialog
-						localId={id}
-						year={loyerYear}
-						loyer={editingLoyer}
-						onClose={() => setShowLoyerDialog(false)}
-					/>
-				)}
 			</Stack>
-		</LocalizationProvider>
-	);
-};
-
-interface LoyerDialogProps {
-	localId: number;
-	year: number;
-	loyer: LoyerListType | null;
-	onClose: () => void;
-}
-
-const inputTheme = textInputTheme();
-
-const LoyerDialog: React.FC<LoyerDialogProps> = ({ localId, year, loyer, onClose }) => {
-	const isEdit = loyer !== null;
-	const { onSuccess, onError } = useToast();
-	const [createLoyer, { isLoading: isCreateLoading }] = useCreateLoyerMutation();
-	const [updateLoyer, { isLoading: isUpdateLoading }] = useUpdateLoyerMutation();
-	const isPending = isCreateLoading || isUpdateLoading;
-
-	const formik = useFormik<LoyerFormValues>({
-		initialValues: {
-			local: localId,
-			mois: loyer?.mois ?? '',
-			annee: loyer?.annee ?? year,
-			montant: loyer?.montant ?? '',
-			paye: loyer?.paye ?? false,
-			date_paiement: loyer?.date_paiement ?? '',
-			notes: loyer?.notes ?? '',
-			globalError: '',
-		},
-		validateOnMount: false,
-		validationSchema: toFormikValidationSchema(loyerSchema),
-		onSubmit: async (data, { setFieldError }) => {
-			// eslint-disable-next-line @typescript-eslint/no-unused-vars
-			const { globalError, ...fields } = data;
-			try {
-				if (isEdit) {
-					await updateLoyer({ id: loyer.id, data: fields }).unwrap();
-					onSuccess('Loyer mis à jour avec succès.');
-				} else {
-					await createLoyer(fields).unwrap();
-					onSuccess('Loyer ajouté avec succès.');
-				}
-				onClose();
-			} catch (e) {
-				setFormikAutoErrors({ e, setFieldError });
-				onError(isEdit ? 'Échec de la mise à jour du loyer.' : "Échec de l'ajout du loyer.");
-			}
-		},
-	});
-
-	return (
-		<Dialog open onClose={onClose} maxWidth="sm" fullWidth>
-			<form onSubmit={formik.handleSubmit}>
-				<DialogTitle>{isEdit ? 'Modifier le loyer' : 'Ajouter un loyer'}</DialogTitle>
-				<DialogContent>
-					<Stack spacing={2} sx={{ mt: 1 }}>
-						<CustomTextInput
-							theme={inputTheme}
-							id="mois"
-							type="number"
-							size="small"
-							label="Mois *"
-							value={String(formik.values.mois)}
-							onChange={(e: React.ChangeEvent<HTMLInputElement>) => formik.setFieldValue('mois', e.target.value ? Number(e.target.value) : '')}
-							onBlur={formik.handleBlur('mois')}
-							error={formik.submitCount > 0 && Boolean(formik.errors.mois)}
-							helperText={formik.submitCount > 0 ? (formik.errors.mois ?? '') : ''}
-							fullWidth
-							startIcon={<CalendarMonthIcon fontSize="small" />}
-							slotProps={{ input: { inputProps: { min: 1, max: 12 } } }}
-						/>
-						<CustomTextInput
-							theme={inputTheme}
-							id="annee"
-							type="number"
-							size="small"
-							label="Année *"
-							value={String(formik.values.annee)}
-							onChange={(e: React.ChangeEvent<HTMLInputElement>) => formik.setFieldValue('annee', e.target.value ? Number(e.target.value) : '')}
-							onBlur={formik.handleBlur('annee')}
-							error={formik.submitCount > 0 && Boolean(formik.errors.annee)}
-							helperText={formik.submitCount > 0 ? (formik.errors.annee ?? '') : ''}
-							fullWidth
-							startIcon={<CalendarMonthIcon fontSize="small" />}
-							slotProps={{ input: { inputProps: { min: 2000, max: 2100 } } }}
-						/>
-						<CustomTextInput
-							theme={inputTheme}
-							id="montant"
-							type="text"
-							size="small"
-							label="Montant (MAD) *"
-							value={formik.values.montant}
-							onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-								if (/^(0|[1-9]\d*)?([.,]\d*)?$/.test(e.target.value))
-									formik.setFieldValue('montant', e.target.value);
-							}}
-							onBlur={formik.handleBlur('montant')}
-							error={formik.submitCount > 0 && Boolean(formik.errors.montant)}
-							helperText={formik.submitCount > 0 ? (formik.errors.montant ?? '') : ''}
-							fullWidth
-							startIcon={<AttachMoneyIcon fontSize="small" />}
-							slotProps={{ input: { inputProps: { inputMode: 'decimal' } } }}
-						/>
-						<FormControlLabel
-							control={
-								<Switch
-									checked={formik.values.paye}
-									onChange={(e) => formik.setFieldValue('paye', e.target.checked)}
-									color="primary"
-								/>
-							}
-							label="Payé"
-						/>
-						{formik.values.paye && (
-							<DatePicker
-								label="Date de paiement"
-								value={formik.values.date_paiement ? parseISO(formik.values.date_paiement) : null}
-								onChange={(date) => formik.setFieldValue('date_paiement', date ? format(date, 'yyyy-MM-dd') : '')}
-								slotProps={{
-									textField: {
-										size: 'small',
-										fullWidth: true,
-										onBlur: formik.handleBlur('date_paiement'),
-										error: formik.submitCount > 0 && Boolean(formik.errors.date_paiement),
-										helperText: formik.submitCount > 0 ? (formik.errors.date_paiement ?? '') : '',
-										InputProps: {
-											startAdornment: (
-												<InputAdornment position="start">
-													<CalendarMonthIcon fontSize="small" />
-												</InputAdornment>
-											),
-										},
-									},
-								}}
-							/>
-						)}
-						<CustomTextInput
-							theme={inputTheme}
-							id="notes"
-							type="text"
-							size="small"
-							label="Notes"
-							value={formik.values.notes}
-							onChange={formik.handleChange('notes')}
-							onBlur={formik.handleBlur('notes')}
-							fullWidth
-							multiline
-							rows={3}
-							startIcon={<NotesIcon fontSize="small" />}
-						/>
-					</Stack>
-				</DialogContent>
-				<DialogActions>
-					<Button onClick={onClose}>Annuler</Button>
-					<PrimaryLoadingButton
-						buttonText={isEdit ? 'Mettre à jour' : 'Ajouter'}
-						loading={isPending}
-						active={!isPending}
-						type="submit"
-						startIcon={isEdit ? <EditIcon /> : <AddIcon />}
-					/>
-				</DialogActions>
-			</form>
-		</Dialog>
 	);
 };
 

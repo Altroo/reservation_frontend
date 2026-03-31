@@ -54,5 +54,7 @@ declare namespace NodeJS {
 		NEXT_PUBLIC_LOCAL_PLANNING: string;
 		NEXT_PUBLIC_LOCAL_DASHBOARD: string;
 		NEXT_PUBLIC_LOCAL_YEARS: string;
+		// Buildings
+		NEXT_PUBLIC_BUILDING_LIST: string;
 	}
 }

@@ -92,6 +92,7 @@ jest.mock('@/store/services/reservation', () => ({
 		const y = new Date().getFullYear();
 		return { data: { years: [y, y - 1] } };
 	},
+	useGetBuildingsQuery: () => ({ data: [] }),
 }));
 
 // Mock layout components

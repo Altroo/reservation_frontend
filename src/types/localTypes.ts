@@ -3,6 +3,8 @@ export type TypeLocalType = 'Bureau' | 'Magasin';
 export interface LocalListType {
 	id: number;
 	nom: string;
+	building: number | null;
+	building_nom: string | null;
 	type_local: TypeLocalType;
 	adresse: string;
 	superficie: string | null;

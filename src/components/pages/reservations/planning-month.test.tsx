@@ -88,6 +88,7 @@ const mockUseGetPlanningQuery = jest.fn<MockQueryResult<typeof mockPlanningData>
 
 jest.mock('@/store/services/reservation', () => ({
 	useGetPlanningQuery: () => mockUseGetPlanningQuery(),
+	useGetBuildingsQuery: () => ({ data: [] }),
 }));
 
 // Mock layout components

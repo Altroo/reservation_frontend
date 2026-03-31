@@ -28,6 +28,7 @@ jest.mock('@/store/services/reservation', () => ({
 	__esModule: true,
 	useGetLocalDashboardQuery: (params: unknown, options: unknown) => mockUseGetLocalDashboardQuery(params, options),
 	useGetLocalYearsQuery: (params: unknown, options: unknown) => mockUseGetLocalYearsQuery(params, options),
+	useGetBuildingsQuery: () => ({ data: [] }),
 }));
 
 jest.mock('@/components/layouts/protected/protected', () => ({
@@ -137,7 +138,7 @@ describe('LocauxDashboardClient', () => {
 
 	it('renders year dropdown with available years', () => {
 		render(<LocauxDashboardClient session={mockSession} />);
-		expect(screen.getByRole('combobox')).toBeInTheDocument();
+		expect(screen.getAllByRole('combobox').length).toBeGreaterThanOrEqual(1);
 	});
 
 	it('renders KPI cards', () => {

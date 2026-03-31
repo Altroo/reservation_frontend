@@ -39,7 +39,7 @@ import type { PlanningLocalType } from '@/types/localTypes';
 import NavigationBar from '@/components/layouts/navigationBar/navigationBar';
 import { Protected } from '@/components/layouts/protected/protected';
 import { LOCAUX_VIEW } from '@/utils/routes';
-import { useGetLocalPlanningQuery, useGetLocalYearsQuery, useToggleLoyerPaidMutation } from '@/store/services/reservation';
+import { useGetLocalPlanningQuery, useGetLocalYearsQuery, useToggleLoyerPaidMutation, useGetBuildingsQuery } from '@/store/services/reservation';
 import { useInitAccessToken } from '@/contexts/InitContext';
 import Styles from '@/styles/dashboard/dashboard.module.sass';
 
@@ -104,6 +104,7 @@ const LocauxPlanningClient: React.FC<SessionProps> = ({ session }) => {
 
 	const currentYear = new Date().getFullYear();
 	const [year, setYear] = useState(currentYear);
+	const [buildingId, setBuildingId] = useState<number | ''>('');
 
 	const { data: yearsData } = useGetLocalYearsQuery(undefined, { skip: !token });
 	const availableYears = useMemo(() => {
@@ -112,7 +113,8 @@ const LocauxPlanningClient: React.FC<SessionProps> = ({ session }) => {
 		return [...yrs].sort((a, b) => b - a);
 	}, [yearsData, currentYear]);
 
-	const { data: planningData, isLoading } = useGetLocalPlanningQuery({ year }, { skip: !token });
+	const { data: buildingsData } = useGetBuildingsQuery(undefined, { skip: !token });
+	const { data: planningData, isLoading } = useGetLocalPlanningQuery({ year, ...(buildingId ? { building: buildingId } : {}) }, { skip: !token });
 	const locaux = useMemo(() => (planningData?.locaux ?? []) as PlanningLocalType[], [planningData]);
 	const [toggleLoyerPaid] = useToggleLoyerPaidMutation();
 
@@ -174,20 +176,40 @@ const LocauxPlanningClient: React.FC<SessionProps> = ({ session }) => {
 			<NavigationBar title="Planning des Locaux">
 				<Protected permission="can_view">
 					<Box sx={{ px: { xs: 1, sm: 2, md: 3 }, pb: 4 }}>
-						<Stack direction="row" justifyContent="space-between" alignItems="center" py={2}>
+						<Stack direction="row" justifyContent="space-between" alignItems="center" py={2} flexWrap="wrap" gap={1}>
 							<Typography variant="h5" fontWeight={600}>
 								Planning des Locaux {year}
 							</Typography>
-							<FormControl size="small" sx={{ minWidth: 120 }}>
-								<InputLabel>Année</InputLabel>
-								<Select value={year} label="Année" onChange={(e) => setYear(Number(e.target.value))}>
-									{availableYears.map((y) => (
-										<MenuItem key={y} value={y}>
-											{y}
-										</MenuItem>
-									))}
-								</Select>
-							</FormControl>
+							<Stack direction="row" spacing={2}>
+								<FormControl size="small" sx={{ minWidth: 160 }}>
+									<InputLabel>Résidence</InputLabel>
+									<Select
+										value={buildingId}
+										label="Résidence"
+										onChange={(e) => {
+											const val = String(e.target.value);
+											setBuildingId(val === '' ? '' : Number(val));
+										}}
+									>
+										<MenuItem value="">Toutes</MenuItem>
+										{(buildingsData ?? []).map((b) => (
+											<MenuItem key={b.id} value={b.id}>
+												{b.nom}
+											</MenuItem>
+										))}
+									</Select>
+								</FormControl>
+								<FormControl size="small" sx={{ minWidth: 120 }}>
+									<InputLabel>Année</InputLabel>
+									<Select value={year} label="Année" onChange={(e) => setYear(Number(e.target.value))}>
+										{availableYears.map((y) => (
+											<MenuItem key={y} value={y}>
+												{y}
+											</MenuItem>
+										))}
+									</Select>
+								</FormControl>
+							</Stack>
 						</Stack>
 
 						{isLoading ? (

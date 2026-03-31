@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
 	Alert,
@@ -8,11 +8,27 @@ import {
 	Button,
 	Card,
 	CardContent,
+	Chip,
+	Dialog,
+	DialogActions,
+	DialogContent,
+	DialogTitle,
 	Divider,
+	FormControl,
 	FormControlLabel,
+	IconButton,
 	InputAdornment,
+	InputLabel,
+	MenuItem,
+	Select,
 	Stack,
 	Switch,
+	Table,
+	TableBody,
+	TableCell,
+	TableContainer,
+	TableHead,
+	TableRow,
 	Typography,
 } from '@mui/material';
 import {
@@ -21,9 +37,12 @@ import {
 	AttachMoney as AttachMoneyIcon,
 	Business as BusinessIcon,
 	CalendarMonth as CalendarMonthIcon,
+	Close as CloseIcon,
+	Delete as DeleteIcon,
 	Edit as EditIcon,
 	LocationOn as LocationOnIcon,
 	Notes as NotesIcon,
+	Paid as PaidIcon,
 	Person as PersonIcon,
 	SquareFoot as SquareFootIcon,
 	Warning as WarningIcon,
@@ -36,20 +55,31 @@ import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { fr } from 'date-fns/locale';
 import { format, parseISO } from 'date-fns';
 import type { SessionProps } from '@/types/_initTypes';
-import type { LocalFormValues } from '@/types/localTypes';
+import type { LocalFormValues, LoyerListType, LoyerFormValues } from '@/types/localTypes';
 import NavigationBar from '@/components/layouts/navigationBar/navigationBar';
 import { Protected } from '@/components/layouts/protected/protected';
 import CustomTextInput from '@/components/formikElements/customTextInput/customTextInput';
 import CustomAutoCompleteSelect from '@/components/formikElements/customAutoCompleteSelect/customAutoCompleteSelect';
 import PrimaryLoadingButton from '@/components/htmlElements/buttons/primaryLoadingButton/primaryLoadingButton';
 import ApiProgress from '@/components/formikElements/apiLoading/apiProgress/apiProgress';
+import ActionModals from '@/components/htmlElements/modals/actionModal/actionModals';
 import { textInputTheme } from '@/utils/themes';
-import { localSchema } from '@/utils/formValidationSchemas';
+import { localSchema, loyerSchema } from '@/utils/formValidationSchemas';
 import { typeLocalItemsList, LOCAL_FIELD_LABELS } from '@/utils/rawData';
-import { getLabelForKey, setFormikAutoErrors } from '@/utils/helpers';
-import { LOCAUX_LIST } from '@/utils/routes';
+import { extractApiErrorMessage, formatDate, getLabelForKey, setFormikAutoErrors } from '@/utils/helpers';
+import { LOCAUX_LIST, LOCAUX_EDIT } from '@/utils/routes';
 import { useToast } from '@/utils/hooks';
-import { useCreateLocalMutation, useUpdateLocalMutation, useGetLocalQuery } from '@/store/services/reservation';
+import {
+	useCreateLocalMutation,
+	useUpdateLocalMutation,
+	useGetLocalQuery,
+	useGetLoyersListQuery,
+	useGetLocalYearsQuery,
+	useCreateLoyerMutation,
+	useUpdateLoyerMutation,
+	useDeleteLoyerMutation,
+	useToggleLoyerPaidMutation,
+} from '@/store/services/reservation';
 import { useInitAccessToken } from '@/contexts/InitContext';
 import type { DropDownType } from '@/types/accountTypes';
 import Styles from '@/styles/dashboard/dashboard.module.sass';
@@ -66,6 +96,7 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 	const isEditMode = id !== undefined;
 	const router = useRouter();
 	const topRef = useRef<HTMLDivElement | null>(null);
+	const loyerSectionRef = useRef<HTMLDivElement | null>(null);
 
 	const { data: rawData } = useGetLocalQuery(
 		{ id: id! },
@@ -75,6 +106,28 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 	const [createLocal, { isLoading: isCreateLoading }] = useCreateLocalMutation();
 	const [updateLocal, { isLoading: isUpdateLoading }] = useUpdateLocalMutation();
 	const [isPending, setIsPending] = useState(false);
+
+	// Loyer management (edit mode only)
+	const currentYear = new Date().getFullYear();
+	const [loyerYear, setLoyerYear] = useState(currentYear);
+	const { data: yearsData } = useGetLocalYearsQuery(undefined, { skip: !token || !isEditMode });
+	const loyerYearOptions = useMemo(() => {
+		const yrs = yearsData?.years ?? [];
+		if (!yrs.includes(currentYear)) return [...yrs, currentYear].sort((a, b) => b - a);
+		return [...yrs].sort((a, b) => b - a);
+	}, [yearsData, currentYear]);
+	const { data: loyersRaw } = useGetLoyersListQuery(
+		{ local: id!, annee: loyerYear },
+		{ skip: !token || !isEditMode },
+	);
+	const loyers = useMemo(() => (Array.isArray(loyersRaw) ? loyersRaw : []) as LoyerListType[], [loyersRaw]);
+
+	const [toggleLoyerPaid] = useToggleLoyerPaidMutation();
+	const [deleteLoyerMut] = useDeleteLoyerMutation();
+	const [showLoyerDialog, setShowLoyerDialog] = useState(false);
+	const [editingLoyer, setEditingLoyer] = useState<LoyerListType | null>(null);
+	const [showDeleteLoyerModal, setShowDeleteLoyerModal] = useState(false);
+	const [selectedLoyerId, setSelectedLoyerId] = useState<number | null>(null);
 
 	const typeItems: DropDownType[] = typeLocalItemsList.map((t) => ({
 		code: t.code,
@@ -106,11 +159,12 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 				if (isEditMode) {
 					await updateLocal({ id: id!, data: fields }).unwrap();
 					onSuccess('Local mis à jour avec succès.');
+					router.push(LOCAUX_LIST);
 				} else {
-					await createLocal(fields).unwrap();
+					const result = await createLocal(fields).unwrap() as { id: number };
 					onSuccess('Local ajouté avec succès.');
+					router.push(LOCAUX_EDIT(result.id));
 				}
-				router.push(LOCAUX_LIST);
 			} catch (e) {
 				setFormikAutoErrors({ e, setFieldError });
 				onError(isEditMode ? 'Échec de la mise à jour du local.' : "Échec de l'ajout du local.");
@@ -125,6 +179,46 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 	const validationEntries = Object.entries(formik.errors).filter(([k]) => k !== 'globalError') as [string, string][];
 	const hasValidationErrors = validationEntries.length > 0;
 	const showValidationAlert = hasValidationErrors && formik.submitCount > 0;
+
+	// Loyer handlers
+	const MONTH_NAMES = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun', 'Jul', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc'];
+
+	const handleTogglePaid = async (loyer: LoyerListType) => {
+		try {
+			await toggleLoyerPaid({ id: loyer.id, paye: !loyer.paye }).unwrap();
+			onSuccess(loyer.paye ? 'Loyer marqué comme impayé' : 'Loyer marqué comme payé');
+		} catch (err) {
+			onError(extractApiErrorMessage(err, 'Erreur lors de la mise à jour'));
+		}
+	};
+
+	const handleDeleteLoyer = async () => {
+		if (!selectedLoyerId) return;
+		try {
+			await deleteLoyerMut({ id: selectedLoyerId }).unwrap();
+			onSuccess('Loyer supprimé avec succès');
+		} catch (err) {
+			onError(extractApiErrorMessage(err, 'Erreur lors de la suppression'));
+		} finally {
+			setShowDeleteLoyerModal(false);
+			setSelectedLoyerId(null);
+		}
+	};
+
+	const openAddLoyer = () => {
+		setEditingLoyer(null);
+		setShowLoyerDialog(true);
+	};
+
+	const openEditLoyer = (loyer: LoyerListType) => {
+		setEditingLoyer(loyer);
+		setShowLoyerDialog(true);
+	};
+
+	const deleteLoyerModalActions = [
+		{ text: 'Annuler', active: false, onClick: () => setShowDeleteLoyerModal(false), icon: <CloseIcon />, color: '#6B6B6B' },
+		{ text: 'Supprimer', active: true, onClick: handleDeleteLoyer, icon: <DeleteIcon />, color: '#D32F2F' },
+	];
 
 	useEffect(() => {
 		if (formik.submitCount > 0 && hasValidationErrors) {
@@ -394,6 +488,95 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 							</CardContent>
 						</Card>
 
+						{/* Loyers (edit mode only) */}
+						{isEditMode && (
+							<Card ref={loyerSectionRef} elevation={2} sx={{ borderRadius: 2 }}>
+								<CardContent sx={{ p: 3 }}>
+									<Stack direction="row" spacing={2} alignItems="center" justifyContent="space-between" sx={{ mb: 2 }}>
+										<Stack direction="row" spacing={2} alignItems="center">
+											<PaidIcon color="primary" />
+											<Typography variant="h6" fontWeight={700}>Loyers</Typography>
+										</Stack>
+										<Stack direction="row" spacing={1} alignItems="center">
+											<FormControl size="small" sx={{ minWidth: 100 }}>
+												<InputLabel>Année</InputLabel>
+												<Select value={loyerYear} label="Année" onChange={(e) => setLoyerYear(Number(e.target.value))}>
+													{loyerYearOptions.map((y) => (
+														<MenuItem key={y} value={y}>
+															{y}
+														</MenuItem>
+													))}
+												</Select>
+											</FormControl>
+											<Button variant="outlined" size="small" startIcon={<AddIcon />} onClick={openAddLoyer}>
+												Ajouter
+											</Button>
+										</Stack>
+									</Stack>
+									<Divider sx={{ mb: 2 }} />
+
+									{loyers.length === 0 ? (
+										<Typography color="text.secondary" sx={{ py: 2, textAlign: 'center' }}>
+											Aucun loyer enregistré pour {loyerYear}.
+										</Typography>
+									) : (
+										<TableContainer>
+											<Table size="small">
+												<TableHead>
+													<TableRow>
+														<TableCell>Mois</TableCell>
+														<TableCell>Montant</TableCell>
+														<TableCell>Statut</TableCell>
+														<TableCell>Paiement</TableCell>
+														<TableCell align="right">Actions</TableCell>
+													</TableRow>
+												</TableHead>
+												<TableBody>
+													{loyers
+														.slice()
+														.sort((a, b) => a.mois - b.mois)
+														.map((loyer) => (
+															<TableRow key={loyer.id}>
+																<TableCell>{MONTH_NAMES[loyer.mois - 1]}</TableCell>
+																<TableCell>{Number(loyer.montant).toLocaleString('fr-MA')} MAD</TableCell>
+																<TableCell>
+																	<Chip
+																		label={loyer.paye ? 'Payé' : 'Impayé'}
+																		size="small"
+																		color={loyer.paye ? 'success' : 'error'}
+																		variant="outlined"
+																		onClick={() => handleTogglePaid(loyer)}
+																		sx={{ cursor: 'pointer' }}
+																	/>
+																</TableCell>
+																<TableCell>{loyer.date_paiement ? formatDate(loyer.date_paiement) : '—'}</TableCell>
+																<TableCell align="right">
+																	<Stack direction="row" spacing={0.5} justifyContent="flex-end">
+																		<IconButton size="small" onClick={() => openEditLoyer(loyer)}>
+																			<EditIcon fontSize="small" />
+																		</IconButton>
+																		<IconButton
+																			size="small"
+																			color="error"
+																			onClick={() => {
+																				setSelectedLoyerId(loyer.id);
+																				setShowDeleteLoyerModal(true);
+																			}}
+																		>
+																			<DeleteIcon fontSize="small" />
+																		</IconButton>
+																	</Stack>
+																</TableCell>
+															</TableRow>
+														))}
+												</TableBody>
+											</Table>
+										</TableContainer>
+									)}
+								</CardContent>
+							</Card>
+						)}
+
 						<Box sx={{ display: 'flex', justifyContent: 'flex-end', pt: 2 }}>
 							<PrimaryLoadingButton
 								buttonText={isEditMode ? 'Mettre à jour' : 'Ajouter le local'}
@@ -406,8 +589,202 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 						</Box>
 					</Stack>
 				</form>
+
+				{/* Loyer modals (outside form to avoid submit interference) */}
+				{isEditMode && showDeleteLoyerModal && (
+					<ActionModals
+						title="Supprimer ce loyer ?"
+						body="Êtes-vous sûr de vouloir supprimer ce loyer ? Cette action est irréversible."
+						actions={deleteLoyerModalActions}
+						titleIcon={<DeleteIcon />}
+						titleIconColor="#D32F2F"
+					/>
+				)}
+
+				{isEditMode && showLoyerDialog && (
+					<LoyerDialog
+						localId={id!}
+						year={loyerYear}
+						loyer={editingLoyer}
+						onClose={() => setShowLoyerDialog(false)}
+					/>
+				)}
 			</Stack>
 		</LocalizationProvider>
+	);
+};
+
+interface LoyerDialogProps {
+	localId: number;
+	year: number;
+	loyer: LoyerListType | null;
+	onClose: () => void;
+}
+
+const loyerInputTheme = textInputTheme();
+
+const LoyerDialog: React.FC<LoyerDialogProps> = ({ localId, year, loyer, onClose }) => {
+	const isEdit = loyer !== null;
+	const { onSuccess, onError } = useToast();
+	const [createLoyer, { isLoading: isCreateLoading }] = useCreateLoyerMutation();
+	const [updateLoyer, { isLoading: isUpdateLoading }] = useUpdateLoyerMutation();
+	const isPending = isCreateLoading || isUpdateLoading;
+
+	const loyerFormik = useFormik<LoyerFormValues>({
+		initialValues: {
+			local: localId,
+			mois: loyer?.mois ?? '',
+			annee: loyer?.annee ?? year,
+			montant: loyer?.montant ?? '',
+			paye: loyer?.paye ?? false,
+			date_paiement: loyer?.date_paiement ?? '',
+			notes: loyer?.notes ?? '',
+			globalError: '',
+		},
+		validateOnMount: false,
+		validationSchema: toFormikValidationSchema(loyerSchema),
+		onSubmit: async (data, { setFieldError }) => {
+			// eslint-disable-next-line @typescript-eslint/no-unused-vars
+			const { globalError, ...fields } = data;
+			try {
+				if (isEdit) {
+					await updateLoyer({ id: loyer.id, data: fields }).unwrap();
+					onSuccess('Loyer mis à jour avec succès.');
+				} else {
+					await createLoyer(fields).unwrap();
+					onSuccess('Loyer ajouté avec succès.');
+				}
+				onClose();
+			} catch (e) {
+				setFormikAutoErrors({ e, setFieldError });
+				onError(isEdit ? 'Échec de la mise à jour du loyer.' : "Échec de l'ajout du loyer.");
+			}
+		},
+	});
+
+	return (
+		<Dialog open onClose={onClose} maxWidth="sm" fullWidth>
+			<form onSubmit={loyerFormik.handleSubmit}>
+				<DialogTitle>
+					<Stack direction="row" justifyContent="space-between" alignItems="center">
+						<Typography variant="h6" fontWeight={700}>
+							{isEdit ? 'Modifier le loyer' : 'Ajouter un loyer'}
+						</Typography>
+						<IconButton onClick={onClose} size="small">
+							<CloseIcon />
+						</IconButton>
+					</Stack>
+				</DialogTitle>
+				<DialogContent>
+					<Stack spacing={2} sx={{ mt: 1 }}>
+						<CustomTextInput
+							theme={loyerInputTheme}
+							id="mois"
+							type="number"
+							size="small"
+							label="Mois *"
+							value={String(loyerFormik.values.mois)}
+							onChange={(e: React.ChangeEvent<HTMLInputElement>) => loyerFormik.setFieldValue('mois', e.target.value ? Number(e.target.value) : '')}
+							onBlur={loyerFormik.handleBlur('mois')}
+							error={loyerFormik.submitCount > 0 && Boolean(loyerFormik.errors.mois)}
+							helperText={loyerFormik.submitCount > 0 ? (loyerFormik.errors.mois ?? '') : ''}
+							fullWidth
+							startIcon={<CalendarMonthIcon fontSize="small" />}
+							slotProps={{ input: { inputProps: { min: 1, max: 12 } } }}
+						/>
+						<CustomTextInput
+							theme={loyerInputTheme}
+							id="annee"
+							type="number"
+							size="small"
+							label="Année *"
+							value={String(loyerFormik.values.annee)}
+							onChange={(e: React.ChangeEvent<HTMLInputElement>) => loyerFormik.setFieldValue('annee', e.target.value ? Number(e.target.value) : '')}
+							onBlur={loyerFormik.handleBlur('annee')}
+							error={loyerFormik.submitCount > 0 && Boolean(loyerFormik.errors.annee)}
+							helperText={loyerFormik.submitCount > 0 ? (loyerFormik.errors.annee ?? '') : ''}
+							fullWidth
+							startIcon={<CalendarMonthIcon fontSize="small" />}
+							slotProps={{ input: { inputProps: { min: 2000, max: 2100 } } }}
+						/>
+						<CustomTextInput
+							theme={loyerInputTheme}
+							id="montant"
+							type="text"
+							size="small"
+							label="Montant (MAD) *"
+							value={loyerFormik.values.montant}
+							onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+								if (/^(0|[1-9]\d*)?([.,]\d*)?$/.test(e.target.value))
+									loyerFormik.setFieldValue('montant', e.target.value);
+							}}
+							onBlur={loyerFormik.handleBlur('montant')}
+							error={loyerFormik.submitCount > 0 && Boolean(loyerFormik.errors.montant)}
+							helperText={loyerFormik.submitCount > 0 ? (loyerFormik.errors.montant ?? '') : ''}
+							fullWidth
+							startIcon={<AttachMoneyIcon fontSize="small" />}
+							slotProps={{ input: { inputProps: { inputMode: 'decimal' } } }}
+						/>
+						<FormControlLabel
+							control={
+								<Switch
+									checked={loyerFormik.values.paye}
+									onChange={(e) => loyerFormik.setFieldValue('paye', e.target.checked)}
+									color="primary"
+								/>
+							}
+							label="Payé"
+						/>
+						{loyerFormik.values.paye && (
+							<DatePicker
+								label="Date de paiement"
+								value={loyerFormik.values.date_paiement ? parseISO(loyerFormik.values.date_paiement) : null}
+								onChange={(date) => loyerFormik.setFieldValue('date_paiement', date ? format(date, 'yyyy-MM-dd') : '')}
+								slotProps={{
+									textField: {
+										size: 'small',
+										fullWidth: true,
+										onBlur: loyerFormik.handleBlur('date_paiement'),
+										error: loyerFormik.submitCount > 0 && Boolean(loyerFormik.errors.date_paiement),
+										helperText: loyerFormik.submitCount > 0 ? (loyerFormik.errors.date_paiement ?? '') : '',
+										InputProps: {
+											startAdornment: (
+												<InputAdornment position="start">
+													<CalendarMonthIcon fontSize="small" />
+												</InputAdornment>
+											),
+										},
+									},
+								}}
+							/>
+						)}
+						<CustomTextInput
+							theme={loyerInputTheme}
+							id="notes"
+							type="text"
+							size="small"
+							label="Notes"
+							value={loyerFormik.values.notes}
+							onChange={loyerFormik.handleChange('notes')}
+							onBlur={loyerFormik.handleBlur('notes')}
+							fullWidth
+							multiline
+							rows={3}
+							startIcon={<NotesIcon fontSize="small" />}
+						/>
+					</Stack>
+				</DialogContent>
+				<DialogActions>
+					<PrimaryLoadingButton
+						buttonText={isEdit ? 'Mettre à jour' : 'Ajouter'}
+						loading={isPending}
+						active={!isPending}
+						type="submit"
+						startIcon={isEdit ? <EditIcon /> : <AddIcon />}
+					/>
+				</DialogActions>
+			</form>
+		</Dialog>
 	);
 };
 

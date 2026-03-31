@@ -40,6 +40,7 @@ import {
 	Payments as PaymentsIcon,
 	People as PeopleIcon,
 	Settings as SettingsIcon,
+	Apartment as ApartmentIcon,
 } from '@mui/icons-material';
 import { useAppDispatch, useAppSelector } from '@/utils/hooks';
 import { getProfilState, getUnreadNotificationCount } from '@/store/selectors';
@@ -48,6 +49,8 @@ import {
 	AUTH_LOGIN,
 	BACKEND_SITE_ADMIN,
 	BALANCE,
+	BUILDINGS_ADD,
+	BUILDINGS_LIST,
 	CALENDAR,
 	COSTS_ADD,
 	COSTS_LIST,
@@ -124,6 +127,14 @@ const getNavigationMenu = (isStaff: boolean) => {
 				{ title: 'Nouveau local', label: 'Ajouter un local', path: LOCAUX_ADD },
 				{ title: 'Planning', label: 'Planning des loyers', path: LOCAUX_PLANNING },
 				{ title: 'Dashboard', label: 'Dashboard des locaux', path: LOCAUX_DASHBOARD },
+			],
+		},
+		residences: {
+			title: 'Résidences',
+			icon: <ApartmentIcon />,
+			items: [
+				{ title: 'Liste des résidences', label: 'Liste des résidences', path: BUILDINGS_LIST },
+				{ title: 'Nouvelle résidence', label: 'Ajouter une résidence', path: BUILDINGS_ADD },
 			],
 		},
 		...(isStaff && {

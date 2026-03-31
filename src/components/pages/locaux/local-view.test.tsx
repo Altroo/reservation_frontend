@@ -30,9 +30,6 @@ jest.mock('@/utils/hooks', () => ({
 // Mock RTK Query hooks
 const mockDeleteLocal = jest.fn(() => ({ unwrap: () => Promise.resolve() }));
 const mockToggleLoyerPaid = jest.fn(() => ({ unwrap: () => Promise.resolve() }));
-const mockDeleteLoyer = jest.fn(() => ({ unwrap: () => Promise.resolve() }));
-const mockCreateLoyer = jest.fn(() => ({ unwrap: () => Promise.resolve() }));
-const mockUpdateLoyer = jest.fn(() => ({ unwrap: () => Promise.resolve() }));
 const mockUseGetLocalQuery = jest.fn();
 const mockUseGetLoyersListQuery = jest.fn();
 
@@ -41,9 +38,6 @@ jest.mock('@/store/services/reservation', () => ({
 	useDeleteLocalMutation: jest.fn(() => [mockDeleteLocal, { isLoading: false }]),
 	useGetLoyersListQuery: (params: unknown, options: unknown) => mockUseGetLoyersListQuery(params, options),
 	useGetLocalYearsQuery: () => ({ data: { years: [2025] }, isLoading: false }),
-	useCreateLoyerMutation: () => [mockCreateLoyer, { isLoading: false }],
-	useUpdateLoyerMutation: () => [mockUpdateLoyer, { isLoading: false }],
-	useDeleteLoyerMutation: () => [mockDeleteLoyer, { isLoading: false }],
 	useToggleLoyerPaidMutation: () => [mockToggleLoyerPaid, { isLoading: false }],
 }));
 
@@ -105,23 +99,10 @@ jest.mock('@/components/formikElements/apiLoading/apiProgress/apiProgress', () =
 jest.mock('@/utils/helpers', () => ({
 	formatDate: (date: string | null) => (date ? new Date(date).toLocaleDateString('fr-FR') : '—'),
 	extractApiErrorMessage: (_error: unknown, fallback: string) => fallback,
-	setFormikAutoErrors: jest.fn(),
-}));
-
-jest.mock('@/utils/themes', () => ({
-	textInputTheme: jest.fn(() => ({})),
 }));
 
 jest.mock('@/utils/rawData', () => ({
 	TYPE_LOCAL_CHIP_COLORS: { Bureau: 'primary', Magasin: 'warning' } as Record<string, string>,
-}));
-
-jest.mock('@/utils/formValidationSchemas', () => ({
-	loyerSchema: { parse: jest.fn() },
-}));
-
-jest.mock('zod-formik-adapter', () => ({
-	toFormikValidationSchema: jest.fn(() => undefined),
 }));
 
 jest.mock('@/styles/dashboard/dashboard.module.sass', () => ({
@@ -312,11 +293,6 @@ describe('LocalViewClient', () => {
 			render(<LocalViewClient session={mockSession} id={5} />);
 			expect(screen.getByText('Payé')).toBeInTheDocument();
 			expect(screen.getByText('Impayé')).toBeInTheDocument();
-		});
-
-		it('renders Ajouter loyer button', () => {
-			render(<LocalViewClient session={mockSession} id={5} />);
-			expect(screen.getByText('Ajouter')).toBeInTheDocument();
 		});
 
 		it('shows empty message when no loyers', () => {

@@ -185,6 +185,11 @@ export const localSchema = z.object({
 	globalError: optionalTextField(1, 500),
 });
 
+export const buildingSchema = z.object({
+	nom: requiredTextField(2, 200),
+	globalError: optionalTextField(1, 500),
+});
+
 export const loyerSchema = z.object({
 	local: z.preprocess(
 		(val) => (val === undefined || val === '' || val === null ? undefined : Number(val)),

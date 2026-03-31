@@ -5,7 +5,7 @@ import { axiosBaseQuery } from '@/utils/axiosBaseQuery';
 import { getInitStateToken } from '@/store/selectors';
 import type { RootState } from '@/store/store';
 import { initToken } from '@/store/slices/_initSlice';
-import type { ApartmentClass, ReservationClass, LocalClass, LoyerClass } from '@/models/classes';
+import type { ApartmentClass, BuildingClass, ReservationClass, LocalClass, LoyerClass } from '@/models/classes';
 import type { ApiErrorResponseType, PaginationResponseType } from '@/types/_initTypes';
 import type {
 	ReservationFormType,
@@ -24,6 +24,7 @@ import type {
 	LocalYearsResponse,
 	LoyerFormType,
 } from '@/types/localTypes';
+import type { BuildingFormType } from '@/types/buildingTypes';
 
 const rawBaseQuery = axiosBaseQuery((api) =>
 	isAuthenticatedInstance(
@@ -47,7 +48,7 @@ const baseQueryWithRetry = retry(
 
 export const reservationApi = createApi({
 	reducerPath: 'reservationApi',
-	tagTypes: ['Reservation', 'Apartment', 'Dashboard', 'Planning', 'Balance', 'Cost', 'Notification', 'NotificationPreference', 'Local', 'Loyer', 'LocalDashboard', 'LocalPlanning'],
+	tagTypes: ['Reservation', 'Apartment', 'Dashboard', 'Planning', 'Balance', 'Cost', 'Notification', 'NotificationPreference', 'Local', 'Loyer', 'LocalDashboard', 'LocalPlanning', 'Building'],
 	baseQuery: baseQueryWithRetry,
 	endpoints: (builder) => ({
 		// ── Apartments ──────────────────────────────────────────────────────
@@ -149,21 +150,21 @@ export const reservationApi = createApi({
 		}),
 
 		// ── Dashboard ────────────────────────────────────────────────────────
-		getDashboardStats: builder.query<DashboardStatsType, { year?: number }>({
-			query: ({ year }) => ({
+		getDashboardStats: builder.query<DashboardStatsType, { year?: number; building?: number }>({
+			query: ({ year, building }) => ({
 				url: process.env.NEXT_PUBLIC_RESERVATION_DASHBOARD,
 				method: 'GET',
-				params: { year },
+				params: { year, building },
 			}),
 			providesTags: ['Dashboard'],
 		}),
 
 		// ── Planning ─────────────────────────────────────────────────────────
-		getPlanning: builder.query<PlanningMonthType, { year: number; month: number }>({
-			query: ({ year, month }) => ({
+		getPlanning: builder.query<PlanningMonthType, { year: number; month: number; building?: number }>({
+			query: ({ year, month, building }) => ({
 				url: process.env.NEXT_PUBLIC_RESERVATION_PLANNING,
 				method: 'GET',
-				params: { year, month },
+				params: { year, month, building },
 			}),
 			providesTags: ['Planning'],
 		}),
@@ -454,21 +455,21 @@ export const reservationApi = createApi({
 		}),
 
 		// ── Local Planning ────────────────────────────────────────────────
-		getLocalPlanning: builder.query<LocalPlanningResponse, { year: number }>({
-			query: ({ year }) => ({
+		getLocalPlanning: builder.query<LocalPlanningResponse, { year: number; building?: number }>({
+			query: ({ year, building }) => ({
 				url: process.env.NEXT_PUBLIC_LOCAL_PLANNING,
 				method: 'GET',
-				params: { year },
+				params: { year, building },
 			}),
 			providesTags: ['LocalPlanning'],
 		}),
 
 		// ── Local Dashboard ───────────────────────────────────────────────
-		getLocalDashboard: builder.query<LocalDashboardResponse, { year: number }>({
-			query: ({ year }) => ({
+		getLocalDashboard: builder.query<LocalDashboardResponse, { year: number; building?: number }>({
+			query: ({ year, building }) => ({
 				url: process.env.NEXT_PUBLIC_LOCAL_DASHBOARD,
 				method: 'GET',
-				params: { year },
+				params: { year, building },
 			}),
 			providesTags: ['LocalDashboard'],
 		}),
@@ -480,6 +481,55 @@ export const reservationApi = createApi({
 				method: 'GET',
 			}),
 			providesTags: ['LocalDashboard'],
+		}),
+
+		// ── Buildings ────────────────────────────────────────────────────
+		getBuildings: builder.query<BuildingClass[], void>({
+			query: () => ({ url: process.env.NEXT_PUBLIC_BUILDING_LIST, method: 'GET' }),
+			providesTags: ['Building'],
+		}),
+
+		getBuilding: builder.query<BuildingClass, { id: number }>({
+			query: ({ id }) => ({
+				url: `${process.env.NEXT_PUBLIC_BUILDING_LIST}${id}/`,
+				method: 'GET',
+			}),
+			providesTags: ['Building'],
+		}),
+
+		createBuilding: builder.mutation<BuildingClass | ApiErrorResponseType, BuildingFormType>({
+			query: (payload) => ({
+				url: process.env.NEXT_PUBLIC_BUILDING_LIST,
+				method: 'POST',
+				data: payload,
+			}),
+			invalidatesTags: ['Building'],
+		}),
+
+		updateBuilding: builder.mutation<BuildingClass | ApiErrorResponseType, { id: number; data: BuildingFormType }>({
+			query: ({ id, data }) => ({
+				url: `${process.env.NEXT_PUBLIC_BUILDING_LIST}${id}/`,
+				method: 'PUT',
+				data,
+			}),
+			invalidatesTags: ['Building'],
+		}),
+
+		deleteBuilding: builder.mutation<void, { id: number }>({
+			query: ({ id }) => ({
+				url: `${process.env.NEXT_PUBLIC_BUILDING_LIST}${id}/`,
+				method: 'DELETE',
+			}),
+			invalidatesTags: ['Building'],
+		}),
+
+		bulkDeleteBuildings: builder.mutation<void, { ids: number[] }>({
+			query: ({ ids }) => ({
+				url: `${process.env.NEXT_PUBLIC_BUILDING_LIST}bulk-delete/`,
+				method: 'DELETE',
+				data: { ids },
+			}),
+			invalidatesTags: ['Building'],
 		}),
 	}),
 });
@@ -527,4 +577,10 @@ export const {
 	useGetLocalPlanningQuery,
 	useGetLocalDashboardQuery,
 	useGetLocalYearsQuery,
+	useGetBuildingsQuery,
+	useGetBuildingQuery,
+	useCreateBuildingMutation,
+	useUpdateBuildingMutation,
+	useDeleteBuildingMutation,
+	useBulkDeleteBuildingsMutation,
 } = reservationApi;

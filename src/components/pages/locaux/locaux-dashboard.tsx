@@ -39,7 +39,7 @@ import { Protected } from '@/components/layouts/protected/protected';
 import ApiProgress from '@/components/formikElements/apiLoading/apiProgress/apiProgress';
 import { LOCAUX_VIEW } from '@/utils/routes';
 import { TYPE_LOCAL_CHIP_COLORS } from '@/utils/rawData';
-import { useGetLocalDashboardQuery, useGetLocalYearsQuery } from '@/store/services/reservation';
+import { useGetLocalDashboardQuery, useGetLocalYearsQuery, useGetBuildingsQuery } from '@/store/services/reservation';
 import { useInitAccessToken } from '@/contexts/InitContext';
 import type { ChipColor } from '@/utils/rawData';
 import Styles from '@/styles/dashboard/dashboard.module.sass';
@@ -99,6 +99,7 @@ const LocauxDashboardClient: React.FC<SessionProps> = ({ session }) => {
 
 	const currentYear = new Date().getFullYear();
 	const [year, setYear] = useState(currentYear);
+	const [buildingId, setBuildingId] = useState<number | ''>('');
 
 	const { data: yearsData } = useGetLocalYearsQuery(undefined, { skip: !token });
 	const availableYears = useMemo(() => {
@@ -107,7 +108,8 @@ const LocauxDashboardClient: React.FC<SessionProps> = ({ session }) => {
 		return [...yrs].sort((a, b) => b - a);
 	}, [yearsData, currentYear]);
 
-	const { data: dashboardData, isLoading } = useGetLocalDashboardQuery({ year }, { skip: !token });
+	const { data: buildingsData } = useGetBuildingsQuery(undefined, { skip: !token });
+	const { data: dashboardData, isLoading } = useGetLocalDashboardQuery({ year, ...(buildingId ? { building: buildingId } : {}) }, { skip: !token });
 	const locaux = useMemo(() => (dashboardData?.locaux ?? []) as LocalDashboardLocalType[], [dashboardData]);
 
 	return (
@@ -119,16 +121,36 @@ const LocauxDashboardClient: React.FC<SessionProps> = ({ session }) => {
 							<Typography variant="h5" fontWeight={600}>
 								Dashboard des Locaux
 							</Typography>
-							<FormControl size="small" sx={{ minWidth: 120 }}>
-								<InputLabel>Année</InputLabel>
-								<Select value={year} label="Année" onChange={(e) => setYear(Number(e.target.value))}>
-									{availableYears.map((y) => (
-										<MenuItem key={y} value={y}>
-											{y}
-										</MenuItem>
-									))}
-								</Select>
-							</FormControl>
+							<Stack direction="row" spacing={2}>
+								<FormControl size="small" sx={{ minWidth: 160 }}>
+									<InputLabel>Résidence</InputLabel>
+									<Select
+										value={buildingId}
+										label="Résidence"
+										onChange={(e) => {
+											const val = String(e.target.value);
+											setBuildingId(val === '' ? '' : Number(val));
+										}}
+									>
+										<MenuItem value="">Toutes</MenuItem>
+										{(buildingsData ?? []).map((b) => (
+											<MenuItem key={b.id} value={b.id}>
+												{b.nom}
+											</MenuItem>
+										))}
+									</Select>
+								</FormControl>
+								<FormControl size="small" sx={{ minWidth: 120 }}>
+									<InputLabel>Année</InputLabel>
+									<Select value={year} label="Année" onChange={(e) => setYear(Number(e.target.value))}>
+										{availableYears.map((y) => (
+											<MenuItem key={y} value={y}>
+												{y}
+											</MenuItem>
+										))}
+									</Select>
+								</FormControl>
+							</Stack>
 						</Stack>
 
 						{isLoading ? (

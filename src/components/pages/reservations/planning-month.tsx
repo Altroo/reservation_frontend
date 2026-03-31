@@ -7,7 +7,11 @@ import {
 	CardContent,
 	Chip,
 	CircularProgress,
+	FormControl,
 	IconButton,
+	InputLabel,
+	MenuItem,
+	Select,
 	Stack,
 	Tooltip,
 	Typography,
@@ -27,7 +31,7 @@ import type { ReservationListType } from '@/types/reservationTypes';
 import Styles from '@/styles/dashboard/dashboard.module.sass';
 import NavigationBar from '@/components/layouts/navigationBar/navigationBar';
 import { Protected } from '@/components/layouts/protected/protected';
-import { useGetPlanningQuery } from '@/store/services/reservation';
+import { useGetPlanningQuery, useGetBuildingsQuery } from '@/store/services/reservation';
 import { useInitAccessToken } from '@/contexts/InitContext';
 import { formatDate, weekdayIndex } from '@/utils/helpers';
 import { PAYMENT_SOURCE_BG, MONTH_NAMES, DAY_ABBREVIATIONS } from '@/utils/rawData';
@@ -82,6 +86,9 @@ const PlanningMonthClient: React.FC<SessionProps> = ({ session }) => {
 	const now = new Date();
 	const [year, setYear] = useState(now.getFullYear());
 	const [month, setMonth] = useState(now.getMonth() + 1);
+	const [buildingId, setBuildingId] = useState<number | ''>('');
+
+	const { data: buildingsData } = useGetBuildingsQuery(undefined, { skip: !token });
 
 	const prevMonth = () => {
 		if (month === 1) {
@@ -101,7 +108,7 @@ const PlanningMonthClient: React.FC<SessionProps> = ({ session }) => {
 		}
 	};
 
-	const { data, isLoading } = useGetPlanningQuery({ year, month }, { skip: !token });
+	const { data, isLoading } = useGetPlanningQuery({ year, month, ...(buildingId ? { building: buildingId } : {}) }, { skip: !token });
 
 	const lastDay = data?.last_day ?? new Date(year, month, 0).getDate();
 	const dayNumbers = Array.from({ length: lastDay }, (_, i) => i + 1);
@@ -134,7 +141,25 @@ const PlanningMonthClient: React.FC<SessionProps> = ({ session }) => {
 				<Protected permission="can_view">
 					<Box sx={{ px: { xs: 1, sm: 2, md: 3 }, pb: 4 }}>
 						{/* Month navigation */}
-						<Stack direction="row" alignItems="center" justifyContent="center" spacing={2} py={2}>
+						<Stack direction="row" alignItems="center" justifyContent="center" spacing={2} py={2} flexWrap="wrap" gap={1}>
+							<FormControl size="small" sx={{ minWidth: 160 }}>
+								<InputLabel>Résidence</InputLabel>
+								<Select
+									value={buildingId}
+									label="Résidence"
+									onChange={(e) => {
+										const val = String(e.target.value);
+										setBuildingId(val === '' ? '' : Number(val));
+									}}
+								>
+									<MenuItem value="">Toutes</MenuItem>
+									{(buildingsData ?? []).map((b) => (
+										<MenuItem key={b.id} value={b.id}>
+											{b.nom}
+										</MenuItem>
+									))}
+								</Select>
+							</FormControl>
 							<IconButton onClick={prevMonth} size="small">
 								<ChevronLeftIcon />
 							</IconButton>

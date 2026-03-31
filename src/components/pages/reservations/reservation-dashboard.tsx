@@ -41,7 +41,7 @@ import {
 	Filler,
 } from 'chart.js';
 import { Bar, Doughnut, Line } from 'react-chartjs-2';
-import { useGetDashboardStatsQuery, useGetReservationYearsQuery } from '@/store/services/reservation';
+import { useGetDashboardStatsQuery, useGetReservationYearsQuery, useGetBuildingsQuery } from '@/store/services/reservation';
 import { useInitAccessToken } from '@/contexts/InitContext';
 import NavigationBar from '@/components/layouts/navigationBar/navigationBar';
 import { Protected } from '@/components/layouts/protected/protected';
@@ -173,9 +173,14 @@ const ReservationDashboardClient: React.FC<SessionProps> = ({ session }) => {
 	const token = useInitAccessToken(session);
 	const currentYear = new Date().getFullYear();
 	const [year, setYear] = useState<number>(() => new Date().getFullYear());
+	const [buildingId, setBuildingId] = useState<number | ''>('');
 
-	const { data, isLoading } = useGetDashboardStatsQuery({ year }, { skip: !token });
+	const { data, isLoading } = useGetDashboardStatsQuery(
+		{ year, ...(buildingId ? { building: buildingId } : {}) },
+		{ skip: !token },
+	);
 	const { data: yearsData } = useGetReservationYearsQuery(undefined, { skip: !token });
+	const { data: buildingsData } = useGetBuildingsQuery(undefined, { skip: !token });
 
 	const yearOptions = yearsData?.years ?? [currentYear];
 
@@ -275,21 +280,41 @@ const ReservationDashboardClient: React.FC<SessionProps> = ({ session }) => {
 			<NavigationBar title="Tableau de bord">
 				<Protected permission="can_view">
 					<Box sx={{ px: { xs: 1, sm: 2, md: 3 }, pb: 4 }}>
-						{/* Year selector */}
-						<Stack direction="row" justifyContent="space-between" alignItems="center" mb={3}>
+						{/* Year & Building selectors */}
+						<Stack direction="row" justifyContent="space-between" alignItems="center" mb={3} flexWrap="wrap" gap={2}>
 							<Typography variant="h5" fontWeight={600}>
 								Vue d&apos;ensemble {year}
 							</Typography>
-							<FormControl size="small" sx={{ minWidth: 120 }}>
-								<InputLabel>Année</InputLabel>
-								<Select value={year} label="Année" onChange={(e) => setYear(Number(e.target.value))}>
-									{yearOptions.map((y) => (
-										<MenuItem key={y} value={y}>
-											{y}
-										</MenuItem>
-									))}
-								</Select>
-							</FormControl>
+							<Stack direction="row" spacing={2}>
+								<FormControl size="small" sx={{ minWidth: 160 }}>
+									<InputLabel>Résidence</InputLabel>
+									<Select
+										value={buildingId}
+										label="Résidence"
+										onChange={(e) => {
+											const val = String(e.target.value);
+											setBuildingId(val === '' ? '' : Number(val));
+										}}
+									>
+										<MenuItem value="">Toutes</MenuItem>
+										{(buildingsData ?? []).map((b) => (
+											<MenuItem key={b.id} value={b.id}>
+												{b.nom}
+											</MenuItem>
+										))}
+									</Select>
+								</FormControl>
+								<FormControl size="small" sx={{ minWidth: 120 }}>
+									<InputLabel>Année</InputLabel>
+									<Select value={year} label="Année" onChange={(e) => setYear(Number(e.target.value))}>
+										{yearOptions.map((y) => (
+											<MenuItem key={y} value={y}>
+												{y}
+											</MenuItem>
+										))}
+									</Select>
+								</FormControl>
+							</Stack>
 						</Stack>
 
 						{isLoading ? (

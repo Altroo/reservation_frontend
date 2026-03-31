@@ -21,10 +21,23 @@ export class UserClass {
 	) {}
 }
 
+export class BuildingClass {
+	constructor(
+		public readonly id: number,
+		public nom: string,
+		public created_by_user: number | null,
+		public created_by_user_name: string | null,
+		public date_created: string,
+		public date_updated: string,
+	) {}
+}
+
 export class ApartmentClass {
 	constructor(
 		public readonly id: number,
 		public nom: string,
+		public building: number | null,
+		public building_nom: string | null,
 	) {}
 }
 
@@ -53,6 +66,8 @@ export class LocalClass {
 	constructor(
 		public readonly id: number,
 		public nom: string,
+		public building: number | null,
+		public building_nom: string | null,
 		public type_local: string,
 		public adresse: string,
 		public superficie: string | null,

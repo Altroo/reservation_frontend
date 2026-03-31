@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, cleanup, fireEvent, act, waitFor } from '@testing-library/react';
+import { render, screen, cleanup, fireEvent} from '@testing-library/react';
 import '@testing-library/jest-dom';
 
 // Mock next/navigation

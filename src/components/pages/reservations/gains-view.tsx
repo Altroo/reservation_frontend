@@ -103,11 +103,9 @@ const GainsClient: React.FC<SessionProps> = ({ session }) => {
 		[buildingsData],
 	);
 
-	const yearOptions = yearsData?.years ?? [currentYear];
-
 	const yearItems: DropDownType[] = useMemo(
-		() => yearOptions.map((y) => ({ code: String(y), value: String(y) })),
-		[yearOptions],
+		() => (yearsData?.years ?? [currentYear]).map((y) => ({ code: String(y), value: String(y) })),
+		[yearsData?.years, currentYear],
 	);
 
 	const apartments = useMemo(() => data?.apartments ?? {}, [data?.apartments]);

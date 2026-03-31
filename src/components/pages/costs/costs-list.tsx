@@ -38,6 +38,8 @@ import { useInitAccessToken } from '@/contexts/InitContext';
 import type { CostCategoryChipColor } from '@/utils/rawData';
 import { COST_CATEGORY_CHIP_COLORS, costCategoryItemsList } from '@/utils/rawData';
 
+const MONTH_NAMES_FR = ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'];
+
 const CostsListClient: React.FC<SessionProps> = ({ session }) => {
 	const router = useRouter();
 	const { onSuccess, onError } = useToast();
@@ -59,18 +61,15 @@ const CostsListClient: React.FC<SessionProps> = ({ session }) => {
 	const [customFilterParams, setCustomFilterParams] = useState<Record<string, string>>({});
 	const { data: costs, isLoading } = useGetCostsQuery({ year, month }, { skip: !token });
 
-	const yearOptions = costYears?.years ?? [currentYear];
-
 	const yearItems: DropDownType[] = useMemo(
-		() => yearOptions.map((y) => ({ code: String(y), value: String(y) })),
-		[yearOptions],
+		() => (costYears?.years ?? [currentYear]).map((y) => ({ code: String(y), value: String(y) })),
+		[costYears?.years, currentYear],
 	);
 
-	const MONTH_NAMES_FR = ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'];
 	const monthItems: DropDownType[] = useMemo(
 		() => [
 			{ code: 'all', value: 'Tous' },
-			...MONTH_NAMES_FR.map((name, i) => ({ code: String(i + 1), value: name })),
+			...['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'].map((name, i) => ({ code: String(i + 1), value: name })),
 		],
 		[],
 	);

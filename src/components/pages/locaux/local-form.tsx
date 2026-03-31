@@ -86,7 +86,6 @@ import {
 	useGetBuildingsQuery,
 } from '@/store/services/reservation';
 import { useInitAccessToken } from '@/contexts/InitContext';
-import type { DropDownType } from '@/types/accountTypes';
 import Styles from '@/styles/dashboard/dashboard.module.sass';
 
 const inputTheme = textInputTheme();

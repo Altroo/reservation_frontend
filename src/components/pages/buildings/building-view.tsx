@@ -255,7 +255,7 @@ const BuildingViewClient: React.FC<SessionProps & { id: number }> = ({ session, 
 														key={loc.id}
 														disablePadding
 														sx={{ py: 0.5, cursor: 'pointer', '&:hover': { bgcolor: 'action.hover' }, borderRadius: 1 }}
-														onClick={() => router.push(LOCAUX_VIEW(loc.id))}
+														onClick={() => loc.id && router.push(LOCAUX_VIEW(loc.id))}
 													>
 														<ListItemIcon sx={{ minWidth: 36 }}>
 															<BusinessIcon fontSize="small" color="action" />

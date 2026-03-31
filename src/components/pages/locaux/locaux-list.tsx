@@ -30,6 +30,7 @@ import {
 	useGetLocauxListQuery,
 	useDeleteLocalMutation,
 	useBulkDeleteLocauxMutation,
+	useGetBuildingsQuery,
 } from '@/store/services/reservation';
 import { useInitAccessToken } from '@/contexts/InitContext';
 import { TYPE_LOCAL_CHIP_COLORS, typeLocalItemsList } from '@/utils/rawData';
@@ -51,6 +52,7 @@ const LocauxListClient: React.FC<SessionProps> = ({ session }) => {
 
 	const { data: locauxRaw, isLoading } = useGetLocauxListQuery({}, { skip: !token });
 	const locaux = useMemo(() => (Array.isArray(locauxRaw) ? locauxRaw : []) as LocalListType[], [locauxRaw]);
+	const { data: buildingsData } = useGetBuildingsQuery(undefined, { skip: !token });
 
 	const [deleteLocal] = useDeleteLocalMutation();
 	const [bulkDeleteLocaux] = useBulkDeleteLocauxMutation();
@@ -73,6 +75,12 @@ const LocauxListClient: React.FC<SessionProps> = ({ session }) => {
 		if (locationParam) {
 			const isEnLocation = locationParam === 'true';
 			result = result.filter((l) => l.en_location === isEnLocation);
+		}
+
+		const buildingParam = chipFilterParams['building'];
+		if (buildingParam) {
+			const buildingIds = buildingParam.split(',').map(Number);
+			result = result.filter((l) => l.building !== null && buildingIds.includes(l.building));
 		}
 
 		if (searchTerm.trim()) {
@@ -187,8 +195,14 @@ const LocauxListClient: React.FC<SessionProps> = ({ session }) => {
 					{ id: 'false', nom: 'Libre' },
 				],
 			},
+			{
+				key: 'building',
+				label: 'Résidence',
+				paramName: 'building',
+				options: (buildingsData ?? []).map((b) => ({ id: String(b.id), nom: b.nom })),
+			},
 		],
-		[],
+		[buildingsData],
 	);
 
 	const columns: GridColDef[] = [
@@ -201,6 +215,20 @@ const LocauxListClient: React.FC<SessionProps> = ({ session }) => {
 				<DarkTooltip title={params.value ?? ''}>
 					<Typography variant="body2" noWrap>
 						{params.value}
+					</Typography>
+				</DarkTooltip>
+			),
+		},
+		{
+			field: 'building_nom',
+			headerName: 'Résidence',
+			flex: 0.8,
+			minWidth: 120,
+			filterable: false,
+			renderCell: (params: GridRenderCellParams<LocalListType>) => (
+				<DarkTooltip title={params.value ?? ''}>
+					<Typography variant="body2" noWrap>
+						{params.value || '—'}
 					</Typography>
 				</DarkTooltip>
 			),

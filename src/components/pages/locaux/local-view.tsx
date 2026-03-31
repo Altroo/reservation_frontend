@@ -27,6 +27,7 @@ import {
 } from '@mui/material';
 import {
 	ArrowBack as ArrowBackIcon,
+	Apartment as ApartmentIcon,
 	AttachMoney as AttachMoneyIcon,
 	Business as BusinessIcon,
 	CalendarMonth as CalendarMonthIcon,
@@ -217,6 +218,12 @@ const LocalViewClient: React.FC<Props> = ({ session, id }) => {
 													icon={<BusinessIcon />}
 													label="Type"
 													value={<Chip label={local.type_local as string} size="small" color={typeColor} variant="outlined" />}
+												/>
+												<Divider />
+												<InfoRow
+													icon={<ApartmentIcon />}
+													label="Résidence"
+													value={local.building_nom ? <Chip label={local.building_nom} size="small" color="primary" variant="outlined" /> : '—'}
 												/>
 												<Divider />
 												<InfoRow icon={<LocationOnIcon />} label="Adresse" value={local.adresse} />

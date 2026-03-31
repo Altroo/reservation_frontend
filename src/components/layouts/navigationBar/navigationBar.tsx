@@ -100,23 +100,12 @@ const getNavigationMenu = (isStaff: boolean) => {
 				{ title: 'Nouvelle réservation', label: 'Nouvelle réservation', path: RESERVATIONS_ADD },
 			],
 		},
-		analytiques: {
-			title: 'Analytiques',
-			icon: <BarChartIcon />,
+		residences: {
+			title: 'Résidences',
+			icon: <ApartmentIcon />,
 			items: [
-				{ title: 'Planning mensuel', label: 'Planning mensuel', path: PLANNING },
-				{ title: "Taux d'occupation", label: "Taux d'occupation", path: OCCUPANCY },
-				{ title: 'Balance', label: 'Balance', path: BALANCE },
-				{ title: 'Gains & Revenus', label: 'Gains & Revenus', path: GAINS },
-				{ title: 'Calendrier', label: 'Calendrier des réservations', path: CALENDAR },
-			],
-		},
-		couts: {
-			title: 'Coûts',
-			icon: <PaymentsIcon />,
-			items: [
-				{ title: 'Liste des coûts', label: 'Liste des coûts', path: COSTS_LIST },
-				{ title: 'Nouveau coût', label: 'Nouveau coût', path: COSTS_ADD },
+				{ title: 'Liste des résidences', label: 'Liste des résidences', path: BUILDINGS_LIST },
+				{ title: 'Nouvelle résidence', label: 'Ajouter une résidence', path: BUILDINGS_ADD },
 			],
 		},
 		locaux: {
@@ -129,12 +118,23 @@ const getNavigationMenu = (isStaff: boolean) => {
 				{ title: 'Dashboard', label: 'Dashboard des locaux', path: LOCAUX_DASHBOARD },
 			],
 		},
-		residences: {
-			title: 'Résidences',
-			icon: <ApartmentIcon />,
+		couts: {
+			title: 'Coûts',
+			icon: <PaymentsIcon />,
 			items: [
-				{ title: 'Liste des résidences', label: 'Liste des résidences', path: BUILDINGS_LIST },
-				{ title: 'Nouvelle résidence', label: 'Ajouter une résidence', path: BUILDINGS_ADD },
+				{ title: 'Liste des coûts', label: 'Liste des coûts', path: COSTS_LIST },
+				{ title: 'Nouveau coût', label: 'Nouveau coût', path: COSTS_ADD },
+			],
+		},
+		analytiques: {
+			title: 'Analytiques',
+			icon: <BarChartIcon />,
+			items: [
+				{ title: 'Planning mensuel', label: 'Planning mensuel', path: PLANNING },
+				{ title: "Taux d'occupation", label: "Taux d'occupation", path: OCCUPANCY },
+				{ title: 'Balance', label: 'Balance', path: BALANCE },
+				{ title: 'Gains & Revenus', label: 'Gains & Revenus', path: GAINS },
+				{ title: 'Calendrier', label: 'Calendrier des réservations', path: CALENDAR },
 			],
 		},
 		...(isStaff && {

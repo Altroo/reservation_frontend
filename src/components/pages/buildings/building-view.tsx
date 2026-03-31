@@ -1,13 +1,18 @@
 'use client';
 
-import React, { isValidElement, useState } from 'react';
+import React, { isValidElement, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
 	Box,
 	Button,
 	Card,
 	CardContent,
+	Chip,
 	Divider,
+	List,
+	ListItem,
+	ListItemIcon,
+	ListItemText,
 	Stack,
 	Typography,
 	useMediaQuery,
@@ -16,10 +21,12 @@ import {
 import {
 	Apartment as ApartmentIcon,
 	ArrowBack as ArrowBackIcon,
+	Business as BusinessIcon,
 	CalendarToday as CalendarTodayIcon,
 	Close as CloseIcon,
 	Delete as DeleteIcon,
 	Edit as EditIcon,
+	Hotel as HotelIcon,
 	Person as PersonIcon,
 } from '@mui/icons-material';
 import type { SessionProps } from '@/types/_initTypes';
@@ -29,11 +36,13 @@ import ApiProgress from '@/components/formikElements/apiLoading/apiProgress/apiP
 import ApiAlert from '@/components/formikElements/apiLoading/apiAlert/apiAlert';
 import ActionModals from '@/components/htmlElements/modals/actionModal/actionModals';
 import { extractApiErrorMessage, formatDate } from '@/utils/helpers';
-import { BUILDINGS_EDIT, BUILDINGS_LIST } from '@/utils/routes';
+import { BUILDINGS_EDIT, BUILDINGS_LIST, LOCAUX_VIEW } from '@/utils/routes';
 import { useToast } from '@/utils/hooks';
 import {
 	useGetBuildingQuery,
 	useDeleteBuildingMutation,
+	useGetApartmentsQuery,
+	useGetLocauxListQuery,
 } from '@/store/services/reservation';
 import { useInitAccessToken } from '@/contexts/InitContext';
 import Styles from '@/styles/dashboard/dashboard.module.sass';
@@ -79,6 +88,17 @@ const BuildingViewClient: React.FC<SessionProps & { id: number }> = ({ session, 
 
 	const { data: building, isLoading, isError } = useGetBuildingQuery({ id }, { skip: !token });
 	const [deleteBuilding] = useDeleteBuildingMutation();
+	const { data: apartmentsRaw } = useGetApartmentsQuery(undefined, { skip: !token });
+	const { data: locauxRaw } = useGetLocauxListQuery({}, { skip: !token });
+
+	const buildingApartments = useMemo(
+		() => (Array.isArray(apartmentsRaw) ? apartmentsRaw : []).filter((a) => a.building === id),
+		[apartmentsRaw, id],
+	);
+	const buildingLocaux = useMemo(
+		() => (Array.isArray(locauxRaw) ? locauxRaw : []).filter((l) => l.building === id),
+		[locauxRaw, id],
+	);
 
 	const [showDeleteModal, setShowDeleteModal] = useState(false);
 
@@ -180,6 +200,74 @@ const BuildingViewClient: React.FC<SessionProps & { id: number }> = ({ session, 
 										<InfoRow icon={<PersonIcon />} label="Créé par" value={building.created_by_user_name} />
 										<InfoRow icon={<CalendarTodayIcon />} label="Date de création" value={formatDate(building.date_created)} />
 										<InfoRow icon={<CalendarTodayIcon />} label="Dernière modification" value={formatDate(building.date_updated)} />
+									</CardContent>
+								</Card>
+
+								{/* Apartments */}
+								<Card elevation={2} sx={{ borderRadius: 2 }}>
+									<CardContent sx={{ p: 3 }}>
+										<Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 2 }}>
+											<HotelIcon color="primary" />
+											<Typography variant="h6" fontWeight={700}>
+												Appartements
+											</Typography>
+											<Chip label={buildingApartments.length} size="small" color="primary" />
+										</Stack>
+										<Divider sx={{ mb: 1 }} />
+										{buildingApartments.length === 0 ? (
+											<Typography color="text.secondary" sx={{ py: 2, textAlign: 'center' }}>
+												Aucun appartement rattaché à cette résidence.
+											</Typography>
+										) : (
+											<List dense disablePadding>
+												{buildingApartments.map((apt) => (
+													<ListItem key={apt.id} disablePadding sx={{ py: 0.5 }}>
+														<ListItemIcon sx={{ minWidth: 36 }}>
+															<HotelIcon fontSize="small" color="action" />
+														</ListItemIcon>
+														<ListItemText primary={apt.nom} />
+													</ListItem>
+												))}
+											</List>
+										)}
+									</CardContent>
+								</Card>
+
+								{/* Locaux */}
+								<Card elevation={2} sx={{ borderRadius: 2 }}>
+									<CardContent sx={{ p: 3 }}>
+										<Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 2 }}>
+											<BusinessIcon color="primary" />
+											<Typography variant="h6" fontWeight={700}>
+												Locaux
+											</Typography>
+											<Chip label={buildingLocaux.length} size="small" color="primary" />
+										</Stack>
+										<Divider sx={{ mb: 1 }} />
+										{buildingLocaux.length === 0 ? (
+											<Typography color="text.secondary" sx={{ py: 2, textAlign: 'center' }}>
+												Aucun local rattaché à cette résidence.
+											</Typography>
+										) : (
+											<List dense disablePadding>
+												{buildingLocaux.map((loc) => (
+													<ListItem
+														key={loc.id}
+														disablePadding
+														sx={{ py: 0.5, cursor: 'pointer', '&:hover': { bgcolor: 'action.hover' }, borderRadius: 1 }}
+														onClick={() => router.push(LOCAUX_VIEW(loc.id))}
+													>
+														<ListItemIcon sx={{ minWidth: 36 }}>
+															<BusinessIcon fontSize="small" color="action" />
+														</ListItemIcon>
+														<ListItemText
+															primary={loc.nom}
+															secondary={loc.type_local}
+														/>
+													</ListItem>
+												))}
+											</List>
+										)}
 									</CardContent>
 								</Card>
 							</>

@@ -37,6 +37,7 @@ jest.mock('@/store/services/reservation', () => ({
 	useGetLocauxListQuery: (params: unknown, options: unknown) => mockUseGetLocauxListQuery(params, options),
 	useDeleteLocalMutation: () => [mockDeleteLocal, { isLoading: false }],
 	useBulkDeleteLocauxMutation: () => [mockBulkDeleteLocaux, { isLoading: false }],
+	useGetBuildingsQuery: () => ({ data: [{ id: 1, nom: 'Résidence A' }], isLoading: false }),
 }));
 
 // Mock PaginatedDataGrid

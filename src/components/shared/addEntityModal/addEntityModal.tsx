@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Modal, Box, Typography, Button, FormControl, InputLabel, Select, MenuItem } from '@mui/material';
 import CustomTextInput from '@/components/formikElements/customTextInput/customTextInput';
 import type { ApiErrorResponseType } from '@/types/_initTypes';
@@ -19,6 +19,14 @@ const AddEntityModal: React.FC<AddEntityModalProps> = ({ open, setOpen, label, i
 	const [newName, setNewName] = useState('');
 	const [selectedBuilding, setSelectedBuilding] = useState<number | ''>('');
 	const [error, setError] = useState<string | null>(null);
+
+	useEffect(() => {
+		if (!open) {
+			setNewName('');
+			setSelectedBuilding('');
+			setError(null);
+		}
+	}, [open]);
 
 	return (
 		<Modal 

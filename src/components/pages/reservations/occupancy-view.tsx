@@ -40,7 +40,7 @@ import type { ReservationListType } from '@/types/reservationTypes';
 import Styles from '@/styles/dashboard/dashboard.module.sass';
 import NavigationBar from '@/components/layouts/navigationBar/navigationBar';
 import { Protected } from '@/components/layouts/protected/protected';
-import { useGetDashboardStatsQuery, useGetPlanningQuery, useGetReservationYearsQuery } from '@/store/services/reservation';
+import { useGetDashboardStatsQuery, useGetPlanningQuery, useGetReservationYearsQuery, useGetBuildingsQuery } from '@/store/services/reservation';
 import { useInitAccessToken } from '@/contexts/InitContext';
 import { formatDate } from '@/utils/helpers';
 import { APARTMENT_COLORS, PAYMENT_SOURCE_BG, MONTH_NAMES, CHART_OPTS } from '@/utils/rawData';
@@ -110,13 +110,15 @@ const OccupancyClient: React.FC<SessionProps> = ({ session }) => {
 	const currentYear = new Date().getFullYear();
 	const [year, setYear] = useState(currentYear);
 	const [heatmapMonth, setHeatmapMonth] = useState(new Date().getMonth() + 1);
+	const [buildingId, setBuildingId] = useState<number | ''>('');
 
-	const { data, isLoading } = useGetDashboardStatsQuery({ year }, { skip: !token });
+	const { data, isLoading } = useGetDashboardStatsQuery({ year, ...(buildingId ? { building: buildingId } : {}) }, { skip: !token });
 	const { data: planningData, isFetching: planningLoading } = useGetPlanningQuery(
-		{ year, month: heatmapMonth },
+		{ year, month: heatmapMonth, ...(buildingId ? { building: buildingId } : {}) },
 		{ skip: !token },
 	);
 	const { data: yearsData } = useGetReservationYearsQuery(undefined, { skip: !token });
+	const { data: buildingsData } = useGetBuildingsQuery(undefined, { skip: !token });
 
 	const yearOptions = yearsData?.years ?? [currentYear];
 
@@ -206,16 +208,31 @@ const OccupancyClient: React.FC<SessionProps> = ({ session }) => {
 							<Typography variant="h5" fontWeight={600}>
 								Taux d&apos;occupation {year}
 							</Typography>
-							<FormControl size="small" sx={{ minWidth: 120 }}>
-								<InputLabel>Année</InputLabel>
-								<Select value={year} label="Année" onChange={(e) => setYear(Number(e.target.value))}>
-									{yearOptions.map((y) => (
-										<MenuItem key={y} value={y}>
-											{y}
-										</MenuItem>
-									))}
-								</Select>
-							</FormControl>
+							<Stack direction="row" spacing={1}>
+								<FormControl size="small" sx={{ minWidth: 160 }}>
+									<InputLabel>Résidence</InputLabel>
+									<Select
+										value={buildingId}
+										label="Résidence"
+										onChange={(e) => setBuildingId(e.target.value as number | '')}
+									>
+										<MenuItem value="">Toutes</MenuItem>
+										{(buildingsData ?? []).map((b) => (
+											<MenuItem key={b.id} value={b.id}>{b.nom}</MenuItem>
+										))}
+									</Select>
+								</FormControl>
+								<FormControl size="small" sx={{ minWidth: 120 }}>
+									<InputLabel>Année</InputLabel>
+									<Select value={year} label="Année" onChange={(e) => setYear(Number(e.target.value))}>
+										{yearOptions.map((y) => (
+											<MenuItem key={y} value={y}>
+												{y}
+											</MenuItem>
+										))}
+									</Select>
+								</FormControl>
+							</Stack>
 						</Stack>
 
 						{isLoading ? (

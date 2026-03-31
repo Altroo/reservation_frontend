@@ -46,6 +46,8 @@ export class ReservationClass {
 		public readonly id: number,
 		public apartment: number,
 		public apartment_nom: string,
+		public apartment_building: number | null,
+		public apartment_building_nom: string | null,
 		public guest_name: string,
 		public check_in: string,
 		public check_out: string,

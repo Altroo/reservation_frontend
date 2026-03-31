@@ -9,9 +9,12 @@ import {
 	CardContent,
 	Chip,
 	Divider,
+	FormControl,
 	IconButton,
+	InputLabel,
 	Menu,
 	MenuItem,
+	Select,
 	Stack,
 	Tooltip,
 	Typography,
@@ -29,7 +32,7 @@ import type { ReservationListType } from '@/types/reservationTypes';
 import NavigationBar from '@/components/layouts/navigationBar/navigationBar';
 import ApiProgress from '@/components/formikElements/apiLoading/apiProgress/apiProgress';
 import { Protected } from '@/components/layouts/protected/protected';
-import { useGetPlanningQuery } from '@/store/services/reservation';
+import { useGetPlanningQuery, useGetBuildingsQuery } from '@/store/services/reservation';
 import { useInitAccessToken } from '@/contexts/InitContext';
 import { RESERVATIONS_VIEW } from '@/utils/routes';
 import { weekdayIndex } from '@/utils/helpers';
@@ -89,6 +92,7 @@ const CalendarContent: React.FC<CalendarContentProps> = ({ token }) => {
 	const now = new Date();
 	const [year, setYear] = useState(now.getFullYear());
 	const [month, setMonth] = useState(now.getMonth() + 1); // 1-based
+	const [buildingId, setBuildingId] = useState<number | ''>('');
 
 	// Dialog state for create/edit
 	const [dialogOpen, setDialogOpen] = useState(false);
@@ -100,7 +104,8 @@ const CalendarContent: React.FC<CalendarContentProps> = ({ token }) => {
 	const [menuAnchor, setMenuAnchor] = useState<null | HTMLElement>(null);
 	const [menuReservation, setMenuReservation] = useState<ReservationListType | null>(null);
 
-	const { data: planning, isLoading, refetch } = useGetPlanningQuery({ year, month }, { skip: !token });
+	const { data: planning, isLoading, refetch } = useGetPlanningQuery({ year, month, ...(buildingId ? { building: buildingId } : {}) }, { skip: !token });
+	const { data: buildingsData } = useGetBuildingsQuery(undefined, { skip: !token });
 
 	const lastDay = planning?.last_day ?? new Date(year, month, 0).getDate();
 	const firstWeekday = weekdayIndex(`${year}-${String(month).padStart(2, '0')}-01`);
@@ -197,6 +202,19 @@ const CalendarContent: React.FC<CalendarContentProps> = ({ token }) => {
 								</Typography>
 							</Stack>
 							<Stack direction="row" spacing={1} alignItems="center">
+								<FormControl size="small" sx={{ minWidth: 160 }}>
+									<InputLabel>Résidence</InputLabel>
+									<Select
+										value={buildingId}
+										label="Résidence"
+										onChange={(e) => setBuildingId(e.target.value as number | '')}
+									>
+										<MenuItem value="">Toutes</MenuItem>
+										{(buildingsData ?? []).map((b) => (
+											<MenuItem key={b.id} value={b.id}>{b.nom}</MenuItem>
+										))}
+									</Select>
+								</FormControl>
 								<Button
 									size="small"
 									variant="contained"

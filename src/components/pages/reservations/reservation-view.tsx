@@ -22,6 +22,7 @@ import {
 } from '@mui/material';
 import {
 	ArrowBack as ArrowBackIcon,
+	Apartment as ApartmentIcon,
 	AttachMoney as MoneyIcon,
 	CalendarMonth as CalendarIcon,
 	CreditCard as CreditCardIcon,
@@ -205,6 +206,15 @@ const ReservationViewClient: React.FC<Props> = ({ session, id }) => {
 													Réservation #{reservation.id}
 												</Typography>
 												<Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap">
+													{reservation.apartment_building_nom && (
+														<Chip
+															icon={<ApartmentIcon />}
+															label={reservation.apartment_building_nom}
+															size="small"
+															color="primary"
+															variant="outlined"
+														/>
+													)}
 													<Chip
 														icon={<HotelIcon />}
 														label={reservation.apartment_nom}
@@ -234,6 +244,12 @@ const ReservationViewClient: React.FC<Props> = ({ session, id }) => {
 										<Divider sx={{ mb: { xs: 1.5, md: 2 } }} />
 										<Stack spacing={0}>
 											<InfoRow icon={<PersonIcon />} label="Client" value={reservation.guest_name} />
+											<Divider />
+											<InfoRow
+												icon={<ApartmentIcon />}
+												label="Résidence"
+												value={reservation.apartment_building_nom ? <Chip label={reservation.apartment_building_nom} size="small" color="primary" variant="outlined" /> : '—'}
+											/>
 											<Divider />
 											<InfoRow
 												icon={<HotelIcon />}

@@ -150,6 +150,8 @@ const mockSession: AppSession = {
 const mockLocal = {
 	id: 5,
 	nom: 'Bureau Centre',
+	building: 1,
+	building_nom: 'Résidence A',
 	type_local: 'Bureau',
 	adresse: '10 Rue Example',
 	superficie: '120',

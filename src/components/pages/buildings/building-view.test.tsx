@@ -34,12 +34,15 @@ const mockUseGetBuildingQuery = jest.fn();
 jest.mock('@/store/services/reservation', () => ({
 	useGetBuildingQuery: (params: unknown, options: unknown) => mockUseGetBuildingQuery(params, options),
 	useDeleteBuildingMutation: () => [mockDeleteBuilding, { isLoading: false }],
+	useGetApartmentsQuery: () => ({ data: [{ id: 1, nom: 'Apt 1', building: 1 }, { id: 2, nom: 'Apt 2', building: 2 }], isLoading: false }),
+	useGetLocauxListQuery: () => ({ data: [{ id: 10, nom: 'Bureau Centre', building: 1, type_local: 'Bureau' }], isLoading: false }),
 }));
 
 // Mock routes
 jest.mock('@/utils/routes', () => ({
 	BUILDINGS_LIST: '/dashboard/buildings',
 	BUILDINGS_EDIT: (id: number) => `/dashboard/buildings/${id}/edit`,
+	LOCAUX_VIEW: (id: number) => `/dashboard/locaux/${id}`,
 }));
 
 // Mock Protected

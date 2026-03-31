@@ -126,7 +126,7 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 	const [openApartmentModal, setOpenApartmentModal] = useState(false);
 
 	const apartmentItems: DropDownType[] = useMemo(
-		() => (apartments ?? []).map((a) => ({ code: a.nom, value: String(a.id) })),
+		() => (apartments ?? []).map((a) => ({ code: a.building_nom ? `${a.nom} - ${a.building_nom}` : a.nom, value: String(a.id) })),
 		[apartments],
 	);
 

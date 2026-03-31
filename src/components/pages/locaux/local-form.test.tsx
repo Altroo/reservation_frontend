@@ -35,6 +35,9 @@ const mockToggleLoyerPaid = jest.fn(() => ({ unwrap: () => Promise.resolve() }))
 const mockCreateLoyer = jest.fn(() => ({ unwrap: () => Promise.resolve() }));
 const mockUpdateLoyer = jest.fn(() => ({ unwrap: () => Promise.resolve() }));
 const mockUseGetLoyersListQuery = jest.fn();
+const mockCreateBuilding = jest.fn(() => ({ unwrap: () => Promise.resolve({ id: 2, nom: 'New Building' }) }));
+const mockUpdateBuilding = jest.fn(() => ({ unwrap: () => Promise.resolve() }));
+const mockDeleteBuilding = jest.fn(() => ({ unwrap: () => Promise.resolve() }));
 
 jest.mock('@/store/services/reservation', () => ({
 	__esModule: true,
@@ -48,6 +51,9 @@ jest.mock('@/store/services/reservation', () => ({
 	useDeleteLoyerMutation: () => [mockDeleteLoyer, { isLoading: false }],
 	useToggleLoyerPaidMutation: () => [mockToggleLoyerPaid, { isLoading: false }],
 	useGetBuildingsQuery: () => ({ data: [{ id: 1, nom: 'Building A' }], isLoading: false }),
+	useCreateBuildingMutation: () => [mockCreateBuilding, { isLoading: false }],
+	useUpdateBuildingMutation: () => [mockUpdateBuilding, { isLoading: false }],
+	useDeleteBuildingMutation: () => [mockDeleteBuilding, { isLoading: false }],
 }));
 
 // Mock form sub-components

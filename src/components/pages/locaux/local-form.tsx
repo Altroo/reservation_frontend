@@ -64,9 +64,8 @@ import CustomAutoCompleteSelect from '@/components/formikElements/customAutoComp
 import PrimaryLoadingButton from '@/components/htmlElements/buttons/primaryLoadingButton/primaryLoadingButton';
 import ApiProgress from '@/components/formikElements/apiLoading/apiProgress/apiProgress';
 import ActionModals from '@/components/htmlElements/modals/actionModal/actionModals';
+import AddEntityModal from '@/components/shared/addEntityModal/addEntityModal';
 import { textInputTheme } from '@/utils/themes';
-import { customDropdownTheme } from '@/utils/themes';
-import CustomDropDownSelect from '@/components/formikElements/customDropDownSelect/customDropDownSelect';
 import type { DropDownType } from '@/types/accountTypes';
 import { localSchema, loyerSchema } from '@/utils/formValidationSchemas';
 import { typeLocalItemsList, LOCAL_FIELD_LABELS } from '@/utils/rawData';
@@ -84,6 +83,9 @@ import {
 	useDeleteLoyerMutation,
 	useToggleLoyerPaidMutation,
 	useGetBuildingsQuery,
+	useCreateBuildingMutation,
+	useUpdateBuildingMutation,
+	useDeleteBuildingMutation,
 } from '@/store/services/reservation';
 import { useInitAccessToken } from '@/contexts/InitContext';
 import Styles from '@/styles/dashboard/dashboard.module.sass';
@@ -110,7 +112,19 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 	const [createLocal, { isLoading: isCreateLoading }] = useCreateLocalMutation();
 	const [updateLocal, { isLoading: isUpdateLoading }] = useUpdateLocalMutation();
 	const { data: buildingsData } = useGetBuildingsQuery(undefined, { skip: !token });
+	const [createBuilding] = useCreateBuildingMutation();
+	const [updateBuilding] = useUpdateBuildingMutation();
+	const [deleteBuilding] = useDeleteBuildingMutation();
 	const [isPending, setIsPending] = useState(false);
+
+	// Building add/edit/delete state
+	const [openBuildingModal, setOpenBuildingModal] = useState(false);
+	const [editBuildingId, setEditBuildingId] = useState<number | null>(null);
+	const [editBuildingName, setEditBuildingName] = useState('');
+	const [editBuildingError, setEditBuildingError] = useState<string | null>(null);
+	const [deleteBuildingId, setDeleteBuildingId] = useState<number | null>(null);
+	const [deleteBuildingName, setDeleteBuildingName] = useState('');
+	const [buildingActionLoading, setBuildingActionLoading] = useState(false);
 
 	// Loyer management (edit mode only)
 	const currentYear = new Date().getFullYear();
@@ -182,6 +196,56 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 	});
 
 	const selectedType = typeItems.find((t) => t.value === formik.values.type_local) ?? null;
+
+	const buildingItems: DropDownType[] = useMemo(
+		() => (buildingsData ?? []).map((b) => ({ code: b.nom, value: String(b.id) })),
+		[buildingsData],
+	);
+	const selectedBuilding = buildingItems.find((b) => b.value === String(formik.values.building)) ?? null;
+
+	// Building handlers
+	const handleEditBuildingOpen = (bId: number, bName: string) => {
+		setEditBuildingId(bId);
+		setEditBuildingName(bName);
+		setEditBuildingError(null);
+	};
+
+	const handleEditBuildingSubmit = async () => {
+		if (!editBuildingId || !editBuildingName.trim()) return;
+		setBuildingActionLoading(true);
+		try {
+			await updateBuilding({ id: editBuildingId, data: { nom: editBuildingName.trim() } }).unwrap();
+			onSuccess('La résidence a été modifiée avec succès.');
+			setEditBuildingId(null);
+		} catch (e) {
+			setEditBuildingError(extractApiErrorMessage(e, 'Échec de la modification de la résidence.'));
+		} finally {
+			setBuildingActionLoading(false);
+		}
+	};
+
+	const handleDeleteBuildingOpen = (bId: number, bName: string) => {
+		setDeleteBuildingId(bId);
+		setDeleteBuildingName(bName);
+	};
+
+	const handleDeleteBuildingConfirm = async () => {
+		if (!deleteBuildingId) return;
+		setBuildingActionLoading(true);
+		try {
+			await deleteBuilding({ id: deleteBuildingId }).unwrap();
+			onSuccess('La résidence a été supprimée avec succès.');
+			if (formik.values.building === deleteBuildingId) {
+				await formik.setFieldValue('building', '');
+			}
+			setDeleteBuildingId(null);
+		} catch (e) {
+			onError(extractApiErrorMessage(e, 'Impossible de supprimer cette résidence.'));
+			setDeleteBuildingId(null);
+		} finally {
+			setBuildingActionLoading(false);
+		}
+	};
 
 	const validationEntries = Object.entries(formik.errors).filter(([k]) => k !== 'globalError') as [string, string][];
 	const hasValidationErrors = validationEntries.length > 0;
@@ -314,28 +378,51 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 											startIcon={<BusinessIcon fontSize="small" />}
 										/>
 									</Stack>
-									{buildingsData && buildingsData.length > 0 && (
-									<CustomDropDownSelect
+									<CustomAutoCompleteSelect
 										id="building"
 										size="small"
+										noOptionsText="Aucune résidence trouvée"
 										label="Résidence"
-										items={[
-											{ code: 'none', value: 'Aucune' },
-											...buildingsData.map((b) => ({ code: String(b.id), value: b.nom })),
-										] as DropDownType[]}
-										value={!formik.values.building ? 'Aucune' : (buildingsData.find((b) => b.id === formik.values.building)?.nom ?? 'Aucune')}
-										onChange={(e) => {
-											const val = e.target.value;
-											if (!val || val === 'Aucune') formik.setFieldValue('building', '');
-											else {
-												const b = buildingsData.find((x) => x.nom === val);
-												formik.setFieldValue('building', b ? b.id : '');
-											}
+										items={buildingItems}
+										theme={inputTheme}
+										value={selectedBuilding}
+										fullWidth
+										onChange={(_, newVal) => {
+											formik.setFieldValue('building', newVal ? Number(newVal.value) : '');
 										}}
-										theme={customDropdownTheme()}
+										onBlur={formik.handleBlur('building')}
 										startIcon={<ApartmentIcon fontSize="small" />}
+										endIcon={
+											<Stack direction="row" spacing={0.5} alignItems="center" sx={{ ml: 1 }}>
+												{selectedBuilding && (
+													<>
+														<IconButton
+															size="small"
+															onClick={() => handleEditBuildingOpen(Number(selectedBuilding.value), selectedBuilding.code)}
+															title="Renommer"
+														>
+															<EditIcon fontSize="small" />
+														</IconButton>
+														<IconButton
+															size="small"
+															onClick={() => handleDeleteBuildingOpen(Number(selectedBuilding.value), selectedBuilding.code)}
+															title="Supprimer"
+															color="error"
+														>
+															<DeleteIcon fontSize="small" />
+														</IconButton>
+													</>
+												)}
+												<Button
+													size="small"
+													variant="outlined"
+													onClick={() => setOpenBuildingModal(true)}
+												>
+													Ajouter
+												</Button>
+											</Stack>
+										}
 									/>
-									)}
 									<CustomTextInput
 										theme={inputTheme}
 										id="adresse"
@@ -636,6 +723,59 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 						year={loyerYear}
 						loyer={editingLoyer}
 						onClose={() => setShowLoyerDialog(false)}
+					/>
+				)}
+
+				{/* Building (résidence) modals */}
+				<AddEntityModal
+					open={openBuildingModal}
+					setOpen={setOpenBuildingModal}
+					label="résidence"
+					icon={<ApartmentIcon fontSize="small" />}
+					inputTheme={inputTheme}
+					mutationFn={(args) => createBuilding({ nom: args.data.nom })}
+					onSuccess={(newId) => {
+						formik.setFieldValue('building', newId);
+					}}
+				/>
+
+				<Dialog open={editBuildingId !== null} onClose={() => setEditBuildingId(null)}>
+					<DialogTitle>Modifier la résidence</DialogTitle>
+					<DialogContent>
+						<CustomTextInput
+							id="edit-building-name"
+							type="text"
+							size="small"
+							label="Nouveau nom"
+							theme={inputTheme}
+							fullWidth
+							value={editBuildingName}
+							onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+								setEditBuildingName(e.target.value);
+								if (editBuildingError) setEditBuildingError(null);
+							}}
+							error={Boolean(editBuildingError)}
+							helperText={editBuildingError ?? ''}
+							startIcon={<ApartmentIcon fontSize="small" />}
+						/>
+					</DialogContent>
+					<DialogActions>
+						<Button onClick={() => setEditBuildingId(null)}>Annuler</Button>
+						<Button onClick={handleEditBuildingSubmit} variant="contained" disabled={buildingActionLoading || !editBuildingName.trim()}>
+							Enregistrer
+						</Button>
+					</DialogActions>
+				</Dialog>
+
+				{deleteBuildingId !== null && (
+					<ActionModals
+						title="Supprimer la résidence"
+						body={`Êtes-vous sûr de vouloir supprimer la résidence "${deleteBuildingName}" ? Cette action est irréversible.`}
+						actions={[
+							{ text: 'Annuler', active: false, onClick: () => setDeleteBuildingId(null), icon: <CloseIcon />, color: '#6B6B6B' },
+							{ text: 'Supprimer', active: true, onClick: handleDeleteBuildingConfirm, icon: <DeleteIcon />, color: '#D32F2F', disabled: buildingActionLoading },
+						]}
+						onClose={() => setDeleteBuildingId(null)}
 					/>
 				)}
 			</Stack>

@@ -1,6 +1,10 @@
-import React, { useState } from 'react';
-import { Modal, Box, Typography, Button, FormControl, InputLabel, Select, MenuItem } from '@mui/material';
+import React, { useMemo, useState } from 'react';
+import { Modal, Box, Typography, Button } from '@mui/material';
+import ApartmentIcon from '@mui/icons-material/Apartment';
 import CustomTextInput from '@/components/formikElements/customTextInput/customTextInput';
+import CustomDropDownSelect from '@/components/formikElements/customDropDownSelect/customDropDownSelect';
+import { customDropdownTheme } from '@/utils/themes';
+import type { DropDownType } from '@/types/accountTypes';
 import type { ApiErrorResponseType } from '@/types/_initTypes';
 import type { Theme } from '@mui/material/styles';
 
@@ -20,6 +24,14 @@ const AddEntityModal: React.FC<AddEntityModalProps> = ({ open, setOpen, label, i
 	const [selectedBuilding, setSelectedBuilding] = useState<number | ''>('');
 	const [error, setError] = useState<string | null>(null);
 	const [prevOpen, setPrevOpen] = useState(false);
+
+	const buildingItems: DropDownType[] = useMemo(
+		() => [
+			{ code: 'none', value: 'Aucune' },
+			...(buildings ?? []).map((b) => ({ code: String(b.id), value: b.nom })),
+		],
+		[buildings],
+	);
 
 	if (prevOpen !== open) {
 		setPrevOpen(open);
@@ -72,22 +84,25 @@ const AddEntityModal: React.FC<AddEntityModalProps> = ({ open, setOpen, label, i
 				/>
 
 				{buildings && buildings.length > 0 && (
-					<FormControl fullWidth size="small" sx={{ mt: 2 }}>
-						<InputLabel id={`building-select-label-${label}`}>Résidence</InputLabel>
-						<Select
-							labelId={`building-select-label-${label}`}
-							value={selectedBuilding}
+					<Box sx={{ mt: 2 }}>
+						<CustomDropDownSelect
+							id={`building-select-${label}`}
+							size="small"
 							label="Résidence"
-							onChange={(e) => setSelectedBuilding(e.target.value as number | '')}
-						>
-							<MenuItem value="">
-								<em>Aucune</em>
-							</MenuItem>
-							{buildings.map((b) => (
-								<MenuItem key={b.id} value={b.id}>{b.nom}</MenuItem>
-							))}
-						</Select>
-					</FormControl>
+							items={buildingItems}
+							value={selectedBuilding === '' ? 'Aucune' : (buildings.find((b) => b.id === selectedBuilding)?.nom ?? 'Aucune')}
+							onChange={(e) => {
+								const val = e.target.value;
+								if (!val || val === 'Aucune') setSelectedBuilding('');
+								else {
+									const b = buildings.find((x) => x.nom === val);
+									setSelectedBuilding(b ? b.id : '');
+								}
+							}}
+							theme={customDropdownTheme()}
+							startIcon={<ApartmentIcon />}
+						/>
+					</Box>
 				)}
 
 				<Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2, gap: 1 }}>

@@ -93,15 +93,22 @@ jest.mock('@/components/layouts/navigationBar/navigationBar', () => {
 	return { __esModule: true, default: Mock };
 });
 
-jest.mock('@/utils/themes', () => ({
-	textInputTheme: jest.fn(() => ({})),
-}));
+jest.mock('@/utils/themes', () => {
+	// eslint-disable-next-line @typescript-eslint/no-require-imports
+	const { createTheme } = require('@mui/material/styles');
+	const defaultTheme = createTheme();
+	return {
+		textInputTheme: jest.fn(() => defaultTheme),
+		customDropdownTheme: jest.fn(() => defaultTheme),
+	};
+});
 
 jest.mock('@/utils/helpers', () => ({
 	getLabelForKey: jest.fn((_labels: unknown, key: string) => key),
 	setFormikAutoErrors: jest.fn(),
 	extractApiErrorMessage: (_error: unknown, fallback: string) => fallback,
 	formatDate: (date: string | null) => (date ? new Date(date).toLocaleDateString('fr-FR') : '—'),
+	hexToRGB: (hex: string, alpha?: number) => (alpha !== undefined ? `rgba(0,0,0,${alpha})` : 'rgb(0,0,0)'),
 }));
 
 jest.mock('@/utils/rawData', () => ({

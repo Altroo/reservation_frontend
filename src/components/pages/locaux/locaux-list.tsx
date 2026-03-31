@@ -366,7 +366,7 @@ const LocauxListClient: React.FC<SessionProps> = ({ session }) => {
 			mt="48px"
 			sx={{ overflowX: 'auto', overflowY: 'hidden' }}
 		>
-			<NavigationBar title="Gestion des Locaux">
+			<NavigationBar title="Liste des locaux">
 				<Protected permission="can_view">
 					<>
 						<Box

@@ -7,11 +7,7 @@ import {
 	Card,
 	CardContent,
 	Chip,
-	FormControl,
 	IconButton,
-	InputLabel,
-	MenuItem,
-	Select,
 	Stack,
 	Table,
 	TableBody,
@@ -27,6 +23,7 @@ import {
 import {
 	AttachMoney as AttachMoneyIcon,
 	Business as BusinessIcon,
+	CalendarToday as CalendarTodayIcon,
 	Home as HomeIcon,
 	HomeWork as HomeWorkIcon,
 	InfoOutlined as InfoIcon,
@@ -118,17 +115,23 @@ const LocauxDashboardClient: React.FC<SessionProps> = ({ session }) => {
 		() => [{ code: 'Toutes', value: 'Toutes' }, ...(buildingsData ?? []).map((b) => ({ code: b.nom, value: b.nom }))],
 		[buildingsData],
 	);
+
+	const yearItems: DropDownType[] = useMemo(
+		() => availableYears.map((y) => ({ code: String(y), value: String(y) })),
+		[availableYears],
+	);
+
 	const { data: dashboardData, isLoading } = useGetLocalDashboardQuery({ year, ...(buildingId ? { building: buildingId } : {}) }, { skip: !token });
 	const locaux = useMemo(() => (dashboardData?.locaux ?? []) as LocalDashboardLocalType[], [dashboardData]);
 
 	return (
 		<Stack direction="column" spacing={2} className={Styles.flexRootStack} mt="48px" sx={{ overflowX: 'auto', overflowY: 'hidden' }}>
-			<NavigationBar title="Dashboard des Locaux">
+			<NavigationBar title="Dashboard des locaux">
 				<Protected permission="can_view">
 					<Stack spacing={3} sx={{ p: { xs: 2, md: 3 } }}>
 						<Stack direction="row" justifyContent="space-between" alignItems="center" flexWrap="wrap" gap={1}>
 							<Typography variant="h5" fontWeight={600}>
-								Dashboard des Locaux
+								Dashboard des locaux
 							</Typography>
 							<Stack direction="row" spacing={2}>
 							<Box sx={{ minWidth: 180 }}>
@@ -150,16 +153,18 @@ const LocauxDashboardClient: React.FC<SessionProps> = ({ session }) => {
 									startIcon={<ApartmentIcon />}
 								/>
 							</Box>
-								<FormControl size="small" sx={{ minWidth: 120 }}>
-									<InputLabel>Année</InputLabel>
-									<Select value={year} label="Année" onChange={(e) => setYear(Number(e.target.value))}>
-										{availableYears.map((y) => (
-											<MenuItem key={y} value={y}>
-												{y}
-											</MenuItem>
-										))}
-									</Select>
-								</FormControl>
+							<Box sx={{ minWidth: 150 }}>
+								<CustomDropDownSelect
+									id="year-filter"
+									size="small"
+									label="Année"
+									items={yearItems}
+									value={String(year)}
+									onChange={(e) => setYear(Number(e.target.value))}
+									theme={customDropdownTheme()}
+									startIcon={<CalendarTodayIcon />}
+								/>
+							</Box>
 							</Stack>
 						</Stack>
 

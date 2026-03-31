@@ -8,12 +8,8 @@ import {
 	CardHeader,
 	Chip,
 	CircularProgress,
-	FormControl,
 	IconButton,
-	InputLabel,
 	LinearProgress,
-	MenuItem,
-	Select,
 	Stack,
 	Tooltip as MuiTooltip,
 	Typography,
@@ -26,6 +22,7 @@ import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import ApartmentIcon from '@mui/icons-material/Apartment';
+import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
 import CustomDropDownSelect from '@/components/formikElements/customDropDownSelect/customDropDownSelect';
 import { customDropdownTheme } from '@/utils/themes';
 import type { DropDownType } from '@/types/accountTypes';
@@ -130,6 +127,11 @@ const OccupancyClient: React.FC<SessionProps> = ({ session }) => {
 	);
 
 	const yearOptions = yearsData?.years ?? [currentYear];
+
+	const yearItems: DropDownType[] = useMemo(
+		() => yearOptions.map((y) => ({ code: String(y), value: String(y) })),
+		[yearOptions],
+	);
 
 	const occupancy = data?.occupancy_by_apartment ?? {};
 
@@ -237,16 +239,18 @@ const OccupancyClient: React.FC<SessionProps> = ({ session }) => {
 									startIcon={<ApartmentIcon />}
 								/>
 							</Box>
-								<FormControl size="small" sx={{ minWidth: 120 }}>
-									<InputLabel>Année</InputLabel>
-									<Select value={year} label="Année" onChange={(e) => setYear(Number(e.target.value))}>
-										{yearOptions.map((y) => (
-											<MenuItem key={y} value={y}>
-												{y}
-											</MenuItem>
-										))}
-									</Select>
-								</FormControl>
+							<Box sx={{ minWidth: 150 }}>
+								<CustomDropDownSelect
+									id="year-filter"
+									size="small"
+									label="Année"
+									items={yearItems}
+									value={String(year)}
+									onChange={(e) => setYear(Number(e.target.value))}
+									theme={customDropdownTheme()}
+									startIcon={<CalendarTodayIcon />}
+								/>
+							</Box>
 							</Stack>
 						</Stack>
 

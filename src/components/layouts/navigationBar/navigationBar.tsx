@@ -114,8 +114,8 @@ const getNavigationMenu = (isStaff: boolean) => {
 			items: [
 				{ title: 'Liste des locaux', label: 'Liste des locaux', path: LOCAUX_LIST },
 				{ title: 'Nouveau local', label: 'Ajouter un local', path: LOCAUX_ADD },
-				{ title: 'Planning', label: 'Planning des loyers', path: LOCAUX_PLANNING },
-				{ title: 'Dashboard', label: 'Dashboard des locaux', path: LOCAUX_DASHBOARD },
+				{ title: 'Planning des loyers', label: 'Planning des loyers', path: LOCAUX_PLANNING },
+				{ title: 'Dashboard des locaux', label: 'Dashboard des locaux', path: LOCAUX_DASHBOARD },
 			],
 		},
 		couts: {

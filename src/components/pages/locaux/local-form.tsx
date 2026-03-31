@@ -33,6 +33,7 @@ import {
 } from '@mui/material';
 import {
 	Add as AddIcon,
+	Apartment as ApartmentIcon,
 	ArrowBack as ArrowBackIcon,
 	AttachMoney as AttachMoneyIcon,
 	Business as BusinessIcon,
@@ -64,6 +65,9 @@ import PrimaryLoadingButton from '@/components/htmlElements/buttons/primaryLoadi
 import ApiProgress from '@/components/formikElements/apiLoading/apiProgress/apiProgress';
 import ActionModals from '@/components/htmlElements/modals/actionModal/actionModals';
 import { textInputTheme } from '@/utils/themes';
+import { customDropdownTheme } from '@/utils/themes';
+import CustomDropDownSelect from '@/components/formikElements/customDropDownSelect/customDropDownSelect';
+import type { DropDownType } from '@/types/accountTypes';
 import { localSchema, loyerSchema } from '@/utils/formValidationSchemas';
 import { typeLocalItemsList, LOCAL_FIELD_LABELS } from '@/utils/rawData';
 import { extractApiErrorMessage, formatDate, getLabelForKey, setFormikAutoErrors } from '@/utils/helpers';
@@ -312,21 +316,26 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 										/>
 									</Stack>
 									{buildingsData && buildingsData.length > 0 && (
-										<FormControl fullWidth size="small">
-											<InputLabel>Résidence</InputLabel>
-											<Select
-												value={formik.values.building}
-												label="Résidence"
-												onChange={(e) => formik.setFieldValue('building', e.target.value)}
-											>
-												<MenuItem value="">
-													<em>Aucune</em>
-												</MenuItem>
-												{buildingsData.map((b) => (
-													<MenuItem key={b.id} value={b.id}>{b.nom}</MenuItem>
-												))}
-											</Select>
-										</FormControl>
+									<CustomDropDownSelect
+										id="building"
+										size="small"
+										label="Résidence"
+										items={[
+											{ code: 'none', value: 'Aucune' },
+											...buildingsData.map((b) => ({ code: String(b.id), value: b.nom })),
+										] as DropDownType[]}
+										value={!formik.values.building ? 'Aucune' : (buildingsData.find((b) => b.id === formik.values.building)?.nom ?? 'Aucune')}
+										onChange={(e) => {
+											const val = e.target.value;
+											if (!val || val === 'Aucune') formik.setFieldValue('building', '');
+											else {
+												const b = buildingsData.find((x) => x.nom === val);
+												formik.setFieldValue('building', b ? b.id : '');
+											}
+										}}
+										theme={customDropdownTheme()}
+										startIcon={<ApartmentIcon fontSize="small" />}
+									/>
 									)}
 									<CustomTextInput
 										theme={inputTheme}

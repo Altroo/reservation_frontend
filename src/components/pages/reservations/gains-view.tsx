@@ -7,13 +7,9 @@ import {
 	CardContent,
 	CardHeader,
 	CircularProgress,
-	FormControl,
 	IconButton,
-	InputLabel,
 	LinearProgress,
-	MenuItem,
 	Paper,
-	Select,
 	Stack,
 	Table,
 	TableBody,
@@ -27,6 +23,7 @@ import {
 import {
 	Apartment as ApartmentIcon,
 	CalendarMonth as CalendarIcon,
+	CalendarToday as CalendarTodayIcon,
 	EmojiEvents as TrophyIcon,
 	InfoOutlined as InfoOutlinedIcon,
 	TrendingUp as TrendingUpIcon,
@@ -107,6 +104,11 @@ const GainsClient: React.FC<SessionProps> = ({ session }) => {
 	);
 
 	const yearOptions = yearsData?.years ?? [currentYear];
+
+	const yearItems: DropDownType[] = useMemo(
+		() => yearOptions.map((y) => ({ code: String(y), value: String(y) })),
+		[yearOptions],
+	);
 
 	const apartments = useMemo(() => data?.apartments ?? {}, [data?.apartments]);
 	const aptNoms = useMemo(() => Object.keys(apartments), [apartments]);
@@ -206,16 +208,18 @@ const GainsClient: React.FC<SessionProps> = ({ session }) => {
 									startIcon={<ApartmentIcon />}
 								/>
 							</Box>
-								<FormControl size="small" sx={{ minWidth: 120 }}>
-									<InputLabel>Année</InputLabel>
-									<Select value={year} label="Année" onChange={(e) => setYear(Number(e.target.value))}>
-										{yearOptions.map((y) => (
-											<MenuItem key={y} value={y}>
-												{y}
-											</MenuItem>
-										))}
-									</Select>
-								</FormControl>
+							<Box sx={{ minWidth: 150 }}>
+								<CustomDropDownSelect
+									id="year-filter"
+									size="small"
+									label="Année"
+									items={yearItems}
+									value={String(year)}
+									onChange={(e) => setYear(Number(e.target.value))}
+									theme={customDropdownTheme()}
+									startIcon={<CalendarTodayIcon />}
+								/>
+							</Box>
 							</Stack>
 						</Stack>
 

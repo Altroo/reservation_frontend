@@ -2,18 +2,16 @@
 
 import React, { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Box, Button, Chip, FormControl, InputLabel, MenuItem, Select, Stack, Typography } from '@mui/material';
+import { Box, Button, Chip, Stack, Typography } from '@mui/material';
 import {
 	Add as AddIcon,
 	Close as CloseIcon,
 	Delete as DeleteIcon,
 	Edit as EditIcon,
 	Visibility as VisibilityIcon,
+	CalendarToday as CalendarTodayIcon,
+	CalendarMonth as CalendarMonthIcon,
 } from '@mui/icons-material';
-import { DatePicker } from '@mui/x-date-pickers/DatePicker';
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
-import { fr } from 'date-fns/locale';
 import { GridColDef, GridFilterModel, GridLogicOperator, GridRenderCellParams } from '@mui/x-data-grid';
 import type { SessionProps } from '@/types/_initTypes';
 import type { CostType } from '@/types/reservationTypes';
@@ -31,6 +29,9 @@ import { createNumericFilterOperators } from '@/components/shared/numericFilter/
 import { createDropdownFilterOperators } from '@/components/shared/dropdownFilter/dropdownFilter';
 import { extractApiErrorMessage, formatDate } from '@/utils/helpers';
 import { COSTS_ADD, COSTS_EDIT, COSTS_VIEW } from '@/utils/routes';
+import CustomDropDownSelect from '@/components/formikElements/customDropDownSelect/customDropDownSelect';
+import { customDropdownTheme } from '@/utils/themes';
+import type { DropDownType } from '@/types/accountTypes';
 import { useToast } from '@/utils/hooks';
 import { useDeleteCostMutation, useBulkDeleteCostsMutation, useGetCostsQuery, useGetCostYearsQuery } from '@/store/services/reservation';
 import { useInitAccessToken } from '@/contexts/InitContext';
@@ -59,6 +60,20 @@ const CostsListClient: React.FC<SessionProps> = ({ session }) => {
 	const { data: costs, isLoading } = useGetCostsQuery({ year, month }, { skip: !token });
 
 	const yearOptions = costYears?.years ?? [currentYear];
+
+	const yearItems: DropDownType[] = useMemo(
+		() => yearOptions.map((y) => ({ code: String(y), value: String(y) })),
+		[yearOptions],
+	);
+
+	const MONTH_NAMES_FR = ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'];
+	const monthItems: DropDownType[] = useMemo(
+		() => [
+			{ code: 'all', value: 'Tous' },
+			...MONTH_NAMES_FR.map((name, i) => ({ code: String(i + 1), value: name })),
+		],
+		[],
+	);
 
 	const createdByOptions = useMemo(() => {
 		const nameMap = new Map<string, string>();
@@ -338,7 +353,7 @@ const CostsListClient: React.FC<SessionProps> = ({ session }) => {
 			mt="48px"
 			sx={{ overflowX: 'auto', overflowY: 'hidden' }}
 		>
-			<NavigationBar title="Coûts">
+			<NavigationBar title="Liste des coûts">
 				<Protected permission="can_view">
 					<>
 						<Box
@@ -367,52 +382,41 @@ const CostsListClient: React.FC<SessionProps> = ({ session }) => {
 							>
 								Nouveau coût
 							</Button>
-							<LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={fr}>
-								<DatePicker
-									views={['month']}
-									openTo="month"
+							<Box sx={{ minWidth: 160 }}>
+								<CustomDropDownSelect
+									id="month-filter"
+									size="small"
 									label="Mois"
-									value={month !== undefined ? new Date(year, month - 1, 1) : null}
-									onChange={(date) => {
-										if (date) {
-											setMonth(date.getMonth() + 1);
-										} else {
-											setMonth(undefined);
+									items={monthItems}
+									value={month !== undefined ? MONTH_NAMES_FR[month - 1] : 'Tous'}
+									onChange={(e) => {
+										const val = e.target.value;
+										if (!val || val === 'Tous') setMonth(undefined);
+										else {
+											const idx = MONTH_NAMES_FR.indexOf(val);
+											setMonth(idx >= 0 ? idx + 1 : undefined);
 										}
 										setPaginationModel((prev) => ({ ...prev, page: 0 }));
 									}}
-									slotProps={{
-										textField: {
-											size: 'small',
-											sx: { minWidth: 150 },
-										},
-										field: {
-											clearable: true,
-											onClear: () => {
-												setMonth(undefined);
-												setPaginationModel((prev) => ({ ...prev, page: 0 }));
-											},
-										},
-									}}
+									theme={customDropdownTheme()}
+									startIcon={<CalendarMonthIcon />}
 								/>
-							</LocalizationProvider>{' '}
-							<FormControl size="small" sx={{ minWidth: 120 }}>
-								<InputLabel>Année</InputLabel>
-								<Select
-									value={year}
+							</Box>
+							<Box sx={{ minWidth: 150 }}>
+								<CustomDropDownSelect
+									id="year-filter"
+									size="small"
 									label="Année"
+									items={yearItems}
+									value={String(year)}
 									onChange={(e) => {
 										setYear(Number(e.target.value));
 										setPaginationModel((prev) => ({ ...prev, page: 0 }));
 									}}
-								>
-									{yearOptions.map((y) => (
-										<MenuItem key={y} value={y}>
-											{y}
-										</MenuItem>
-									))}
-								</Select>
-							</FormControl>
+									theme={customDropdownTheme()}
+									startIcon={<CalendarTodayIcon />}
+								/>
+							</Box>
 							{filteredCosts.length > 0 && (
 								<Typography variant="subtitle1" fontWeight={700} color="error.main" sx={{ ml: 'auto' }}>
 									Total : {totalAmount.toLocaleString('fr-MA')} MAD

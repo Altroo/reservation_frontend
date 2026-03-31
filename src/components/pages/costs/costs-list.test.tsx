@@ -92,6 +92,7 @@ jest.mock('@/components/shared/chipSelectFilter/chipSelectFilterBar', () => ({
 jest.mock('@/utils/helpers', () => ({
 	formatDate: jest.fn((d: string) => d),
 	extractApiErrorMessage: jest.fn((_err: unknown, fallback: string) => fallback),
+	hexToRGB: (hex: string, alpha?: number) => (alpha !== undefined ? `rgba(0,0,0,${alpha})` : 'rgb(0,0,0)'),
 }));
 
 jest.mock('@/utils/rawData', () => ({

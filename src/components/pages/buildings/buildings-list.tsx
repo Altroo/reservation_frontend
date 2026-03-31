@@ -240,7 +240,7 @@ const BuildingsListClient: React.FC<SessionProps> = ({ session }) => {
 			mt="48px"
 			sx={{ overflowX: 'auto', overflowY: 'hidden' }}
 		>
-			<NavigationBar title="Gestion des Résidences">
+			<NavigationBar title="Liste des résidences">
 				<Protected permission="can_view">
 					<>
 						<Box

@@ -125,7 +125,7 @@ describe('LocauxPlanningClient', () => {
 
 	it('renders the page title', () => {
 		render(<LocauxPlanningClient session={mockSession} />);
-		expect(screen.getByText(`Planning des Locaux ${new Date().getFullYear()}`)).toBeInTheDocument();
+		expect(screen.getByText(`Planning des loyers ${new Date().getFullYear()}`)).toBeInTheDocument();
 	});
 
 	it('renders year dropdown', () => {

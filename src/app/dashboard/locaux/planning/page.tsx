@@ -5,7 +5,7 @@ import { AUTH_LOGIN } from '@/utils/routes';
 import LocauxPlanningClient from '@/components/pages/locaux/locaux-planning';
 
 export const metadata: Metadata = {
-	title: 'Planning des Locaux',
+	title: 'Planning des loyers',
 	description: 'Planning des loyers par local',
 };
 

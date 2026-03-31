@@ -133,7 +133,7 @@ describe('LocauxDashboardClient', () => {
 
 	it('renders the page title', () => {
 		render(<LocauxDashboardClient session={mockSession} />);
-		expect(screen.getByText('Dashboard des Locaux')).toBeInTheDocument();
+		expect(screen.getByText('Dashboard des locaux')).toBeInTheDocument();
 	});
 
 	it('renders year dropdown with available years', () => {

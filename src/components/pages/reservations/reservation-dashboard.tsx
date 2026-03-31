@@ -10,10 +10,6 @@ import {
 	CircularProgress,
 	Stack,
 	Chip,
-	Select,
-	MenuItem,
-	FormControl,
-	InputLabel,
 	IconButton,
 	Tooltip as MuiTooltip,
 } from '@mui/material';
@@ -51,7 +47,7 @@ import { MONTH_LABELS, CHART_COLORS, SOURCE_COLORS, APARTMENT_COLORS, CHART_OPTS
 import { formatNumberMA as fmt } from '@/utils/helpers';
 import CustomDropDownSelect from '@/components/formikElements/customDropDownSelect/customDropDownSelect';
 import { customDropdownTheme } from '@/utils/themes';
-import { Apartment as ApartmentIcon } from '@mui/icons-material';
+import { Apartment as ApartmentIcon, CalendarToday as CalendarTodayIcon } from '@mui/icons-material';
 import type { DropDownType } from '@/types/accountTypes';
 
 ChartJS.register(
@@ -193,6 +189,11 @@ const ReservationDashboardClient: React.FC<SessionProps> = ({ session }) => {
 
 	const yearOptions = yearsData?.years ?? [currentYear];
 
+	const yearItems: DropDownType[] = useMemo(
+		() => yearOptions.map((y) => ({ code: String(y), value: String(y) })),
+		[yearOptions],
+	);
+
 	const totalRevenue = data?.total_revenue ?? 0;
 	const annualCosts = data?.annual_costs ?? 0;
 	const netProfit = data?.net_profit ?? 0;
@@ -288,7 +289,7 @@ const ReservationDashboardClient: React.FC<SessionProps> = ({ session }) => {
 		<Stack direction="column" spacing={2} className={Styles.flexRootStack} mt="48px">
 			<NavigationBar title="Tableau de bord">
 				<Protected permission="can_view">
-					<Box sx={{ px: { xs: 1, sm: 2, md: 3 }, pb: 4 }}>
+					<Box sx={{ px: { xs: 1, sm: 2, md: 3 }, pb: 4, pt: '10px' }}>
 						{/* Year & Building selectors */}
 						<Stack direction="row" justifyContent="space-between" alignItems="center" mb={3} flexWrap="wrap" gap={2}>
 							<Typography variant="h5" fontWeight={600}>
@@ -314,16 +315,18 @@ const ReservationDashboardClient: React.FC<SessionProps> = ({ session }) => {
 										startIcon={<ApartmentIcon />}
 									/>
 								</Box>
-								<FormControl size="small" sx={{ minWidth: 120 }}>
-									<InputLabel>Année</InputLabel>
-									<Select value={year} label="Année" onChange={(e) => setYear(Number(e.target.value))}>
-										{yearOptions.map((y) => (
-											<MenuItem key={y} value={y}>
-												{y}
-											</MenuItem>
-										))}
-									</Select>
-								</FormControl>
+								<Box sx={{ minWidth: 150 }}>
+									<CustomDropDownSelect
+										id="year-filter"
+										size="small"
+										label="Année"
+										items={yearItems}
+										value={String(year)}
+										onChange={(e) => setYear(Number(e.target.value))}
+										theme={customDropdownTheme()}
+										startIcon={<CalendarTodayIcon />}
+									/>
+								</Box>
 							</Stack>
 						</Stack>
 

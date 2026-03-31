@@ -8,12 +8,8 @@ import {
 	CardHeader,
 	Chip,
 	CircularProgress,
-	FormControl,
 	IconButton,
-	InputLabel,
-	MenuItem,
 	Paper,
-	Select,
 	Stack,
 	Table,
 	TableBody,
@@ -30,6 +26,7 @@ import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import HighlightOffIcon from '@mui/icons-material/HighlightOff';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import ApartmentIcon from '@mui/icons-material/Apartment';
+import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
 import CustomDropDownSelect from '@/components/formikElements/customDropDownSelect/customDropDownSelect';
 import { customDropdownTheme } from '@/utils/themes';
 import type { DropDownType } from '@/types/accountTypes';
@@ -122,6 +119,11 @@ const BalanceClient: React.FC<SessionProps> = ({ session }) => {
 
 	const yearOptions = yearsData?.years ?? [currentYear];
 
+	const yearItems: DropDownType[] = useMemo(
+		() => yearOptions.map((y) => ({ code: String(y), value: String(y) })),
+		[yearOptions],
+	);
+
 	const apartments = data?.apartments ?? {};
 	const aptNoms = Object.keys(apartments);
 	const totalReturned = data?.total_returned ?? 0;
@@ -169,16 +171,18 @@ const BalanceClient: React.FC<SessionProps> = ({ session }) => {
 									startIcon={<ApartmentIcon />}
 								/>
 							</Box>
-								<FormControl size="small" sx={{ minWidth: 120 }}>
-									<InputLabel>Année</InputLabel>
-									<Select value={year} label="Année" onChange={(e) => setYear(Number(e.target.value))}>
-										{yearOptions.map((y) => (
-											<MenuItem key={y} value={y}>
-												{y}
-											</MenuItem>
-										))}
-									</Select>
-								</FormControl>
+							<Box sx={{ minWidth: 150 }}>
+								<CustomDropDownSelect
+									id="year-filter"
+									size="small"
+									label="Année"
+									items={yearItems}
+									value={String(year)}
+									onChange={(e) => setYear(Number(e.target.value))}
+									theme={customDropdownTheme()}
+									startIcon={<CalendarTodayIcon />}
+								/>
+							</Box>
 							</Stack>
 						</Stack>
 

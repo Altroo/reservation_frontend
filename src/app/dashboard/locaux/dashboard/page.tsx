@@ -5,7 +5,7 @@ import { AUTH_LOGIN } from '@/utils/routes';
 import LocauxDashboardClient from '@/components/pages/locaux/locaux-dashboard';
 
 export const metadata: Metadata = {
-	title: 'Dashboard des Locaux',
+	title: 'Dashboard des locaux',
 	description: 'Tableau de bord des locaux',
 };
 

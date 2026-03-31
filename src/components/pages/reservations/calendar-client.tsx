@@ -9,18 +9,16 @@ import {
 	CardContent,
 	Chip,
 	Divider,
-	FormControl,
 	IconButton,
-	InputLabel,
 	Menu,
 	MenuItem,
-	Select,
 	Stack,
 	Tooltip,
 	Typography,
 } from '@mui/material';
 import {
 	Add as AddIcon,
+	Apartment as ApartmentIcon,
 	CalendarMonth as CalendarMonthIcon,
 	ChevronLeft as ChevronLeftIcon,
 	ChevronRight as ChevronRightIcon,
@@ -38,6 +36,9 @@ import { RESERVATIONS_VIEW } from '@/utils/routes';
 import { weekdayIndex } from '@/utils/helpers';
 import { APARTMENT_COLORS, DAY_ABBREVIATIONS, MONTH_NAMES, PAYMENT_SOURCE_BG } from '@/utils/rawData';
 import ReservationDialog from '@/components/pages/reservations/reservation-dialog';
+import CustomDropDownSelect from '@/components/formikElements/customDropDownSelect/customDropDownSelect';
+import { customDropdownTheme } from '@/utils/themes';
+import type { DropDownType } from '@/types/accountTypes';
 import Styles from '@/styles/dashboard/dashboard.module.sass';
 
 interface DayEntry {
@@ -106,6 +107,11 @@ const CalendarContent: React.FC<CalendarContentProps> = ({ token }) => {
 
 	const { data: planning, isLoading, refetch } = useGetPlanningQuery({ year, month, ...(buildingId ? { building: buildingId } : {}) }, { skip: !token });
 	const { data: buildingsData } = useGetBuildingsQuery(undefined, { skip: !token });
+
+	const buildingItems: DropDownType[] = useMemo(
+		() => [{ code: 'Toutes', value: 'Toutes' }, ...(buildingsData ?? []).map((b) => ({ code: b.nom, value: b.nom }))],
+		[buildingsData],
+	);
 
 	const lastDay = planning?.last_day ?? new Date(year, month, 0).getDate();
 	const firstWeekday = weekdayIndex(`${year}-${String(month).padStart(2, '0')}-01`);
@@ -202,19 +208,25 @@ const CalendarContent: React.FC<CalendarContentProps> = ({ token }) => {
 								</Typography>
 							</Stack>
 							<Stack direction="row" spacing={1} alignItems="center">
-								<FormControl size="small" sx={{ minWidth: 160 }}>
-									<InputLabel>Résidence</InputLabel>
-									<Select
-										value={buildingId}
-										label="Résidence"
-										onChange={(e) => setBuildingId(e.target.value as number | '')}
-									>
-										<MenuItem value="">Toutes</MenuItem>
-										{(buildingsData ?? []).map((b) => (
-											<MenuItem key={b.id} value={b.id}>{b.nom}</MenuItem>
-										))}
-									</Select>
-								</FormControl>
+							<Box sx={{ minWidth: 180 }}>
+								<CustomDropDownSelect
+									id="building-filter"
+									size="small"
+									label="Résidence"
+									items={buildingItems}
+									value={buildingId === '' ? 'Toutes' : ((buildingsData ?? []).find((b) => b.id === buildingId)?.nom ?? 'Toutes')}
+									onChange={(e) => {
+										const name = e.target.value;
+										if (!name || name === 'Toutes') setBuildingId('');
+										else {
+											const b = (buildingsData ?? []).find((x) => x.nom === name);
+											setBuildingId(b ? b.id : '');
+										}
+									}}
+									theme={customDropdownTheme()}
+									startIcon={<ApartmentIcon />}
+								/>
+							</Box>
 								<Button
 									size="small"
 									variant="contained"

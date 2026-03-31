@@ -128,6 +128,7 @@ jest.mock('@/utils/helpers', () => ({
 		const d = new Date(dateStr + 'T00:00:00');
 		return (d.getDay() + 6) % 7;
 	},
+	hexToRGB: (hex: string, alpha?: number) => (alpha !== undefined ? `rgba(0,0,0,${alpha})` : 'rgb(0,0,0)'),
 }));
 
 jest.mock('@/utils/rawData', () => ({

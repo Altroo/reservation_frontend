@@ -169,6 +169,7 @@ jest.mock('@/utils/rawData', () => ({
 jest.mock('@/utils/helpers', () => ({
 	formatDate: (d: string) => d,
 	formatNumberMA: (val: number) => val.toLocaleString('fr-MA'),
+	hexToRGB: (hex: string, alpha?: number) => (alpha !== undefined ? `rgba(0,0,0,${alpha})` : 'rgb(0,0,0)'),
 }));
 
 jest.mock('@/styles/dashboard/dashboard.module.sass', () => ({

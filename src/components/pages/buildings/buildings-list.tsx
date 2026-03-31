@@ -22,6 +22,8 @@ import MobileActionsMenu from '@/components/shared/mobileActionsMenu/mobileActio
 import DarkTooltip from '@/components/htmlElements/tooltip/darkTooltip/darkTooltip';
 import { extractApiErrorMessage, formatDate } from '@/utils/helpers';
 import { BUILDINGS_ADD, BUILDINGS_EDIT, BUILDINGS_VIEW } from '@/utils/routes';
+import { createDateRangeFilterOperator } from '@/components/shared/dateRangeFilter/dateRangeFilterOperator';
+import { createDropdownFilterOperators } from '@/components/shared/dropdownFilter/dropdownFilter';
 import { useToast } from '@/utils/hooks';
 import {
 	useGetBuildingsQuery,
@@ -41,6 +43,7 @@ const BuildingsListClient: React.FC<SessionProps> = ({ session }) => {
 		items: [],
 		logicOperator: GridLogicOperator.And,
 	});
+	const [customFilterParams, setCustomFilterParams] = useState<Record<string, string>>({});
 
 	const { data: buildingsRaw, isLoading } = useGetBuildingsQuery(undefined, { skip: !token });
 	const buildings = useMemo(() => (Array.isArray(buildingsRaw) ? buildingsRaw : []) as BuildingListType[], [buildingsRaw]);
@@ -53,6 +56,14 @@ const BuildingsListClient: React.FC<SessionProps> = ({ session }) => {
 	const [selectedIds, setSelectedIds] = useState<number[]>([]);
 	const [showBulkDeleteModal, setShowBulkDeleteModal] = useState(false);
 
+	const createdByOptions = useMemo(() => {
+		const names = new Set<string>();
+		buildings.forEach((b) => {
+			if (b.created_by_user_name) names.add(b.created_by_user_name);
+		});
+		return Array.from(names).map((n) => ({ value: n, label: n }));
+	}, [buildings]);
+
 	const filteredBuildings = useMemo(() => {
 		let result = buildings;
 
@@ -61,8 +72,24 @@ const BuildingsListClient: React.FC<SessionProps> = ({ session }) => {
 			result = result.filter((b) => b.nom.toLowerCase().includes(term));
 		}
 
+		const after = customFilterParams['date_created_after'];
+		const before = customFilterParams['date_created_before'];
+		if (after) {
+			const afterDate = new Date(after);
+			result = result.filter((b) => b.date_created && new Date(b.date_created) >= afterDate);
+		}
+		if (before) {
+			const beforeDate = new Date(before);
+			result = result.filter((b) => b.date_created && new Date(b.date_created) <= beforeDate);
+		}
+
+		const createdBy = customFilterParams['created_by_user_name'];
+		if (createdBy) {
+			result = result.filter((b) => b.created_by_user_name === createdBy);
+		}
+
 		return result;
-	}, [buildings, searchTerm]);
+	}, [buildings, searchTerm, customFilterParams]);
 
 	const paginatedData = useMemo(() => {
 		const start = paginationModel.page * paginationModel.pageSize;
@@ -148,6 +175,7 @@ const BuildingsListClient: React.FC<SessionProps> = ({ session }) => {
 			headerName: 'Date de création',
 			flex: 1,
 			minWidth: 140,
+			filterOperators: createDateRangeFilterOperator(),
 			renderCell: (params: GridRenderCellParams<BuildingListType>) => (
 				<Typography variant="body2" noWrap>
 					{formatDate(params.value)}
@@ -159,6 +187,7 @@ const BuildingsListClient: React.FC<SessionProps> = ({ session }) => {
 			headerName: 'Créé par',
 			flex: 1,
 			minWidth: 140,
+			filterOperators: createDropdownFilterOperators(createdByOptions, 'Tous'),
 			renderCell: (params: GridRenderCellParams<BuildingListType>) => (
 				<DarkTooltip title={params.value ?? ''}>
 					<Typography variant="body2" noWrap>
@@ -263,6 +292,7 @@ const BuildingsListClient: React.FC<SessionProps> = ({ session }) => {
 							setSearchTerm={setSearchTerm}
 							filterModel={filterModel}
 							onFilterModelChange={setFilterModel}
+							onCustomFilterParamsChange={setCustomFilterParams}
 							checkboxSelection
 							onSelectionChange={setSelectedIds}
 							selectedIds={selectedIds}

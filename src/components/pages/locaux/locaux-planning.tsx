@@ -34,6 +34,10 @@ import {
 	InfoOutlined as InfoOutlinedIcon,
 	RemoveCircleOutline as EmptyIcon,
 } from '@mui/icons-material';
+import ApartmentIcon from '@mui/icons-material/Apartment';
+import CustomDropDownSelect from '@/components/formikElements/customDropDownSelect/customDropDownSelect';
+import { customDropdownTheme } from '@/utils/themes';
+import type { DropDownType } from '@/types/accountTypes';
 import type { SessionProps } from '@/types/_initTypes';
 import type { PlanningLocalType } from '@/types/localTypes';
 import NavigationBar from '@/components/layouts/navigationBar/navigationBar';
@@ -114,6 +118,11 @@ const LocauxPlanningClient: React.FC<SessionProps> = ({ session }) => {
 	}, [yearsData, currentYear]);
 
 	const { data: buildingsData } = useGetBuildingsQuery(undefined, { skip: !token });
+
+	const buildingItems: DropDownType[] = useMemo(
+		() => [{ code: 'Toutes', value: 'Toutes' }, ...(buildingsData ?? []).map((b) => ({ code: b.nom, value: b.nom }))],
+		[buildingsData],
+	);
 	const { data: planningData, isLoading } = useGetLocalPlanningQuery({ year, ...(buildingId ? { building: buildingId } : {}) }, { skip: !token });
 	const locaux = useMemo(() => (planningData?.locaux ?? []) as PlanningLocalType[], [planningData]);
 	const [toggleLoyerPaid] = useToggleLoyerPaidMutation();
@@ -181,24 +190,25 @@ const LocauxPlanningClient: React.FC<SessionProps> = ({ session }) => {
 								Planning des Locaux {year}
 							</Typography>
 							<Stack direction="row" spacing={2}>
-								<FormControl size="small" sx={{ minWidth: 160 }}>
-									<InputLabel>Résidence</InputLabel>
-									<Select
-										value={buildingId}
-										label="Résidence"
-										onChange={(e) => {
-											const val = String(e.target.value);
-											setBuildingId(val === '' ? '' : Number(val));
-										}}
-									>
-										<MenuItem value="">Toutes</MenuItem>
-										{(buildingsData ?? []).map((b) => (
-											<MenuItem key={b.id} value={b.id}>
-												{b.nom}
-											</MenuItem>
-										))}
-									</Select>
-								</FormControl>
+							<Box sx={{ minWidth: 180 }}>
+								<CustomDropDownSelect
+									id="building-filter"
+									size="small"
+									label="Résidence"
+									items={buildingItems}
+									value={buildingId === '' ? 'Toutes' : ((buildingsData ?? []).find((b) => b.id === buildingId)?.nom ?? 'Toutes')}
+									onChange={(e) => {
+										const name = e.target.value;
+										if (!name || name === 'Toutes') setBuildingId('');
+										else {
+											const b = (buildingsData ?? []).find((x) => x.nom === name);
+											setBuildingId(b ? b.id : '');
+										}
+									}}
+									theme={customDropdownTheme()}
+									startIcon={<ApartmentIcon />}
+								/>
+							</Box>
 								<FormControl size="small" sx={{ minWidth: 120 }}>
 									<InputLabel>Année</InputLabel>
 									<Select value={year} label="Année" onChange={(e) => setYear(Number(e.target.value))}>

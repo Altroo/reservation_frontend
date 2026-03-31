@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
 	Box,
 	Card,
@@ -49,6 +49,10 @@ import Styles from '@/styles/dashboard/dashboard.module.sass';
 import type { SessionProps } from '@/types/_initTypes';
 import { MONTH_LABELS, CHART_COLORS, SOURCE_COLORS, APARTMENT_COLORS, CHART_OPTS } from '@/utils/rawData';
 import { formatNumberMA as fmt } from '@/utils/helpers';
+import CustomDropDownSelect from '@/components/formikElements/customDropDownSelect/customDropDownSelect';
+import { customDropdownTheme } from '@/utils/themes';
+import { Apartment as ApartmentIcon } from '@mui/icons-material';
+import type { DropDownType } from '@/types/accountTypes';
 
 ChartJS.register(
 	CategoryScale,
@@ -182,6 +186,11 @@ const ReservationDashboardClient: React.FC<SessionProps> = ({ session }) => {
 	const { data: yearsData } = useGetReservationYearsQuery(undefined, { skip: !token });
 	const { data: buildingsData } = useGetBuildingsQuery(undefined, { skip: !token });
 
+	const buildingItems: DropDownType[] = useMemo(
+		() => [{ code: 'Toutes', value: 'Toutes' }, ...(buildingsData ?? []).map((b) => ({ code: b.nom, value: b.nom }))],
+		[buildingsData],
+	);
+
 	const yearOptions = yearsData?.years ?? [currentYear];
 
 	const totalRevenue = data?.total_revenue ?? 0;
@@ -286,24 +295,25 @@ const ReservationDashboardClient: React.FC<SessionProps> = ({ session }) => {
 								Vue d&apos;ensemble {year}
 							</Typography>
 							<Stack direction="row" spacing={2}>
-								<FormControl size="small" sx={{ minWidth: 160 }}>
-									<InputLabel>Résidence</InputLabel>
-									<Select
-										value={buildingId}
+								<Box sx={{ minWidth: 180 }}>
+									<CustomDropDownSelect
+										id="building-filter"
+										size="small"
 										label="Résidence"
+										items={buildingItems}
+										value={buildingId === '' ? 'Toutes' : ((buildingsData ?? []).find((b) => b.id === buildingId)?.nom ?? 'Toutes')}
 										onChange={(e) => {
-											const val = String(e.target.value);
-											setBuildingId(val === '' ? '' : Number(val));
+											const name = e.target.value;
+											if (!name || name === 'Toutes') setBuildingId('');
+											else {
+												const b = (buildingsData ?? []).find((x) => x.nom === name);
+												setBuildingId(b ? b.id : '');
+											}
 										}}
-									>
-										<MenuItem value="">Toutes</MenuItem>
-										{(buildingsData ?? []).map((b) => (
-											<MenuItem key={b.id} value={b.id}>
-												{b.nom}
-											</MenuItem>
-										))}
-									</Select>
-								</FormControl>
+										theme={customDropdownTheme()}
+										startIcon={<ApartmentIcon />}
+									/>
+								</Box>
 								<FormControl size="small" sx={{ minWidth: 120 }}>
 									<InputLabel>Année</InputLabel>
 									<Select value={year} label="Année" onChange={(e) => setYear(Number(e.target.value))}>

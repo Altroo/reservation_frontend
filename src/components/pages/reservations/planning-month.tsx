@@ -1,17 +1,13 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
 	Box,
 	Card,
 	CardContent,
 	Chip,
 	CircularProgress,
-	FormControl,
 	IconButton,
-	InputLabel,
-	MenuItem,
-	Select,
 	Stack,
 	Tooltip,
 	Typography,
@@ -19,6 +15,7 @@ import {
 	useTheme,
 } from '@mui/material';
 import {
+	Apartment as ApartmentIcon,
 	ChevronLeft as ChevronLeftIcon,
 	ChevronRight as ChevronRightIcon,
 	AttachMoney as MoneyIcon,
@@ -26,6 +23,9 @@ import {
 	PieChart as PieIcon,
 	CalendarMonth as CalendarIcon,
 } from '@mui/icons-material';
+import CustomDropDownSelect from '@/components/formikElements/customDropDownSelect/customDropDownSelect';
+import { customDropdownTheme } from '@/utils/themes';
+import type { DropDownType } from '@/types/accountTypes';
 import type { SessionProps } from '@/types/_initTypes';
 import type { ReservationListType } from '@/types/reservationTypes';
 import Styles from '@/styles/dashboard/dashboard.module.sass';
@@ -90,6 +90,11 @@ const PlanningMonthClient: React.FC<SessionProps> = ({ session }) => {
 
 	const { data: buildingsData } = useGetBuildingsQuery(undefined, { skip: !token });
 
+	const buildingItems: DropDownType[] = useMemo(
+		() => [{ code: 'Toutes', value: 'Toutes' }, ...(buildingsData ?? []).map((b) => ({ code: b.nom, value: b.nom }))],
+		[buildingsData],
+	);
+
 	const prevMonth = () => {
 		if (month === 1) {
 			setMonth(12);
@@ -142,24 +147,25 @@ const PlanningMonthClient: React.FC<SessionProps> = ({ session }) => {
 					<Box sx={{ px: { xs: 1, sm: 2, md: 3 }, pb: 4 }}>
 						{/* Month navigation */}
 						<Stack direction="row" alignItems="center" justifyContent="center" spacing={2} py={2} flexWrap="wrap" gap={1}>
-							<FormControl size="small" sx={{ minWidth: 160 }}>
-								<InputLabel>Résidence</InputLabel>
-								<Select
-									value={buildingId}
-									label="Résidence"
-									onChange={(e) => {
-										const val = String(e.target.value);
-										setBuildingId(val === '' ? '' : Number(val));
-									}}
-								>
-									<MenuItem value="">Toutes</MenuItem>
-									{(buildingsData ?? []).map((b) => (
-										<MenuItem key={b.id} value={b.id}>
-											{b.nom}
-										</MenuItem>
-									))}
-								</Select>
-							</FormControl>
+						<Box sx={{ minWidth: 180 }}>
+							<CustomDropDownSelect
+								id="building-filter"
+								size="small"
+								label="Résidence"
+								items={buildingItems}
+								value={buildingId === '' ? 'Toutes' : ((buildingsData ?? []).find((b) => b.id === buildingId)?.nom ?? 'Toutes')}
+								onChange={(e) => {
+									const name = e.target.value;
+									if (!name || name === 'Toutes') setBuildingId('');
+									else {
+										const b = (buildingsData ?? []).find((x) => x.nom === name);
+										setBuildingId(b ? b.id : '');
+									}
+								}}
+								theme={customDropdownTheme()}
+								startIcon={<ApartmentIcon />}
+							/>
+						</Box>
 							<IconButton onClick={prevMonth} size="small">
 								<ChevronLeftIcon />
 							</IconButton>

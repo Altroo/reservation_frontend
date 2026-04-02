@@ -22,6 +22,8 @@ jest.mock('next/image', () => ({
 
 jest.mock('@/utils/hooks', () => ({
 	useAppSelector: jest.fn(),
+	// eslint-disable-next-line @typescript-eslint/no-require-imports
+	useLanguage: () => ({ language: 'fr', setLanguage: jest.fn(), t: require('@/translations').translations.fr }),
 }));
 
 const mockedUseAppSelector = useAppSelector as jest.MockedFunction<typeof useAppSelector>;
@@ -42,6 +44,6 @@ describe('Maintenance', () => {
 
 		expect(screen.getByTestId('maintenance-gate')).toBeInTheDocument();
 		expect(screen.getByText('Maintenance en cours')).toBeInTheDocument();
-		expect(screen.getByText(/Nous effectuons actuellement une maintenance sur E\.B\.H Réservation/i)).toBeInTheDocument();
+		expect(screen.getByText(/Nous effectuons actuellement une maintenance/i)).toBeInTheDocument();
 	});
 });

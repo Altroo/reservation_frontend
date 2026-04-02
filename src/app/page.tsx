@@ -1,12 +1,16 @@
 import { redirect } from 'next/navigation';
-import { type Metadata } from 'next';
+import type { Metadata } from 'next';
 import { auth } from '@/auth';
 import { AUTH_LOGIN, DASHBOARD } from '@/utils/routes';
+import { getServerTranslations } from '@/utils/getServerTranslations';
 
-export const metadata: Metadata = {
-	title: 'Accueil',
-	description: "Page d'accueil de l'application E.B.H Réservation",
-};
+export async function generateMetadata(): Promise<Metadata> {
+	const t = await getServerTranslations();
+	return {
+		title: t.pageMetadata.homeTitle,
+		description: t.pageMetadata.homeDescription,
+	};
+}
 
 const HomePage = async () => {
 	const session = await auth();

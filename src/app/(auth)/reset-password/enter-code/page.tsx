@@ -1,14 +1,18 @@
 import { cookies } from 'next/headers';
-import { type Metadata } from 'next';
+import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import { auth } from '@/auth';
 import { AUTH_RESET_PASSWORD, DASHBOARD } from '@/utils/routes';
 import EnterCodeClient from '@/components/pages/auth/reset-password/enterCode';
+import { getServerTranslations } from '@/utils/getServerTranslations';
 
-export const metadata: Metadata = {
-	title: 'Entrer le code',
-	description: 'Entrer le code de vérification reçu par email',
-};
+export async function generateMetadata(): Promise<Metadata> {
+	const t = await getServerTranslations();
+	return {
+		title: t.pageMetadata.enterCodeTitle,
+		description: t.pageMetadata.enterCodeDescription,
+	};
+}
 
 const EnterCodePage = async () => {
 	const session = await auth();

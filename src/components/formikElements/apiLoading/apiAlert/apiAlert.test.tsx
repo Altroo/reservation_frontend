@@ -38,7 +38,7 @@ describe('ApiAlert', () => {
 		// The message part should contain the default fallback text
 		const message = container.querySelector('.MuiAlert-message');
 		expect(message).toBeInTheDocument();
-		expect(message).toHaveTextContent('Une erreur est survenue. Veuillez réessayer plus tard.');
+		expect(message).toHaveTextContent('Une erreur est survenue. Nous nous excusons pour ce désagrément. Veuillez réessayer ou actualiser la page.');
 	});
 
 	it('handles errorDetails with non-array string values', () => {

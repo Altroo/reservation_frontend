@@ -32,16 +32,15 @@ import { COSTS_ADD, COSTS_EDIT, COSTS_VIEW } from '@/utils/routes';
 import CustomDropDownSelect from '@/components/formikElements/customDropDownSelect/customDropDownSelect';
 import { customDropdownTheme } from '@/utils/themes';
 import type { DropDownType } from '@/types/accountTypes';
-import { useToast } from '@/utils/hooks';
+import { useToast, useLanguage } from '@/utils/hooks';
 import { useDeleteCostMutation, useBulkDeleteCostsMutation, useGetCostsQuery, useGetCostYearsQuery } from '@/store/services/reservation';
 import { useInitAccessToken } from '@/contexts/InitContext';
 import type { CostCategoryChipColor } from '@/utils/rawData';
 import { COST_CATEGORY_CHIP_COLORS, costCategoryItemsList } from '@/utils/rawData';
 
-const MONTH_NAMES_FR = ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'];
-
 const CostsListClient: React.FC<SessionProps> = ({ session }) => {
 	const router = useRouter();
+	const { t } = useLanguage();
 	const { onSuccess, onError } = useToast();
 	const token = useInitAccessToken(session);
 
@@ -68,10 +67,10 @@ const CostsListClient: React.FC<SessionProps> = ({ session }) => {
 
 	const monthItems: DropDownType[] = useMemo(
 		() => [
-			{ code: 'all', value: 'Tous' },
-			...['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'].map((name, i) => ({ code: String(i + 1), value: name })),
+			{ code: 'all', value: t.common.all },
+			...t.rawData.monthNames.map((name: string, i: number) => ({ code: String(i + 1), value: name })),
 		],
-		[],
+		[t],
 	);
 
 	const createdByOptions = useMemo(() => {
@@ -166,9 +165,9 @@ const CostsListClient: React.FC<SessionProps> = ({ session }) => {
 	const deleteHandler = async () => {
 		try {
 			await deleteCost({ id: selectedId! }).unwrap();
-			onSuccess('Coût supprimé avec succès');
+			onSuccess(t.costs.costDeletedSuccess);
 		} catch (err) {
-			onError(extractApiErrorMessage(err, 'Erreur lors de la suppression du coût'));
+			onError(extractApiErrorMessage(err, t.costs.costDeleteError));
 		} finally {
 			setShowDeleteModal(false);
 		}
@@ -176,14 +175,14 @@ const CostsListClient: React.FC<SessionProps> = ({ session }) => {
 
 	const deleteModalActions = [
 		{
-			text: 'Annuler',
+			text: t.common.cancel,
 			active: false,
 			onClick: () => setShowDeleteModal(false),
 			icon: <CloseIcon />,
 			color: '#6B6B6B',
 		},
 		{
-			text: 'Supprimer',
+			text: t.common.delete,
 			active: true,
 			onClick: deleteHandler,
 			icon: <DeleteIcon />,
@@ -194,10 +193,10 @@ const CostsListClient: React.FC<SessionProps> = ({ session }) => {
 	const bulkDeleteHandler = async () => {
 		try {
 			await bulkDeleteCosts({ ids: selectedIds }).unwrap();
-			onSuccess(`${selectedIds.length} coût(s) supprimé(s) avec succès`);
+			onSuccess(t.costs.bulkCostsDeletedSuccess(selectedIds.length));
 			setSelectedIds([]);
 		} catch (err) {
-			onError(extractApiErrorMessage(err, 'Erreur lors de la suppression des coûts'));
+			onError(extractApiErrorMessage(err, t.costs.bulkCostsDeleteError));
 		} finally {
 			setShowBulkDeleteModal(false);
 		}
@@ -205,14 +204,14 @@ const CostsListClient: React.FC<SessionProps> = ({ session }) => {
 
 	const bulkDeleteModalActions = [
 		{
-			text: 'Annuler',
+			text: t.common.cancel,
 			active: false,
 			onClick: () => setShowBulkDeleteModal(false),
 			icon: <CloseIcon />,
 			color: '#6B6B6B',
 		},
 		{
-			text: `Supprimer (${selectedIds.length})`,
+			text: `${t.common.delete} (${selectedIds.length})`,
 			active: true,
 			onClick: bulkDeleteHandler,
 			icon: <DeleteIcon />,
@@ -224,18 +223,18 @@ const CostsListClient: React.FC<SessionProps> = ({ session }) => {
 		() => [
 			{
 				key: 'category',
-				label: 'Catégorie',
+				label: t.common.category,
 				paramName: 'category',
 				options: costCategoryItemsList.map((c) => ({ id: c.code, nom: c.value })),
 			},
 		],
-		[],
+		[t.common.category],
 	);
 
 	const columns: GridColDef[] = [
 		{
 			field: 'description',
-			headerName: 'Description',
+			headerName: t.common.description,
 			flex: 1.4,
 			minWidth: 150,
 			renderCell: (params: GridRenderCellParams<CostType>) => (
@@ -248,7 +247,7 @@ const CostsListClient: React.FC<SessionProps> = ({ session }) => {
 		},
 		{
 			field: 'amount',
-			headerName: 'Montant',
+			headerName: t.common.amount,
 			flex: 0.9,
 			minWidth: 110,
 			filterOperators: createNumericFilterOperators(),
@@ -262,7 +261,7 @@ const CostsListClient: React.FC<SessionProps> = ({ session }) => {
 		},
 		{
 			field: 'date',
-			headerName: 'Date',
+			headerName: t.common.date,
 			flex: 0.9,
 			minWidth: 110,
 			filterOperators: createDateRangeFilterOperator(),
@@ -276,7 +275,7 @@ const CostsListClient: React.FC<SessionProps> = ({ session }) => {
 		},
 		{
 			field: 'category',
-			headerName: 'Catégorie',
+			headerName: t.common.category,
 			flex: 0.9,
 			minWidth: 110,
 			filterable: false,
@@ -296,10 +295,10 @@ const CostsListClient: React.FC<SessionProps> = ({ session }) => {
 		},
 		{
 			field: 'created_by_user_name',
-			headerName: 'Créé par',
+			headerName: t.common.createdBy,
 			flex: 1,
 			minWidth: 100,
-			filterOperators: createDropdownFilterOperators(createdByOptions, 'Tous les utilisateurs'),
+			filterOperators: createDropdownFilterOperators(createdByOptions, t.filters.allUsers),
 			renderCell: (params: GridRenderCellParams<CostType>) => (
 				<DarkTooltip title={params.value ?? ''}>
 					<Typography variant="body2" noWrap>
@@ -310,7 +309,7 @@ const CostsListClient: React.FC<SessionProps> = ({ session }) => {
 		},
 		{
 			field: 'actions',
-			headerName: 'Actions',
+			headerName: t.common.actions,
 			flex: 1.2,
 			minWidth: 130,
 			sortable: false,
@@ -318,19 +317,19 @@ const CostsListClient: React.FC<SessionProps> = ({ session }) => {
 			renderCell: (params) => {
 				const actions = [
 					{
-						label: 'Voir',
+						label: t.common.view,
 						icon: <VisibilityIcon />,
 						onClick: () => router.push(COSTS_VIEW(params.row.id)),
 						color: 'info' as const,
 					},
 					{
-						label: 'Modifier',
+						label: t.common.edit,
 						icon: <EditIcon />,
 						onClick: () => router.push(COSTS_EDIT(params.row.id)),
 						color: 'primary' as const,
 					},
 					{
-						label: 'Supprimer',
+						label: t.common.delete,
 						icon: <DeleteIcon />,
 						onClick: () => {
 							setSelectedId(params.row.id);
@@ -352,7 +351,7 @@ const CostsListClient: React.FC<SessionProps> = ({ session }) => {
 			mt="48px"
 			sx={{ overflowX: 'auto', overflowY: 'hidden' }}
 		>
-			<NavigationBar title="Liste des coûts">
+			<NavigationBar title={t.costs.costsList}>
 				<Protected permission="can_view">
 					<>
 						<Box
@@ -379,20 +378,20 @@ const CostsListClient: React.FC<SessionProps> = ({ session }) => {
 									fontSize: { xs: '0.85rem', sm: '0.9rem', md: '1rem' },
 								}}
 							>
-								Nouveau coût
+								{t.costs.newCost}
 							</Button>
 							<Box sx={{ minWidth: 160 }}>
 								<CustomDropDownSelect
 									id="month-filter"
 									size="small"
-									label="Mois"
+									label={t.common.month}
 									items={monthItems}
-									value={month !== undefined ? MONTH_NAMES_FR[month - 1] : 'Tous'}
+									value={month !== undefined ? t.rawData.monthNames[month - 1] : t.common.all}
 									onChange={(e) => {
 										const val = e.target.value;
-										if (!val || val === 'Tous') setMonth(undefined);
+										if (!val || val === t.common.all) setMonth(undefined);
 										else {
-											const idx = MONTH_NAMES_FR.indexOf(val);
+											const idx = t.rawData.monthNames.indexOf(val);
 											setMonth(idx >= 0 ? idx + 1 : undefined);
 										}
 										setPaginationModel((prev) => ({ ...prev, page: 0 }));
@@ -405,7 +404,7 @@ const CostsListClient: React.FC<SessionProps> = ({ session }) => {
 								<CustomDropDownSelect
 									id="year-filter"
 									size="small"
-									label="Année"
+									label={t.common.year}
 									items={yearItems}
 									value={String(year)}
 									onChange={(e) => {
@@ -428,7 +427,7 @@ const CostsListClient: React.FC<SessionProps> = ({ session }) => {
 								startIcon={<DeleteIcon fontSize="small" />}
 								sx={{ whiteSpace: 'nowrap' }}
 							>
-								Supprimer ({selectedIds.length})
+							{t.common.delete} ({selectedIds.length})
 							</Button>
 						)}						</Box>
 
@@ -452,16 +451,16 @@ const CostsListClient: React.FC<SessionProps> = ({ session }) => {
 
 						{showDeleteModal && (
 							<ActionModals
-								title="Supprimer le coût"
-								body="Êtes-vous sûr de vouloir supprimer ce coût ? Cette action est irréversible."
-								actions={deleteModalActions}
-							/>
-						)}
+							title={t.costs.deleteCost}
+							body={t.costs.deleteCostConfirm}
+							actions={deleteModalActions}
+						/>
+					)}
 
-						{showBulkDeleteModal && (
-							<ActionModals
-								title={`Supprimer ${selectedIds.length} coût(s)`}
-								body="Cette action supprimera définitivement les coûts sélectionnés."
+					{showBulkDeleteModal && (
+						<ActionModals
+							title={t.costs.bulkDeleteCosts(selectedIds.length)}
+							body={t.costs.bulkDeleteCostsConfirm}
 								actions={bulkDeleteModalActions}
 								onClose={() => setShowBulkDeleteModal(false)}
 							/>

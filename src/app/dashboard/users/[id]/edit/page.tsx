@@ -3,11 +3,15 @@ import { auth } from '@/auth';
 import { AUTH_LOGIN, USERS_LIST } from '@/utils/routes';
 import UsersFormClient from '@/components/pages/users/users-form';
 import type { Metadata } from 'next';
+import { getServerTranslations } from '@/utils/getServerTranslations';
 
-export const metadata: Metadata = {
-	title: 'Modifier l\'utilisateur',
-	description: 'Modifier un utilisateur existant',
-};
+export async function generateMetadata(): Promise<Metadata> {
+	const t = await getServerTranslations();
+	return {
+		title: t.pageMetadata.usersEditTitle,
+		description: t.pageMetadata.usersEditDescription,
+	};
+}
 
 interface Props {
 	params: Promise<{ id: string }>;

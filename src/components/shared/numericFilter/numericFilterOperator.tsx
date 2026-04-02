@@ -1,6 +1,7 @@
 import React from 'react';
 import { TextField } from '@mui/material';
 import { GridFilterInputValueProps, GridFilterItem, GridFilterOperator } from '@mui/x-data-grid';
+import { useLanguage } from '@/utils/hooks';
 
 const parseNumeric = (value: number | string | null | undefined): number | null => {
 	if (value == null || value === '') return null;
@@ -10,6 +11,7 @@ const parseNumeric = (value: number | string | null | undefined): number | null 
 
 const NumericFilterInput: React.FC<GridFilterInputValueProps> = (props) => {
 	const { item, applyValue } = props;
+	const { t } = useLanguage();
 
 	const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
 		applyValue({ ...item, value: event.target.value });
@@ -21,7 +23,7 @@ const NumericFilterInput: React.FC<GridFilterInputValueProps> = (props) => {
 			onChange={handleChange}
 			size="small"
 			type="number"
-			placeholder="Valeur"
+			placeholder={t.filters.value}
 			sx={{ width: 140 }}
 		/>
 	);

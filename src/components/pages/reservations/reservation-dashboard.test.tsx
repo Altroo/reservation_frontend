@@ -133,6 +133,12 @@ jest.mock('@/styles/dashboard/dashboard.module.sass', () => ({
 import ReservationDashboardClient from './reservation-dashboard';
 import type { AppSession } from '@/types/_initTypes';
 
+
+jest.mock('@/utils/hooks', () => ({
+	// eslint-disable-next-line @typescript-eslint/no-require-imports
+	useLanguage: () => ({ language: 'fr', setLanguage: jest.fn(), t: require('@/translations').translations.fr }),
+}));
+
 const mockSession: AppSession = {
 	accessToken: 'mock-token',
 	refreshToken: 'mock-refresh-token',
@@ -261,39 +267,32 @@ describe('ReservationDashboardClient', () => {
 	});
 
 	describe('Empty state', () => {
+		const emptyData = {
+			data: {
+				year: 2025,
+				total_revenue: 0,
+				by_source: [] as typeof mockDashboardData.by_source,
+				monthly_revenue: [] as typeof mockDashboardData.monthly_revenue,
+				by_apartment: [] as typeof mockDashboardData.by_apartment,
+				occupancy_by_apartment: {} as typeof mockDashboardData.occupancy_by_apartment,
+				daily_revenue: [] as typeof mockDashboardData.daily_revenue,
+			},
+			isLoading: false,
+		};
+
 		it('renders empty chart placeholders when no data', () => {
-			mockUseGetDashboardStatsQuery.mockReturnValueOnce({
-				data: {
-					year: 2025,
-					total_revenue: 0,
-					by_source: [],
-					monthly_revenue: [],
-					by_apartment: [],
-					occupancy_by_apartment: {},
-					daily_revenue: [],
-				},
-				isLoading: false,
-			});
+			mockUseGetDashboardStatsQuery.mockReturnValue(emptyData);
 			render(<ReservationDashboardClient session={mockSession} />);
 			const emptyMessages = screen.getAllByText('Aucune donnée disponible');
 			expect(emptyMessages.length).toBeGreaterThanOrEqual(1);
+			mockUseGetDashboardStatsQuery.mockReturnValue({ data: mockDashboardData, isLoading: false });
 		});
 
 		it('does not render source breakdown when empty', () => {
-			mockUseGetDashboardStatsQuery.mockReturnValueOnce({
-				data: {
-					year: 2025,
-					total_revenue: 0,
-					by_source: [],
-					monthly_revenue: [],
-					by_apartment: [],
-					occupancy_by_apartment: {},
-					daily_revenue: [],
-				},
-				isLoading: false,
-			});
+			mockUseGetDashboardStatsQuery.mockReturnValue(emptyData);
 			render(<ReservationDashboardClient session={mockSession} />);
 			expect(screen.queryByText('Détail par source de paiement')).not.toBeInTheDocument();
+			mockUseGetDashboardStatsQuery.mockReturnValue({ data: mockDashboardData, isLoading: false });
 		});
 	});
 });

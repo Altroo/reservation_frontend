@@ -2,6 +2,7 @@ import React, { ForwardedRef, forwardRef, useState } from 'react';
 import { ThemeProvider, TextField, InputAdornment, IconButton } from '@mui/material';
 import type { Theme } from '@mui/material/styles';
 import { Visibility as VisibilityIcon, VisibilityOff as VisibilityOffIcon } from '@mui/icons-material';
+import { useLanguage } from '@/utils/hooks';
 
 type Props = {
 	id: string;
@@ -24,6 +25,7 @@ type Props = {
 const CustomPasswordInput = forwardRef<HTMLInputElement, Props>((props: Props, ref: ForwardedRef<HTMLInputElement>) => {
 	const { cssClass, theme, startIcon, ...restOfProps } = props;
 	const [showpassword, setshowpassword] = useState<boolean>(false);
+	const { t } = useLanguage();
 
 	const handleClickShowPassword = () => {
 		setshowpassword((prevState) => !prevState);
@@ -55,7 +57,7 @@ const CustomPasswordInput = forwardRef<HTMLInputElement, Props>((props: Props, r
 						endAdornment: (
 							<InputAdornment position="end">
 								<IconButton
-									aria-label="toggle password visibility"
+									aria-label={t.common.togglePasswordVisibility}
 									onClick={handleClickShowPassword}
 									onMouseDown={(e) => e.preventDefault()}
 									edge="end"

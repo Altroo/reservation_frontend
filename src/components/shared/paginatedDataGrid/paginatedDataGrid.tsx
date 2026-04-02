@@ -7,6 +7,7 @@ import type { GridColDef, GridFilterModel, GridRowSelectionModel, GridRowId } fr
 import { DataGrid, GridSlotProps, ColumnsPanelTrigger, ToolbarButton, GridLogicOperator } from '@mui/x-data-grid';
 import { frFR } from '@mui/x-data-grid/locales';
 import { getDefaultTheme } from '@/utils/themes';
+import { useLanguage } from '@/utils/hooks';
 import ApiProgress from '@/components/formikElements/apiLoading/apiProgress/apiProgress';
 import CustomFilterPanel, {
 	CustomFilterModel,
@@ -151,6 +152,7 @@ const PaginatedDataGrid = <T,>({
 	isAllMatchingSelected,
 	onClearAllMatchingSelected,
 }: PaginatedDataGridProps<T>) => {
+	const { t } = useLanguage();
 	const [internalFilterModel, setInternalFilterModel] = useState<GridFilterModel>({
 		items: [],
 		logicOperator: GridLogicOperator.And,
@@ -396,20 +398,20 @@ const PaginatedDataGrid = <T,>({
 									{isAllMatchingSelected ? (
 										<>
 											<Typography variant="body2">
-												Les <strong>{totalMatchingCount}</strong> éléments correspondant aux filtres sont sélectionnés.
+												{t.dataGrid.allMatchingSelected(totalMatchingCount ?? 0)}
 											</Typography>
 											<Button
 												size="small"
 												onClick={onClearAllMatchingSelected}
 												sx={{ textTransform: 'none', fontWeight: 600, p: 0.5, minWidth: 'auto' }}
 											>
-												Effacer la sélection
+												{t.dataGrid.clearSelection}
 											</Button>
 										</>
 									) : (
 										<>
 											<Typography variant="body2">
-												Les <strong>{rows.length}</strong> éléments de cette page sont sélectionnés.
+												{t.dataGrid.pageItemsSelected(rows.length)}
 											</Typography>
 											<Button
 												size="small"
@@ -420,10 +422,10 @@ const PaginatedDataGrid = <T,>({
 												{selectAllMatchingLoading ? (
 													<Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
 														<CircularProgress size={12} />
-														<span>Chargement...</span>
+														<span>{t.common.loading}</span>
 													</Box>
 												) : (
-													`Sélectionner les ${totalMatchingCount} éléments correspondant aux filtres`
+													t.dataGrid.selectAllMatching(totalMatchingCount ?? 0)
 												)}
 											</Button>
 										</>

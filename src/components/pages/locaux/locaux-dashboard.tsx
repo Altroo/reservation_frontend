@@ -42,6 +42,7 @@ import { LOCAUX_VIEW } from '@/utils/routes';
 import { TYPE_LOCAL_CHIP_COLORS } from '@/utils/rawData';
 import { useGetLocalDashboardQuery, useGetLocalYearsQuery, useGetBuildingsQuery } from '@/store/services/reservation';
 import { useInitAccessToken } from '@/contexts/InitContext';
+import { useLanguage } from '@/utils/hooks';
 import type { ChipColor } from '@/utils/rawData';
 import Styles from '@/styles/dashboard/dashboard.module.sass';
 
@@ -94,6 +95,7 @@ const KpiCard: React.FC<KpiCardProps> = ({ icon, label, value, color, tooltip })
 
 const LocauxDashboardClient: React.FC<SessionProps> = ({ session }) => {
 	const router = useRouter();
+	const { t } = useLanguage();
 	const token = useInitAccessToken(session);
 	const theme = useTheme();
 	const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
@@ -112,8 +114,8 @@ const LocauxDashboardClient: React.FC<SessionProps> = ({ session }) => {
 	const { data: buildingsData } = useGetBuildingsQuery(undefined, { skip: !token });
 
 	const buildingItems: DropDownType[] = useMemo(
-		() => [{ code: 'Toutes', value: 'Toutes' }, ...(buildingsData ?? []).map((b) => ({ code: b.nom, value: b.nom }))],
-		[buildingsData],
+		() => [{ code: t.locaux.allResidences, value: t.locaux.allResidences }, ...(buildingsData ?? []).map((b) => ({ code: b.nom, value: b.nom }))],
+		[buildingsData, t],
 	);
 
 	const yearItems: DropDownType[] = useMemo(
@@ -126,24 +128,24 @@ const LocauxDashboardClient: React.FC<SessionProps> = ({ session }) => {
 
 	return (
 		<Stack direction="column" spacing={2} className={Styles.flexRootStack} mt="48px" sx={{ overflowX: 'auto', overflowY: 'hidden' }}>
-			<NavigationBar title="Dashboard des locaux">
+			<NavigationBar title={t.locaux.locauxDashboard}>
 				<Protected permission="can_view">
 					<Stack spacing={3} sx={{ p: { xs: 2, md: 3 } }}>
 						<Stack direction="row" justifyContent="space-between" alignItems="center" flexWrap="wrap" gap={1}>
 							<Typography variant="h5" fontWeight={600}>
-								Dashboard des locaux
+							{t.locaux.locauxDashboard}
 							</Typography>
 							<Stack direction="row" spacing={2}>
 							<Box sx={{ minWidth: 180 }}>
 								<CustomDropDownSelect
 									id="building-filter"
 									size="small"
-									label="Résidence"
+									label={t.locaux.residence}
 									items={buildingItems}
-									value={buildingId === '' ? 'Toutes' : ((buildingsData ?? []).find((b) => b.id === buildingId)?.nom ?? 'Toutes')}
+								value={buildingId === '' ? t.locaux.allResidences : ((buildingsData ?? []).find((b) => b.id === buildingId)?.nom ?? t.locaux.allResidences)}
 									onChange={(e) => {
 										const name = e.target.value;
-										if (!name || name === 'Toutes') setBuildingId('');
+										if (!name || name === t.locaux.allResidences) setBuildingId('');
 										else {
 											const b = (buildingsData ?? []).find((x) => x.nom === name);
 											setBuildingId(b ? b.id : '');
@@ -157,7 +159,7 @@ const LocauxDashboardClient: React.FC<SessionProps> = ({ session }) => {
 								<CustomDropDownSelect
 									id="year-filter"
 									size="small"
-									label="Année"
+									label={t.common.year}
 									items={yearItems}
 									value={String(year)}
 									onChange={(e) => setYear(Number(e.target.value))}
@@ -176,24 +178,24 @@ const LocauxDashboardClient: React.FC<SessionProps> = ({ session }) => {
 								<Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(3, 1fr)' }, gap: 2 }}>
 									<KpiCard
 										icon={<AttachMoneyIcon fontSize="small" />}
-										label={`Bénéfice HT ${year}`}
+										label={t.locaux.profitHTYear(year)}
 										value={`${Number(dashboardData?.total_benefice_ht ?? 0).toLocaleString('fr-MA')} MAD`}
 										color="#2e7d32"
-										tooltip="Total des loyers payés moins les loyers impayés"
+										tooltip={t.locaux.totalPaidMinusUnpaid}
 									/>
 									<KpiCard
 										icon={<HomeWorkIcon fontSize="small" />}
-										label="En location"
+										label={t.locaux.inRentalCount}
 										value={dashboardData?.total_en_location ?? 0}
 										color="#1976d2"
-										tooltip="Nombre de locaux actuellement en location"
+										tooltip={t.locaux.inRentalTooltip}
 									/>
 									<KpiCard
 										icon={<HomeIcon fontSize="small" />}
-										label="Libres"
+										label={t.locaux.freeCount}
 										value={dashboardData?.total_libres ?? 0}
 										color="#ed6c02"
-										tooltip="Nombre de locaux actuellement libres"
+										tooltip={t.locaux.freeTooltip}
 									/>
 								</Box>
 
@@ -202,7 +204,7 @@ const LocauxDashboardClient: React.FC<SessionProps> = ({ session }) => {
 									<Card elevation={2} sx={{ borderRadius: 2 }}>
 										<CardContent sx={{ py: 6, textAlign: 'center' }}>
 											<BusinessIcon sx={{ fontSize: 48, color: 'grey.400', mb: 2 }} />
-											<Typography color="text.secondary">Aucun local enregistré.</Typography>
+											<Typography color="text.secondary">{t.locaux.noLocauxRegistered}</Typography>
 										</CardContent>
 									</Card>
 								) : (
@@ -210,7 +212,7 @@ const LocauxDashboardClient: React.FC<SessionProps> = ({ session }) => {
 										<CardContent sx={{ p: { xs: 1, md: 2 } }}>
 											<Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 2, px: 1 }}>
 												<TrendingUpIcon color="primary" />
-												<Typography variant="h6" fontWeight={700}>Rentabilité par local</Typography>
+												<Typography variant="h6" fontWeight={700}>{t.locaux.profitabilityByLocal}</Typography>
 											</Stack>
 											{isMobile ? (
 												<Stack spacing={1.5}>
@@ -228,19 +230,19 @@ const LocauxDashboardClient: React.FC<SessionProps> = ({ session }) => {
 																		<Typography variant="body2" fontWeight={600}>{local.nom}</Typography>
 																		<Stack direction="row" spacing={0.5}>
 																			<Chip label={local.type_local} size="small" color={typeColor} variant="outlined" />
-																			<Chip label={local.en_location ? 'Loué' : 'Libre'} size="small" color={local.en_location ? 'success' : 'default'} variant="outlined" />
+																			<Chip label={local.en_location ? t.locaux.inRental : t.common.free} size="small" color={local.en_location ? 'success' : 'default'} variant="outlined" />
 																		</Stack>
 																	</Stack>
 																	<Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 0.5 }}>
-																		<Typography variant="caption" color="text.secondary">Loyers payés</Typography>
+																		<Typography variant="caption" color="text.secondary">{t.locaux.paidRents}</Typography>
 																		<Typography variant="caption" color="success.main" fontWeight={600} textAlign="right">
 																			{Number(local.loyers_payes).toLocaleString('fr-MA')} MAD
 																		</Typography>
-																		<Typography variant="caption" color="text.secondary">Loyers impayés</Typography>
+																		<Typography variant="caption" color="text.secondary">{t.locaux.unpaidRents}</Typography>
 																		<Typography variant="caption" color="error.main" fontWeight={600} textAlign="right">
 																			{Number(local.loyers_impayes).toLocaleString('fr-MA')} MAD
 																		</Typography>
-																		<Typography variant="caption" color="text.secondary">Rentabilité</Typography>
+																		<Typography variant="caption" color="text.secondary">{t.locaux.profitability}</Typography>
 																		<Typography variant="caption" fontWeight={700} color="primary" textAlign="right">
 																			{local.rentabilite}%
 																		</Typography>
@@ -255,14 +257,14 @@ const LocauxDashboardClient: React.FC<SessionProps> = ({ session }) => {
 												<Table size="small">
 													<TableHead>
 														<TableRow>
-															<TableCell sx={{ fontWeight: 700 }}>Nom</TableCell>
-															<TableCell sx={{ fontWeight: 700 }}>Type</TableCell>
-															<TableCell sx={{ fontWeight: 700 }}>Statut</TableCell>
-															<TableCell sx={{ fontWeight: 700 }} align="right">Prix d&apos;achat</TableCell>
-															<TableCell sx={{ fontWeight: 700 }} align="right">Loyer/mois</TableCell>
-															<TableCell sx={{ fontWeight: 700 }} align="right">Loyers payés</TableCell>
-															<TableCell sx={{ fontWeight: 700 }} align="right">Loyers impayés</TableCell>
-															<TableCell sx={{ fontWeight: 700 }} align="right">Rentabilité</TableCell>
+															<TableCell sx={{ fontWeight: 700 }}>{t.common.name}</TableCell>
+															<TableCell sx={{ fontWeight: 700 }}>{t.common.type}</TableCell>
+															<TableCell sx={{ fontWeight: 700 }}>{t.common.status}</TableCell>
+															<TableCell sx={{ fontWeight: 700 }} align="right">{t.locaux.purchasePrice}</TableCell>
+															<TableCell sx={{ fontWeight: 700 }} align="right">{t.locaux.rentPerMonth}</TableCell>
+															<TableCell sx={{ fontWeight: 700 }} align="right">{t.locaux.paidRents}</TableCell>
+															<TableCell sx={{ fontWeight: 700 }} align="right">{t.locaux.unpaidRents}</TableCell>
+															<TableCell sx={{ fontWeight: 700 }} align="right">{t.locaux.profitability}</TableCell>
 														</TableRow>
 													</TableHead>
 													<TableBody>
@@ -283,7 +285,7 @@ const LocauxDashboardClient: React.FC<SessionProps> = ({ session }) => {
 																	</TableCell>
 																	<TableCell>
 																		<Chip
-																			label={local.en_location ? 'En location' : 'Libre'}
+																			label={local.en_location ? t.locaux.inRental : t.common.free}
 																			size="small"
 																			color={local.en_location ? 'success' : 'default'}
 																			variant="outlined"

@@ -12,49 +12,56 @@ import { ToastContextProvider } from '@/contexts/toastContext';
 import { ErrorBoundary } from '@/components/shared/errorBoundary';
 import SessionExpiredListener from '@/components/shared/sessionExpiredListener/sessionExpiredListener';
 import Maintenance from '@/components/shared/maintenance/Maintenance';
+import { LanguageContextProvider } from '@/contexts/languageContext';
+import SkipToContent from '@/components/shared/skipToContent/skipToContent';
+import { getServerTranslations } from '@/utils/getServerTranslations';
+import { cookies } from 'next/headers';
 
-export const metadata: Metadata = {
-	title: 'E.B.H Réservation',
-	applicationName: 'E.B.H Réservation',
-	authors: [{ name: 'Altroo' }],
-	robots: {
-		index: false,
-		follow: false,
-	},
-	manifest: '/assets/ico/manifest.json',
-	icons: {
-		icon: [
-			{ url: '/assets/ico/favicon.ico', rel: 'shortcut icon' },
-			{ url: '/assets/ico/favicon-16x16.png', sizes: '16x16', type: 'image/png' },
-			{ url: '/assets/ico/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
-			{ url: '/assets/ico/favicon-96x96.png', sizes: '96x96', type: 'image/png' },
-			{ url: '/assets/ico/android-icon-36x36', sizes: '36x36', type: 'image/png' },
-			{ url: '/assets/ico/android-icon-48x48', sizes: '48x48', type: 'image/png' },
-			{ url: '/assets/ico/android-icon-72x72', sizes: '72x72', type: 'image/png' },
-			{ url: '/assets/ico/android-icon-96x96', sizes: '96x96', type: 'image/png' },
-			{ url: '/assets/ico/android-icon-144x144', sizes: '144x144', type: 'image/png' },
-			{ url: '/assets/ico/android-icon-192x192.png', sizes: '192x192', type: 'image/png' },
-		],
-		apple: [
-			{ url: '/assets/ico/apple-icon-57x57.png', sizes: '57x57', type: 'image/png' },
-			{ url: '/assets/ico/apple-icon-60x60.png', sizes: '60x60', type: 'image/png' },
-			{ url: '/assets/ico/apple-icon-72x72.png', sizes: '72x72', type: 'image/png' },
-			{ url: '/assets/ico/apple-icon-76x76.png', sizes: '76x76', type: 'image/png' },
-			{ url: '/assets/ico/apple-icon-114x114.png', sizes: '114x114', type: 'image/png' },
-			{ url: '/assets/ico/apple-icon-120x120.png', sizes: '120x120', type: 'image/png' },
-			{ url: '/assets/ico/apple-icon-144x144.png', sizes: '144x144', type: 'image/png' },
-			{ url: '/assets/ico/apple-icon-152x152.png', sizes: '152x152', type: 'image/png' },
-			{ url: '/assets/ico/apple-icon-180x180.png', sizes: '180x180', type: 'image/png' },
-		],
-	},
-	other: {
-		'msapplication-TileColor': '#ffffff',
-		'msapplication-TileImage': '/assets/ico/ms-icon-144x144.png',
-		copyright: `Copyright - E.B.H Réservation © ${new Date().getFullYear()}`,
-		rating: 'general',
-		expires: 'never',
-	},
-};
+export async function generateMetadata(): Promise<Metadata> {
+	const t = await getServerTranslations();
+	return {
+		title: t.pageMetadata.appTitle,
+		applicationName: t.pageMetadata.appName,
+		authors: [{ name: 'Altroo' }],
+		robots: {
+			index: false,
+			follow: false,
+		},
+		manifest: '/assets/ico/manifest.json',
+		icons: {
+			icon: [
+				{ url: '/assets/ico/favicon.ico', rel: 'shortcut icon' },
+				{ url: '/assets/ico/favicon-16x16.png', sizes: '16x16', type: 'image/png' },
+				{ url: '/assets/ico/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
+				{ url: '/assets/ico/favicon-96x96.png', sizes: '96x96', type: 'image/png' },
+				{ url: '/assets/ico/android-icon-36x36', sizes: '36x36', type: 'image/png' },
+				{ url: '/assets/ico/android-icon-48x48', sizes: '48x48', type: 'image/png' },
+				{ url: '/assets/ico/android-icon-72x72', sizes: '72x72', type: 'image/png' },
+				{ url: '/assets/ico/android-icon-96x96', sizes: '96x96', type: 'image/png' },
+				{ url: '/assets/ico/android-icon-144x144', sizes: '144x144', type: 'image/png' },
+				{ url: '/assets/ico/android-icon-192x192.png', sizes: '192x192', type: 'image/png' },
+			],
+			apple: [
+				{ url: '/assets/ico/apple-icon-57x57.png', sizes: '57x57', type: 'image/png' },
+				{ url: '/assets/ico/apple-icon-60x60.png', sizes: '60x60', type: 'image/png' },
+				{ url: '/assets/ico/apple-icon-72x72.png', sizes: '72x72', type: 'image/png' },
+				{ url: '/assets/ico/apple-icon-76x76.png', sizes: '76x76', type: 'image/png' },
+				{ url: '/assets/ico/apple-icon-114x114.png', sizes: '114x114', type: 'image/png' },
+				{ url: '/assets/ico/apple-icon-120x120.png', sizes: '120x120', type: 'image/png' },
+				{ url: '/assets/ico/apple-icon-144x144.png', sizes: '144x144', type: 'image/png' },
+				{ url: '/assets/ico/apple-icon-152x152.png', sizes: '152x152', type: 'image/png' },
+				{ url: '/assets/ico/apple-icon-180x180.png', sizes: '180x180', type: 'image/png' },
+			],
+		},
+		other: {
+			'msapplication-TileColor': '#ffffff',
+			'msapplication-TileImage': '/assets/ico/ms-icon-144x144.png',
+			copyright: `${t.pageMetadata.copyright} ${new Date().getFullYear()}`,
+			rating: 'general',
+			expires: 'never',
+		},
+	};
+}
 
 export const viewport: Viewport = {
 	width: 'device-width',
@@ -66,26 +73,26 @@ interface EntryPointProps extends AppProps {
 	children: React.ReactNode;
 }
 
-const RootLayout: React.FC<EntryPointProps> = (props) => {
+const RootLayout: React.FC<EntryPointProps> = async (props) => {
+	const cookieStore = await cookies();
+	const lang = cookieStore.get('app-language')?.value === 'en' ? 'en' : 'fr';
 	return (
-		<html lang="fr" data-scroll-behavior="smooth">
+		<html lang={lang} data-scroll-behavior="smooth">
 			<body>
-				<a href="#main-content" className="skip-to-content">
-					Aller au contenu principal
-				</a>
 				<SessionProvider>
 					<StoreProvider>
 						<InitContextProvider>
 							<InitEffects />
 							<AppRouterCacheProvider>
 								<ThemeProvider>
-									<ErrorBoundary>
-										<ToastContextProvider>
-											<SessionExpiredListener />
-											<Maintenance />
-											<div id="main-content">{props.children}</div>
-										</ToastContextProvider>
-									</ErrorBoundary>
+									<LanguageContextProvider>									<SkipToContent />										<ErrorBoundary>
+											<ToastContextProvider>
+												<SessionExpiredListener />
+												<Maintenance />
+												<div id="main-content">{props.children}</div>
+											</ToastContextProvider>
+										</ErrorBoundary>
+									</LanguageContextProvider>
 								</ThemeProvider>
 							</AppRouterCacheProvider>
 						</InitContextProvider>

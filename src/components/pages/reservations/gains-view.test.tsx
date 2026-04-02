@@ -4,6 +4,12 @@ import '@testing-library/jest-dom';
 import GainsClient from './gains-view';
 import type { AppSession } from '@/types/_initTypes';
 
+
+jest.mock('@/utils/hooks', () => ({
+	// eslint-disable-next-line @typescript-eslint/no-require-imports
+	useLanguage: () => ({ language: 'fr', setLanguage: jest.fn(), t: require('@/translations').translations.fr }),
+}));
+
 // Mock next/navigation
 jest.mock('next/navigation', () => ({
 	useRouter: () => ({
@@ -175,7 +181,7 @@ describe('GainsClient', () => {
 		it('renders monthly cost', () => {
 			render(<GainsClient session={mockSession} />);
 			// Component does not render a separate "Coût mensuel location" KPI; ensure totals row is present
-			expect(screen.getByText('TOTAL')).toBeInTheDocument();
+			expect(screen.getAllByText('Total').length).toBeGreaterThanOrEqual(1);
 		});
 
 		it('renders best month', () => {
@@ -228,7 +234,7 @@ describe('GainsClient', () => {
 
 		it('renders TOTAL row when apartments exist', () => {
 			render(<GainsClient session={mockSession} />);
-			expect(screen.getByText('TOTAL')).toBeInTheDocument();
+			expect(screen.getAllByText('Total').length).toBeGreaterThanOrEqual(1);
 		});
 
 		it('renders Appartement column header', () => {

@@ -7,6 +7,7 @@ import {
 	MINI_INPUT_EMAIL,
 	SHORT_INPUT_REQUIRED,
 } from '@/utils/formValidationErrorMessages';
+import { getTranslations } from '@/utils/getTranslations';
 
 
 const base64ImageField = z.url().or(z.string().startsWith('data:image/')).nullable().optional();
@@ -32,13 +33,13 @@ const requiredTextField = (min: number, max: number) =>
 const requiredChoiceTextField = () =>
 	z.preprocess((val) => (val === undefined ? '' : val), z.string().nonempty({ error: INPUT_REQUIRED }));
 
-const requiredDateField = (label: string) =>
+const requiredDateField = (getLabel: () => string) =>
 	z.preprocess(
 		(val) => (val === undefined || val === null ? '' : String(val)),
 		z
 			.string()
-			.nonempty({ error: `${label} est requise` })
-			.regex(/^\d{4}-\d{2}-\d{2}$/, { error: 'Format de date invalide (AAAA-MM-JJ)' }),
+			.nonempty({ error: () => getTranslations().validation.dateRequired(getLabel()) })
+			.regex(/^\d{4}-\d{2}-\d{2}$/, { error: () => getTranslations().validation.invalidDateFormat }),
 	);
 
 const optionalChoiceField = () =>
@@ -116,11 +117,11 @@ export const profilSchema = z.object({
 export const reservationSchema = z.object({
 	apartment: z.preprocess(
 		(val) => (val === undefined || val === '' || val === null ? undefined : Number(val)),
-		z.number({ error: 'Appartement requis' }).positive({ error: 'Appartement requis' }),
+		z.number({ error: () => getTranslations().validation.apartmentRequired }).positive({ error: () => getTranslations().validation.apartmentRequired }),
 	),
 	guest_name: requiredTextField(2, 200),
-	check_in: requiredDateField("Date d'arrivée"),
-	check_out: requiredDateField('Date de départ'),
+	check_in: requiredDateField(() => getTranslations().reservations.checkIn),
+	check_out: requiredDateField(() => getTranslations().reservations.checkOut),
 	amount: z.preprocess(
 		(val) => (val === undefined || val === null ? '' : String(val)),
 		z.string().nonempty({ error: INPUT_REQUIRED }),
@@ -134,20 +135,20 @@ export const reservationSchema = z.object({
 		return data.check_out > data.check_in;
 	},
 	{
-		message: "La date de départ doit être après la date d'arrivée.",
+		error: () => getTranslations().validation.departureAfterArrival,
 		path: ['check_out'],
 	},
 );
 
 export const changePasswordSchema = z
 	.object({
-		old_password: z.string().min(1, INPUT_REQUIRED).min(8, INPUT_PASSWORD_MIN(8)),
-		new_password: z.string().min(1, INPUT_REQUIRED).min(8, INPUT_PASSWORD_MIN(8)),
-		new_password2: z.string().min(1, INPUT_REQUIRED),
+		old_password: z.string().min(1, { error: INPUT_REQUIRED }).min(8, INPUT_PASSWORD_MIN(8)),
+		new_password: z.string().min(1, { error: INPUT_REQUIRED }).min(8, INPUT_PASSWORD_MIN(8)),
+		new_password2: z.string().min(1, { error: INPUT_REQUIRED }),
 		globalError: z.string().optional(),
 	})
 	.refine((data) => data.new_password === data.new_password2, {
-		message: 'Les mots de passe ne correspondent pas',
+		error: () => getTranslations().validation.passwordsDoNotMatch,
 		path: ['new_password2'],
 	});
 
@@ -157,7 +158,7 @@ export const costSchema = z.object({
 		(val) => (val === undefined || val === null ? '' : String(val)),
 		z.string().nonempty({ error: INPUT_REQUIRED }),
 	),
-	date: requiredDateField('Date'),
+	date: requiredDateField(() => getTranslations().common.date),
 	category: requiredChoiceTextField(),
 	globalError: optionalTextField(1, 500),
 });
@@ -183,7 +184,7 @@ export const localSchema = z.object({
 	locataire_nom: optionalTextField(1, 200),
 	date_debut_location: z.preprocess(
 		(val) => (val === undefined || val === null || val === '' ? undefined : String(val)),
-		z.string().regex(/^\d{4}-\d{2}-\d{2}$/, { error: 'Format de date invalide (AAAA-MM-JJ)' }).optional(),
+		z.string().regex(/^\d{4}-\d{2}-\d{2}$/, { error: () => getTranslations().validation.invalidDateFormat }).optional(),
 	),
 	notes: optionalTextField(1, 2000),
 	globalError: optionalTextField(1, 500),
@@ -197,15 +198,15 @@ export const buildingSchema = z.object({
 export const loyerSchema = z.object({
 	local: z.preprocess(
 		(val) => (val === undefined || val === '' || val === null ? undefined : Number(val)),
-		z.number({ error: 'Local requis' }).positive({ error: 'Local requis' }),
+		z.number({ error: () => getTranslations().validation.localRequired }).positive({ error: () => getTranslations().validation.localRequired }),
 	),
 	mois: z.preprocess(
 		(val) => (val === undefined || val === '' || val === null ? undefined : Number(val)),
-		z.number({ error: 'Mois requis' }).min(1, { error: 'Mois invalide' }).max(12, { error: 'Mois invalide' }),
+		z.number({ error: () => getTranslations().validation.monthRequired }).min(1, { error: () => getTranslations().validation.invalidMonth }).max(12, { error: () => getTranslations().validation.invalidMonth }),
 	),
 	annee: z.preprocess(
 		(val) => (val === undefined || val === '' || val === null ? undefined : Number(val)),
-		z.number({ error: 'Année requise' }).min(2000, { error: 'Année invalide' }).max(2100, { error: 'Année invalide' }),
+		z.number({ error: () => getTranslations().validation.yearRequired }).min(2000, { error: () => getTranslations().validation.invalidYear }).max(2100, { error: () => getTranslations().validation.invalidYear }),
 	),
 	montant: z.preprocess(
 		(val) => (val === undefined || val === null ? '' : String(val)),
@@ -214,7 +215,7 @@ export const loyerSchema = z.object({
 	paye: z.boolean(),
 	date_paiement: z.preprocess(
 		(val) => (val === undefined || val === null || val === '' ? undefined : String(val)),
-		z.string().regex(/^\d{4}-\d{2}-\d{2}$/, { error: 'Format de date invalide (AAAA-MM-JJ)' }).optional(),
+		z.string().regex(/^\d{4}-\d{2}-\d{2}$/, { error: () => getTranslations().validation.invalidDateFormat }).optional(),
 	),
 	notes: optionalTextField(1, 2000),
 	globalError: optionalTextField(1, 500),

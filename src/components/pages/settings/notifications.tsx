@@ -24,22 +24,14 @@ import {
 } from '@/store/services/reservation';
 import ApiProgress from '@/components/formikElements/apiLoading/apiProgress/apiProgress';
 import NavigationBar from '@/components/layouts/navigationBar/navigationBar';
-import { useToast } from '@/utils/hooks';
+import { useToast, useLanguage } from '@/utils/hooks';
 import { Edit as EditIcon } from '@mui/icons-material';
 import type { NotificationPreferenceFormValues, ReminderMinutesValue } from '@/types/reservationTypes';
 
-const REMINDER_OPTIONS: { value: ReminderMinutesValue; label: string }[] = [
-	{ value: 0, label: 'Pas de rappel' },
-	{ value: 15, label: '15 minutes avant' },
-	{ value: 30, label: '30 minutes avant' },
-	{ value: 60, label: '1 heure avant' },
-	{ value: 120, label: '2 heures avant' },
-	{ value: 1440, label: '1 jour avant' },
-	{ value: 2880, label: '2 jours avant' },
-];
-
 const FormikContent: React.FC = () => {
 	const { onSuccess, onError } = useToast();
+	const { t } = useLanguage();
+	const reminderOptions: { value: ReminderMinutesValue; label: string }[] = t.settings.reminderOptions as { value: ReminderMinutesValue; label: string }[];
 	const { data: preferences, isLoading: isPreferencesLoading } = useGetNotificationPreferencesQuery();
 	const [updatePreferences, { isLoading: isUpdateLoading }] = useUpdateNotificationPreferencesMutation();
 	const [isPending, setIsPending] = useState(false);
@@ -60,9 +52,9 @@ const FormikContent: React.FC = () => {
 					notify_check_out: values.notify_check_out,
 					reminder_minutes: values.reminder_minutes,
 				}).unwrap();
-				onSuccess('Les préférences de notification ont été mises à jour.');
+					onSuccess(t.settings.notificationUpdateSuccess);
 			} catch (e) {
-				onError('Échec de la mise à jour des préférences.');
+				onError(t.settings.notificationUpdateError);
 				setFormikAutoErrors({ e, setFieldError });
 			} finally {
 				setIsPending(false);
@@ -82,7 +74,7 @@ const FormikContent: React.FC = () => {
 			{(isPreferencesLoading || isUpdateLoading || isPending) && (
 				<ApiProgress backdropColor="#FFFFFF" circularColor="#0D070B" />
 			)}
-			<h2 className={Styles.pageTitle}>Préférences de notifications</h2>
+			<h2 className={Styles.pageTitle}>{t.settings.notificationPreferences}</h2>
 
 			<form className={Styles.form} onSubmit={(e) => e.preventDefault()}>
 				<Stack direction="column" justifyContent="center" alignItems="center" spacing={3}>
@@ -95,7 +87,7 @@ const FormikContent: React.FC = () => {
 										onChange={(e) => formik.setFieldValue('notify_check_in', e.target.checked)}
 									/>
 								}
-								label="Notifications de check-in"
+								label={t.settings.checkInNotifications}
 							/>
 							<FormControlLabel
 								control={
@@ -104,17 +96,17 @@ const FormikContent: React.FC = () => {
 										onChange={(e) => formik.setFieldValue('notify_check_out', e.target.checked)}
 									/>
 								}
-								label="Notifications de check-out"
+								label={t.settings.checkOutNotifications}
 							/>
 							<FormControl size="small" fullWidth>
-								<InputLabel id="reminder-minutes-label">Délai de rappel</InputLabel>
-								<Select
-									labelId="reminder-minutes-label"
-									value={String(formik.values.reminder_minutes)}
-									label="Délai de rappel"
+							<InputLabel id="reminder-minutes-label">{t.settings.reminderDelay}</InputLabel>
+							<Select
+								labelId="reminder-minutes-label"
+								value={String(formik.values.reminder_minutes)}
+								label={t.settings.reminderDelay}
 									onChange={(e: SelectChangeEvent) => formik.setFieldValue('reminder_minutes', Number(e.target.value))}
 								>
-									{REMINDER_OPTIONS.map((opt) => (
+									{reminderOptions.map((opt) => (
 										<MenuItem key={opt.value} value={String(opt.value)}>
 											{opt.label}
 										</MenuItem>
@@ -124,7 +116,7 @@ const FormikContent: React.FC = () => {
 						</Stack>
 					</Box>
 					<PrimaryLoadingButton
-						buttonText="Enregistrer"
+						buttonText={t.settings.save}
 						active={!isPending}
 						onClick={formik.handleSubmit}
 						cssClass={`${Styles.maxWidth} ${Styles.mobileButton} ${Styles.submitButton}`}
@@ -141,10 +133,11 @@ const FormikContent: React.FC = () => {
 const NotificationsClient: React.FC = () => {
 	const theme = useTheme();
 	const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+	const { t } = useLanguage();
 
 	return (
 		<Stack direction="column" sx={{ position: 'relative' }}>
-			<NavigationBar title="Préférences de notifications">
+			<NavigationBar title={t.settings.notificationPreferences}>
 				<main className={`${Styles.main} ${Styles.fixMobile}`}>
 					<Box
 						sx={{

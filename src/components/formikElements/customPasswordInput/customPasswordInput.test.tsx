@@ -64,7 +64,7 @@ describe('CustomPasswordInput', () => {
 		const input = screen.getByLabelText('Password');
 		expect(input).toHaveAttribute('type', 'password');
 
-		const toggleButton = screen.getByLabelText('toggle password visibility');
+		const toggleButton = screen.getByLabelText('Afficher/masquer le mot de passe');
 		fireEvent.click(toggleButton);
 
 		expect(input).toHaveAttribute('type', 'text');

@@ -1,15 +1,19 @@
 import { cookies } from 'next/headers';
-import { type Metadata } from 'next';
+import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import { auth } from '@/auth';
 import { AUTH_RESET_PASSWORD, DASHBOARD } from '@/utils/routes';
 import SetPasswordCompleteClient from '@/components/pages/auth/reset-password/setPasswordComplete';
 import ClearCookiesClient from './clearCookiesClient';
+import { getServerTranslations } from '@/utils/getServerTranslations';
 
-export const metadata: Metadata = {
-	title: 'Mot de passe modifié',
-	description: 'Votre mot de passe a été modifié avec succès',
-};
+export async function generateMetadata(): Promise<Metadata> {
+	const t = await getServerTranslations();
+	return {
+		title: t.pageMetadata.setPasswordCompleteTitle,
+		description: t.pageMetadata.setPasswordCompleteDescription,
+	};
+}
 
 const SetPasswordCompletePage = async () => {
 	const session = await auth();

@@ -24,6 +24,8 @@ jest.mock('@/contexts/InitContext', () => ({
 const mockOnSuccess = jest.fn();
 const mockOnError = jest.fn();
 jest.mock('@/utils/hooks', () => ({
+	// eslint-disable-next-line @typescript-eslint/no-require-imports
+	useLanguage: () => ({ language: 'fr', setLanguage: jest.fn(), t: require('@/translations').translations.fr }),
 	useToast: () => ({ onSuccess: mockOnSuccess, onError: mockOnError }),
 }));
 
@@ -305,7 +307,7 @@ describe('UsersListClient', () => {
 			await act(async () => { fireEvent.click(btns[btns.length - 1]); });
 			await waitFor(() => {
 				expect(mockDeleteUser).toHaveBeenCalled();
-				expect(mockOnSuccess).toHaveBeenCalledWith('Utilisateur supprimée avec succès');
+				expect(mockOnSuccess).toHaveBeenCalledWith('Utilisateur supprimé avec succès');
 			});
 		});
 
@@ -316,7 +318,7 @@ describe('UsersListClient', () => {
 			const btns = screen.getAllByText('Supprimer');
 			await act(async () => { fireEvent.click(btns[btns.length - 1]); });
 			await waitFor(() => {
-				expect(mockOnError).toHaveBeenCalledWith('Erreur lors de la suppression de l\u2019utilisateur');
+				expect(mockOnError).toHaveBeenCalledWith("Erreur lors de la suppression de l\u2019utilisateur");
 			});
 		});
 	});

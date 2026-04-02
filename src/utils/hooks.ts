@@ -10,6 +10,7 @@ export const useAppSelector: TypedUseSelectorHook<RootState> = useSelector;
 
 import { getProfilState } from '@/store/selectors';
 import { ToastContext, type ToastContextType } from '@/contexts/toastContext';
+import { LanguageContext, type LanguageContextType } from '@/contexts/languageContext';
 
 /** Returns the current user's permission flags. Staff always bypass individual flags. */
 export const usePermission = () => {
@@ -35,4 +36,8 @@ export const useToast = (): ToastContextType => {
 	const ctx = useContext(ToastContext);
 	if (!ctx) throw new Error('useToast must be used within ToastProvider');
 	return ctx;
+};
+
+export const useLanguage = (): LanguageContextType => {
+	return useContext(LanguageContext);
 };

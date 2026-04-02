@@ -37,7 +37,7 @@ import ApiAlert from '@/components/formikElements/apiLoading/apiAlert/apiAlert';
 import ActionModals from '@/components/htmlElements/modals/actionModal/actionModals';
 import { extractApiErrorMessage, formatDate } from '@/utils/helpers';
 import { BUILDINGS_EDIT, BUILDINGS_LIST, LOCAUX_VIEW } from '@/utils/routes';
-import { useToast } from '@/utils/hooks';
+import { useToast, useLanguage } from '@/utils/hooks';
 import {
 	useGetBuildingQuery,
 	useDeleteBuildingMutation,
@@ -84,6 +84,7 @@ const InfoRow: React.FC<InfoRowProps> = ({ icon, label, value }) => {
 const BuildingViewClient: React.FC<SessionProps & { id: number }> = ({ session, id }) => {
 	const router = useRouter();
 	const { onSuccess, onError } = useToast();
+	const { t } = useLanguage();
 	const token = useInitAccessToken(session);
 
 	const { data: building, isLoading, isError } = useGetBuildingQuery({ id }, { skip: !token });
@@ -105,10 +106,10 @@ const BuildingViewClient: React.FC<SessionProps & { id: number }> = ({ session, 
 	const deleteHandler = async () => {
 		try {
 			await deleteBuilding({ id }).unwrap();
-			onSuccess('Résidence supprimée avec succès');
+			onSuccess(t.buildings.residenceDeletedSuccess);
 			router.push(BUILDINGS_LIST);
 		} catch (err) {
-			onError(extractApiErrorMessage(err, 'Erreur lors de la suppression de la résidence'));
+			onError(extractApiErrorMessage(err, t.buildings.residenceDeleteError));
 		} finally {
 			setShowDeleteModal(false);
 		}
@@ -116,14 +117,14 @@ const BuildingViewClient: React.FC<SessionProps & { id: number }> = ({ session, 
 
 	const deleteModalActions = [
 		{
-			text: 'Annuler',
+			text: t.common.cancel,
 			active: false,
 			onClick: () => setShowDeleteModal(false),
 			icon: <CloseIcon />,
 			color: '#6B6B6B',
 		},
 		{
-			text: 'Supprimer',
+			text: t.common.delete,
 			active: true,
 			onClick: deleteHandler,
 			icon: <DeleteIcon />,
@@ -133,7 +134,7 @@ const BuildingViewClient: React.FC<SessionProps & { id: number }> = ({ session, 
 
 	return (
 		<Stack direction="column" spacing={2} className={Styles.flexRootStack} mt="48px">
-			<NavigationBar title="Détail de la résidence">
+			<NavigationBar title={t.buildings.residenceDetail}>
 				<Protected permission="can_view">
 					<Stack spacing={3} sx={{ p: { xs: 2, md: 3 } }}>
 						<Stack direction="row" justifyContent="space-between" alignItems="center" flexWrap="wrap" gap={2}>
@@ -143,7 +144,7 @@ const BuildingViewClient: React.FC<SessionProps & { id: number }> = ({ session, 
 								onClick={() => router.push(BUILDINGS_LIST)}
 								sx={{ whiteSpace: 'nowrap' }}
 							>
-								Liste des résidences
+								{t.buildings.residencesList}
 							</Button>
 							<Stack direction="row" spacing={1}>
 								<Protected permission="can_edit">
@@ -153,7 +154,7 @@ const BuildingViewClient: React.FC<SessionProps & { id: number }> = ({ session, 
 										onClick={() => router.push(BUILDINGS_EDIT(id))}
 										sx={{ whiteSpace: 'nowrap' }}
 									>
-										Modifier
+										{t.common.edit}
 									</Button>
 								</Protected>
 								<Protected permission="can_delete">
@@ -164,14 +165,14 @@ const BuildingViewClient: React.FC<SessionProps & { id: number }> = ({ session, 
 										onClick={() => setShowDeleteModal(true)}
 										sx={{ whiteSpace: 'nowrap' }}
 									>
-										Supprimer
+										{t.common.delete}
 									</Button>
 								</Protected>
 							</Stack>
 						</Stack>
 
 						{isLoading && <ApiProgress backdropColor="#FFFFFF" circularColor="#0D070B" />}
-						{isError && <ApiAlert>Erreur lors du chargement de la résidence.</ApiAlert>}
+						{isError && <ApiAlert>{t.buildings.loadError}</ApiAlert>}
 
 						{building && (
 							<>
@@ -180,11 +181,11 @@ const BuildingViewClient: React.FC<SessionProps & { id: number }> = ({ session, 
 										<Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 2 }}>
 											<ApartmentIcon color="primary" />
 											<Typography variant="h6" fontWeight={700}>
-												Identification
+												{t.common.identification}
 											</Typography>
 										</Stack>
 										<Divider sx={{ mb: 1 }} />
-										<InfoRow icon={<ApartmentIcon />} label="Nom" value={building.nom} />
+										<InfoRow icon={<ApartmentIcon />} label={t.common.name} value={building.nom} />
 									</CardContent>
 								</Card>
 
@@ -193,13 +194,13 @@ const BuildingViewClient: React.FC<SessionProps & { id: number }> = ({ session, 
 										<Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 2 }}>
 											<CalendarTodayIcon color="primary" />
 											<Typography variant="h6" fontWeight={700}>
-												Métadonnées
+												{t.common.metadata}
 											</Typography>
 										</Stack>
 										<Divider sx={{ mb: 1 }} />
-										<InfoRow icon={<PersonIcon />} label="Créé par" value={building.created_by_user_name} />
-										<InfoRow icon={<CalendarTodayIcon />} label="Date de création" value={formatDate(building.date_created)} />
-										<InfoRow icon={<CalendarTodayIcon />} label="Dernière modification" value={formatDate(building.date_updated)} />
+								<InfoRow icon={<PersonIcon />} label={t.common.createdBy} value={building.created_by_user_name} />
+								<InfoRow icon={<CalendarTodayIcon />} label={t.common.creationDate} value={formatDate(building.date_created)} />
+								<InfoRow icon={<CalendarTodayIcon />} label={t.common.lastUpdate} value={formatDate(building.date_updated)} />
 									</CardContent>
 								</Card>
 
@@ -209,14 +210,14 @@ const BuildingViewClient: React.FC<SessionProps & { id: number }> = ({ session, 
 										<Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 2 }}>
 											<HotelIcon color="primary" />
 											<Typography variant="h6" fontWeight={700}>
-												Appartements
+												{t.buildings.apartments}
 											</Typography>
 											<Chip label={buildingApartments.length} size="small" color="primary" />
 										</Stack>
 										<Divider sx={{ mb: 1 }} />
 										{buildingApartments.length === 0 ? (
 											<Typography color="text.secondary" sx={{ py: 2, textAlign: 'center' }}>
-												Aucun appartement rattaché à cette résidence.
+												{t.buildings.noApartments}
 											</Typography>
 										) : (
 											<List dense disablePadding>
@@ -239,14 +240,14 @@ const BuildingViewClient: React.FC<SessionProps & { id: number }> = ({ session, 
 										<Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 2 }}>
 											<BusinessIcon color="primary" />
 											<Typography variant="h6" fontWeight={700}>
-												Locaux
+												{t.navigation.locaux}
 											</Typography>
 											<Chip label={buildingLocaux.length} size="small" color="primary" />
 										</Stack>
 										<Divider sx={{ mb: 1 }} />
 										{buildingLocaux.length === 0 ? (
 											<Typography color="text.secondary" sx={{ py: 2, textAlign: 'center' }}>
-												Aucun local rattaché à cette résidence.
+												{t.buildings.noLocaux}
 											</Typography>
 										) : (
 											<List dense disablePadding>
@@ -275,8 +276,8 @@ const BuildingViewClient: React.FC<SessionProps & { id: number }> = ({ session, 
 
 						{showDeleteModal && (
 							<ActionModals
-								title="Supprimer la résidence"
-								body="Êtes-vous sûr de vouloir supprimer cette résidence ? Cette action est irréversible."
+							title={t.buildings.deleteResidence}
+							body={t.buildings.deleteResidenceConfirm}
 								actions={deleteModalActions}
 							/>
 						)}

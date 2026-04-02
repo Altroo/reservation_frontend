@@ -44,10 +44,9 @@ import AddEntityModal from '@/components/shared/addEntityModal/addEntityModal';
 import PrimaryLoadingButton from '@/components/htmlElements/buttons/primaryLoadingButton/primaryLoadingButton';
 import ApiAlert from '@/components/formikElements/apiLoading/apiAlert/apiAlert';
 import { reservationSchema } from '@/utils/formValidationSchemas';
-import { paymentSourceItemsList, RESERVATION_FIELD_LABELS } from '@/utils/rawData';
 import { getLabelForKey, setFormikAutoErrors } from '@/utils/helpers';
 import { textInputTheme } from '@/utils/themes';
-import { useToast } from '@/utils/hooks';
+import { useToast, useLanguage } from '@/utils/hooks';
 import {
 	useAddApartmentMutation,
 	useCreateReservationMutation,
@@ -80,6 +79,7 @@ const ReservationDialog: React.FC<ReservationDialogProps> = ({
 	reservationId,
 }) => {
 	const { onSuccess: toastSuccess, onError: toastError } = useToast();
+	const { t } = useLanguage();
 	const isEditMode = reservationId !== undefined;
 	const theme = useTheme();
 	const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
@@ -133,16 +133,16 @@ const ReservationDialog: React.FC<ReservationDialogProps> = ({
 			try {
 				if (isEditMode) {
 					await updateReservation({ id: reservationId!, data: fields }).unwrap();
-					toastSuccess('La réservation a été mise à jour avec succès.');
+					toastSuccess(t.reservations.reservationUpdatedSuccess);
 				} else {
 					await createReservation(fields).unwrap();
-					toastSuccess('La réservation a été ajoutée avec succès.');
+					toastSuccess(t.reservations.reservationAddedSuccess);
 				}
 				onSuccess();
 				onClose();
 			} catch (e) {
 				setFormikAutoErrors({ e, setFieldError });
-				toastError(isEditMode ? 'Échec de la mise à jour de la réservation.' : "Échec de l'ajout de la réservation.");
+				toastError(isEditMode ? t.reservations.reservationUpdateError : t.reservations.reservationAddError);
 				topRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
 			} finally {
 				setIsPending(false);
@@ -174,8 +174,13 @@ const ReservationDialog: React.FC<ReservationDialogProps> = ({
 	);
 
 	const paymentSourceItems: DropDownType[] = useMemo(
-		() => paymentSourceItemsList.map((p) => ({ code: p.value, value: p.code })),
-		[],
+		() => [
+			{ code: 'Booking', value: 'Booking' },
+			{ code: 'Airbnb', value: 'Airbnb' },
+			{ code: t.rawData.paymentSources.cash, value: 'Cash' },
+			{ code: t.rawData.paymentSources.bankTransfer, value: 'Bank' },
+		],
+		[t],
 	);
 
 	const selectedPaymentSource = useMemo<DropDownType | null>(() => {
@@ -209,7 +214,7 @@ const ReservationDialog: React.FC<ReservationDialogProps> = ({
 				<DialogTitle>
 					<Stack direction="row" justifyContent="space-between" alignItems="center">
 						<Typography variant="h6" fontWeight={700}>
-							{isEditMode ? 'Modifier la réservation' : 'Nouvelle réservation'}
+							{isEditMode ? t.reservations.editReservation : t.reservations.newReservation}
 						</Typography>
 						<IconButton onClick={onClose} size="small">
 							<CloseIcon />
@@ -222,13 +227,13 @@ const ReservationDialog: React.FC<ReservationDialogProps> = ({
 						{showValidationAlert && (
 							<Alert severity="error" icon={<WarningIcon />}>
 								<Typography variant="subtitle2" fontWeight={600}>
-									Erreurs de validation détectées:
+									{t.reservations.validationErrorsDetected}
 								</Typography>
 								<ul style={{ margin: '8px 0', paddingLeft: '20px' }}>
 									{validationEntries.map(([key, err]) => (
 										<li key={key}>
 											<Typography variant="body2">
-												<strong>{getLabelForKey(RESERVATION_FIELD_LABELS, key)}</strong> : {err}
+												<strong>{getLabelForKey(t.rawData.fieldLabels.reservation, key)}</strong> : {err}
 											</Typography>
 										</li>
 									))}
@@ -245,7 +250,7 @@ const ReservationDialog: React.FC<ReservationDialogProps> = ({
 							<Stack direction="row" spacing={1} alignItems="center" mb={1.5}>
 								<HotelIcon color="primary" fontSize="small" />
 								<Typography variant="subtitle1" fontWeight={700}>
-									Détails de la réservation
+									{t.reservations.reservationDetailsSection}
 								</Typography>
 							</Stack>
 							<Divider sx={{ mb: 2 }} />
@@ -253,8 +258,8 @@ const ReservationDialog: React.FC<ReservationDialogProps> = ({
 								<CustomAutoCompleteSelect
 									id="apartment"
 									size="small"
-									noOptionsText="Aucun appartement trouvé"
-									label="Appartement *"
+									noOptionsText={t.reservations.noApartmentFound}
+									label={t.reservations.apartmentRequired}
 									items={apartmentItems}
 									theme={inputTheme}
 									value={selectedApartment}
@@ -274,7 +279,7 @@ const ReservationDialog: React.FC<ReservationDialogProps> = ({
 											onClick={() => setOpenApartmentModal(true)}
 											sx={{ ml: 1, whiteSpace: 'nowrap' }}
 										>
-											Ajouter
+											{t.reservations.addBtn}
 										</Button>
 									}
 								/>
@@ -283,7 +288,7 @@ const ReservationDialog: React.FC<ReservationDialogProps> = ({
 									id="guest_name"
 									type="text"
 									size="small"
-									label="Nom du client *"
+									label={t.reservations.guestNameRequired}
 									value={formik.values.guest_name}
 									onChange={formik.handleChange('guest_name')}
 									onBlur={formik.handleBlur('guest_name')}
@@ -300,13 +305,13 @@ const ReservationDialog: React.FC<ReservationDialogProps> = ({
 							<Stack direction="row" spacing={1} alignItems="center" mb={1.5}>
 								<CalendarMonthIcon color="primary" fontSize="small" />
 								<Typography variant="subtitle1" fontWeight={700}>
-									Dates du séjour
+									{t.reservations.stayDates}
 								</Typography>
 							</Stack>
 							<Divider sx={{ mb: 2 }} />
 							<Stack direction={isMobile ? 'column' : 'row'} spacing={2}>
 								<DatePicker
-									label="Date d'arrivée *"
+									label={t.reservations.checkInRequired}
 									value={formik.values.check_in ? parseISO(formik.values.check_in) : null}
 									onChange={(date) => formik.setFieldValue('check_in', date ? format(date, 'yyyy-MM-dd') : '')}
 									maxDate={formik.values.check_out ? parseISO(formik.values.check_out) : undefined}
@@ -330,7 +335,7 @@ const ReservationDialog: React.FC<ReservationDialogProps> = ({
 									}}
 								/>
 								<DatePicker
-									label="Date de départ *"
+									label={t.reservations.checkOutRequired}
 									value={formik.values.check_out ? parseISO(formik.values.check_out) : null}
 									onChange={(date) => formik.setFieldValue('check_out', date ? format(date, 'yyyy-MM-dd') : '')}
 									minDate={formik.values.check_in ? parseISO(formik.values.check_in) : undefined}
@@ -361,7 +366,7 @@ const ReservationDialog: React.FC<ReservationDialogProps> = ({
 							<Stack direction="row" spacing={1} alignItems="center" mb={1.5}>
 								<CreditCardIcon color="primary" fontSize="small" />
 								<Typography variant="subtitle1" fontWeight={700}>
-									Paiement
+									{t.common.payment}
 								</Typography>
 							</Stack>
 							<Divider sx={{ mb: 2 }} />
@@ -371,7 +376,7 @@ const ReservationDialog: React.FC<ReservationDialogProps> = ({
 									id="amount"
 									type="text"
 									size="small"
-									label="Montant total (MAD) *"
+									label={t.reservations.totalAmountMAD}
 									value={formik.values.amount}
 									onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
 										if (/^(0|[1-9]\d*)?([.,]\d*)?$/.test(e.target.value))
@@ -388,8 +393,8 @@ const ReservationDialog: React.FC<ReservationDialogProps> = ({
 								<CustomAutoCompleteSelect
 									id="payment_source"
 									size="small"
-									noOptionsText="Aucune source trouvée"
-									label="Source de paiement *"
+									noOptionsText={t.reservations.noSourceFound}
+									label={t.reservations.paymentSourceRequired}
 									items={paymentSourceItems}
 									theme={inputTheme}
 									value={selectedPaymentSource}
@@ -411,7 +416,7 @@ const ReservationDialog: React.FC<ReservationDialogProps> = ({
 							<Stack direction="row" spacing={1} alignItems="center" mb={1.5}>
 								<NotesIcon color="primary" fontSize="small" />
 								<Typography variant="subtitle1" fontWeight={700}>
-									Notes
+									{t.reservations.notes}
 								</Typography>
 							</Stack>
 							<Divider sx={{ mb: 2 }} />
@@ -420,7 +425,7 @@ const ReservationDialog: React.FC<ReservationDialogProps> = ({
 								id="notes"
 								type="text"
 								size="small"
-								label="Notes (optionnel)"
+								label={t.reservations.notesOptional}
 								value={formik.values.notes}
 								onChange={formik.handleChange('notes')}
 								onBlur={formik.handleBlur('notes')}
@@ -434,7 +439,7 @@ const ReservationDialog: React.FC<ReservationDialogProps> = ({
 
 						{/* Actions */}
 						<PrimaryLoadingButton
-							buttonText={isEditMode ? 'Mettre à jour' : 'Ajouter la réservation'}
+							buttonText={isEditMode ? t.common.update : t.reservations.addReservation}
 							loading={isPending}
 							active={!isPending}
 							type="submit"
@@ -448,7 +453,7 @@ const ReservationDialog: React.FC<ReservationDialogProps> = ({
 			<AddEntityModal
 				open={openApartmentModal}
 				setOpen={setOpenApartmentModal}
-				label="appartement"
+				label={t.reservations.apartment.toLowerCase()}
 				icon={<HotelIcon fontSize="small" />}
 				inputTheme={inputTheme}
 				mutationFn={(args) => addApartment(args)}

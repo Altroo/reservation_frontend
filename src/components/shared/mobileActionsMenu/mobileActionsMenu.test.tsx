@@ -108,13 +108,13 @@ describe('MobileActionsMenu', () => {
 			// Should have only one button (the menu button)
 			const buttons = screen.getAllByRole('button');
 			expect(buttons).toHaveLength(1);
-			expect(screen.getByLabelText('more actions')).toBeInTheDocument();
+			expect(screen.getByLabelText("Plus d'actions")).toBeInTheDocument();
 		});
 
 		it('opens menu when three-dot button is clicked on mobile', async () => {
 			render(<MobileActionsMenu actions={defaultActions} />);
 
-			const menuButton = screen.getByLabelText('more actions');
+			const menuButton = screen.getByLabelText("Plus d'actions");
 			await userEvent.click(menuButton);
 
 			// Menu items should be visible
@@ -128,7 +128,7 @@ describe('MobileActionsMenu', () => {
 		it('calls onClick handler when menu item is clicked on mobile', async () => {
 			render(<MobileActionsMenu actions={defaultActions} />);
 
-			const menuButton = screen.getByLabelText('more actions');
+			const menuButton = screen.getByLabelText("Plus d'actions");
 			await userEvent.click(menuButton);
 
 			await waitFor(() => {
@@ -144,7 +144,7 @@ describe('MobileActionsMenu', () => {
 		it('closes menu after clicking a menu item on mobile', async () => {
 			render(<MobileActionsMenu actions={defaultActions} />);
 
-			const menuButton = screen.getByLabelText('more actions');
+			const menuButton = screen.getByLabelText("Plus d'actions");
 			await userEvent.click(menuButton);
 
 			await waitFor(() => {
@@ -174,7 +174,7 @@ describe('MobileActionsMenu', () => {
 
 			render(<MobileActionsMenu actions={actionsWithShow} />);
 
-			const menuButton = screen.getByLabelText('more actions');
+			const menuButton = screen.getByLabelText("Plus d'actions");
 			await userEvent.click(menuButton);
 
 			await waitFor(() => {
@@ -193,7 +193,7 @@ describe('MobileActionsMenu', () => {
 				</div>,
 			);
 
-			const menuButton = screen.getByLabelText('more actions');
+			const menuButton = screen.getByLabelText("Plus d'actions");
 			await userEvent.click(menuButton);
 
 			// Parent click handler should not be called due to stopPropagation
@@ -213,7 +213,7 @@ describe('MobileActionsMenu', () => {
 			render(<MobileActionsMenu actions={[]} />);
 
 			// Should still show menu button
-			const menuButton = screen.getByLabelText('more actions');
+			const menuButton = screen.getByLabelText("Plus d'actions");
 			expect(menuButton).toBeInTheDocument();
 		});
 	});

@@ -38,13 +38,14 @@ import {
 import { Bar } from 'react-chartjs-2';
 import type { SessionProps } from '@/types/_initTypes';
 import type { ReservationListType } from '@/types/reservationTypes';
+import { useLanguage } from '@/utils/hooks';
 import Styles from '@/styles/dashboard/dashboard.module.sass';
 import NavigationBar from '@/components/layouts/navigationBar/navigationBar';
 import { Protected } from '@/components/layouts/protected/protected';
 import { useGetDashboardStatsQuery, useGetPlanningQuery, useGetReservationYearsQuery, useGetBuildingsQuery } from '@/store/services/reservation';
 import { useInitAccessToken } from '@/contexts/InitContext';
 import { formatDate } from '@/utils/helpers';
-import { APARTMENT_COLORS, PAYMENT_SOURCE_BG, MONTH_NAMES, CHART_OPTS } from '@/utils/rawData';
+import { APARTMENT_COLORS, PAYMENT_SOURCE_BG, CHART_OPTS } from '@/utils/rawData';
 import { formatNumberMA as fmt } from '@/utils/helpers';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
@@ -107,6 +108,7 @@ function KpiCard({ color, icon, label, value, tooltip }: KpiCardProps) {
 }
 
 const OccupancyClient: React.FC<SessionProps> = ({ session }) => {
+	const { t } = useLanguage();
 	const token = useInitAccessToken(session);
 	const currentYear = new Date().getFullYear();
 	const [year, setYear] = useState(currentYear);
@@ -122,8 +124,8 @@ const OccupancyClient: React.FC<SessionProps> = ({ session }) => {
 	const { data: buildingsData } = useGetBuildingsQuery(undefined, { skip: !token });
 
 	const buildingItems: DropDownType[] = useMemo(
-		() => [{ code: 'Toutes', value: 'Toutes' }, ...(buildingsData ?? []).map((b) => ({ code: b.nom, value: b.nom }))],
-		[buildingsData],
+		() => [{ code: t.locaux.allResidences, value: t.locaux.allResidences }, ...(buildingsData ?? []).map((b) => ({ code: b.nom, value: b.nom }))],
+		[buildingsData, t],
 	);
 
 	const yearItems: DropDownType[] = useMemo(
@@ -200,7 +202,7 @@ const OccupancyClient: React.FC<SessionProps> = ({ session }) => {
 		labels: Object.keys(occupancy),
 		datasets: [
 			{
-				label: 'Jours occupés',
+				label: t.reservations.occupiedDaysChart,
 				data: Object.values(occupancy).map((a) => a.occupied_days),
 				backgroundColor: Object.keys(occupancy).map((_, i) => APARTMENT_COLORS[i % APARTMENT_COLORS.length]),
 				borderRadius: 4,
@@ -210,24 +212,24 @@ const OccupancyClient: React.FC<SessionProps> = ({ session }) => {
 
 	return (
 		<Stack direction="column" spacing={2} className={Styles.flexRootStack} mt="48px">
-			<NavigationBar title="Taux d'occupation">
+			<NavigationBar title={t.reservations.occupancyRate}>
 				<Protected permission="can_view">
 					<Box sx={{ px: { xs: 1, sm: 2, md: 3 }, pb: 4 }}>
 						<Stack direction="row" justifyContent="space-between" alignItems="center" py={2}>
 							<Typography variant="h5" fontWeight={600}>
-								Taux d&apos;occupation {year}
+								{t.reservations.occupancyRateYear(year)}
 							</Typography>
 							<Stack direction="row" spacing={1}>
 							<Box sx={{ minWidth: 180 }}>
 								<CustomDropDownSelect
 									id="building-filter"
 									size="small"
-									label="Résidence"
+									label={t.reservations.residence}
 									items={buildingItems}
-									value={buildingId === '' ? 'Toutes' : ((buildingsData ?? []).find((b) => b.id === buildingId)?.nom ?? 'Toutes')}
+									value={buildingId === '' ? t.locaux.allResidences : ((buildingsData ?? []).find((b) => b.id === buildingId)?.nom ?? t.locaux.allResidences)}
 									onChange={(e) => {
 										const name = e.target.value;
-										if (!name || name === 'Toutes') setBuildingId('');
+										if (!name || name === t.locaux.allResidences) setBuildingId('');
 										else {
 											const b = (buildingsData ?? []).find((x) => x.nom === name);
 											setBuildingId(b ? b.id : '');
@@ -241,7 +243,7 @@ const OccupancyClient: React.FC<SessionProps> = ({ session }) => {
 								<CustomDropDownSelect
 									id="year-filter"
 									size="small"
-									label="Année"
+									label={t.common.year}
 									items={yearItems}
 									value={String(year)}
 									onChange={(e) => setYear(Number(e.target.value))}
@@ -263,40 +265,40 @@ const OccupancyClient: React.FC<SessionProps> = ({ session }) => {
 									<KpiCard
 										color="#2e7d32"
 										icon={<PieChartOutlineIcon />}
-										label="Occupation globale"
+										label={t.reservations.globalOccupation}
 										value={`${globalOccPct}%`}
-										tooltip="Pourcentage de nuits occupées sur le total disponible"
+										tooltip={t.reservations.globalOccupationTooltip}
 									/>
 									<KpiCard
 										color="#1565c0"
 										icon={<AttachMoneyIcon />}
-										label="Revenus annuels"
+										label={t.reservations.annualRevenue}
 										value={`${fmt(totalRevenue)} MAD`}
-										tooltip="Somme de tous les montants de réservation"
+										tooltip={t.reservations.annualRevenueTooltip}
 									/>
 									<KpiCard
 										color="#e65100"
 										icon={<NightsStayIcon />}
-										label="Nuits occupées"
+										label={t.reservations.occupiedNights}
 										value={fmt(totalOccupied)}
-										tooltip={`Sur un total de ${fmt(totalAvailable)} nuits disponibles`}
+										tooltip={t.reservations.occupiedNightsTooltip(totalAvailable)}
 									/>
 									<KpiCard
 										color="#6a1b9a"
 										icon={<EventAvailableIcon />}
-										label="Nuits libres"
+										label={t.reservations.freeNights}
 										value={fmt(availableNights)}
-										tooltip="Nuits restantes non réservées"
+										tooltip={t.reservations.freeNightsTooltip}
 									/>
 								</Box>
 
 								{/* Bar chart */}
 								<Card elevation={2}>
 									<CardHeader
-										title="Jours occupés par appartement"
-										subheader={`Données pour l'année ${year}`}
+										title={t.reservations.occupiedDaysByApartment}
+										subheader={t.reservations.occupiedDaysByApartmentSub(year)}
 										action={
-											<MuiTooltip title="Nombre de jours occupés par appartement sur l'année" arrow>
+											<MuiTooltip title={t.reservations.occupiedDaysByApartmentTooltip} arrow>
 												<IconButton size="small">
 													<InfoOutlinedIcon fontSize="small" sx={{ color: 'text.disabled' }} />
 												</IconButton>
@@ -315,7 +317,7 @@ const OccupancyClient: React.FC<SessionProps> = ({ session }) => {
 															y: {
 																beginAtZero: true,
 																max: daysInYear,
-																title: { display: true, text: 'Jours' },
+																title: { display: true, text: t.reservations.daysLabel },
 															},
 														},
 													}}
@@ -333,7 +335,7 @@ const OccupancyClient: React.FC<SessionProps> = ({ session }) => {
 														📊
 													</Typography>
 													<Typography variant="body2" color="text.secondary">
-														Aucune donnée disponible
+														{t.reservations.noDataAvailable}
 													</Typography>
 												</Box>
 											)}
@@ -344,10 +346,10 @@ const OccupancyClient: React.FC<SessionProps> = ({ session }) => {
 								{/* ── Calendar heatmap ─────────────────────── */}
 								<Card elevation={2}>
 									<CardHeader
-										title="Vue calendrier"
-										subheader="Occupation jour par jour par appartement"
+										title={t.reservations.calendarView}
+										subheader={t.reservations.calendarViewSub}
 										action={
-											<MuiTooltip title="Chaque carré représente un jour du mois, coloré par source de paiement" arrow>
+											<MuiTooltip title={t.reservations.calendarViewTooltip} arrow>
 												<IconButton size="small">
 													<InfoOutlinedIcon fontSize="small" sx={{ color: 'text.disabled' }} />
 												</IconButton>
@@ -361,7 +363,7 @@ const OccupancyClient: React.FC<SessionProps> = ({ session }) => {
 												<ChevronLeftIcon />
 											</IconButton>
 											<Typography variant="h6" fontWeight={600} minWidth={180} textAlign="center">
-												{MONTH_NAMES[heatmapMonth - 1]} {year}
+												{t.rawData.monthNames[heatmapMonth - 1]} {year}
 											</Typography>
 											<IconButton onClick={nextHeatmapMonth} size="small">
 												<ChevronRightIcon />
@@ -381,7 +383,7 @@ const OccupancyClient: React.FC<SessionProps> = ({ session }) => {
 													/>
 												))}
 											<Chip
-												label="Vacant"
+												label={t.reservations.vacant}
 												size="small"
 												variant="outlined"
 												sx={{ fontWeight: 500, fontSize: '0.7rem' }}
@@ -413,10 +415,10 @@ const OccupancyClient: React.FC<SessionProps> = ({ session }) => {
 																</Typography>
 																<Stack direction="row" spacing={2}>
 																	<Typography variant="caption" color="text.secondary">
-																		{pct}% occupé
+																		{t.reservations.occupiedPercent(pct)}
 																	</Typography>
 																	<Typography variant="caption" color="text.secondary">
-																		{row.occupied}/{lastDay} jours
+																		{t.reservations.occupiedDaysCount(row.occupied, lastDay)}
 																	</Typography>
 																	<Typography variant="caption" fontWeight={600} color="primary.main">
 																		{fmt(row.revenue)} MAD
@@ -468,7 +470,7 @@ const OccupancyClient: React.FC<SessionProps> = ({ session }) => {
 																						{formatDate(res.check_in)} → {formatDate(res.check_out)}
 																					</Typography>
 																					<Typography variant="caption" display="block">
-																						{Number(res.amount).toLocaleString('fr-MA')} MAD · {res.nights} nuit(s)
+																						{Number(res.amount).toLocaleString('fr-MA')} MAD · {t.reservations.nightsTooltip(res.nights ?? 0)}
 																					</Typography>
 																					<Typography variant="caption" display="block">
 																						{res.payment_source}
@@ -494,7 +496,7 @@ const OccupancyClient: React.FC<SessionProps> = ({ session }) => {
 												sx={{ border: '2px dashed', borderColor: 'divider', borderRadius: 2, bgcolor: 'action.hover' }}
 											>
 												<Typography color="text.secondary">
-													Aucune donnée pour {MONTH_NAMES[heatmapMonth - 1]} {year}
+													{t.reservations.noDataForMonthYear(t.rawData.monthNames[heatmapMonth - 1], year)}
 												</Typography>
 											</Box>
 										)}
@@ -504,9 +506,9 @@ const OccupancyClient: React.FC<SessionProps> = ({ session }) => {
 								{/* Progress bars */}
 								<Card elevation={2}>
 									<CardHeader
-										title="Détail par appartement"
+										title={t.reservations.detailByApartment}
 										action={
-											<MuiTooltip title="Taux d'occupation, nombre de réservations et revenus par appartement" arrow>
+											<MuiTooltip title={t.reservations.detailByApartmentTooltip} arrow>
 												<IconButton size="small">
 													<InfoOutlinedIcon fontSize="small" sx={{ color: 'text.disabled' }} />
 												</IconButton>
@@ -525,10 +527,10 @@ const OccupancyClient: React.FC<SessionProps> = ({ session }) => {
 															</Typography>
 															<Stack direction="row" spacing={2}>
 																<Typography variant="caption" color="text.secondary">
-																	{apt.occupied_days} jours
+																	{apt.occupied_days} {t.reservations.daysLabel}
 																</Typography>
 																<Typography variant="caption" color="text.secondary">
-																	{apt.reservation_count} réservations
+																	{apt.reservation_count} {t.reservations.reservationsLabel}
 																</Typography>
 																<Typography variant="caption" fontWeight={600} color="primary">
 																	{pct}%
@@ -548,7 +550,7 @@ const OccupancyClient: React.FC<SessionProps> = ({ session }) => {
 															}}
 														/>
 														<Typography variant="caption" color="text.secondary">
-															Revenus: {fmt(Number(apt.revenue))} MAD
+															{t.reservations.revenueLabel}: {fmt(Number(apt.revenue))} MAD
 														</Typography>
 													</Box>
 												);
@@ -559,7 +561,7 @@ const OccupancyClient: React.FC<SessionProps> = ({ session }) => {
 														📊
 													</Typography>
 													<Typography variant="body2" color="text.secondary" textAlign="center">
-														Aucune donnée disponible pour {year}
+														{t.reservations.noDataForYear(year)}
 													</Typography>
 												</Box>
 											)}

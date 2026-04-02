@@ -34,11 +34,12 @@ import { useGetPlanningQuery, useGetBuildingsQuery } from '@/store/services/rese
 import { useInitAccessToken } from '@/contexts/InitContext';
 import { RESERVATIONS_VIEW } from '@/utils/routes';
 import { weekdayIndex } from '@/utils/helpers';
-import { APARTMENT_COLORS, DAY_ABBREVIATIONS, MONTH_NAMES, PAYMENT_SOURCE_BG } from '@/utils/rawData';
+import { APARTMENT_COLORS, PAYMENT_SOURCE_BG } from '@/utils/rawData';
 import ReservationDialog from '@/components/pages/reservations/reservation-dialog';
 import CustomDropDownSelect from '@/components/formikElements/customDropDownSelect/customDropDownSelect';
 import { customDropdownTheme } from '@/utils/themes';
 import type { DropDownType } from '@/types/accountTypes';
+import { useLanguage } from '@/utils/hooks';
 import Styles from '@/styles/dashboard/dashboard.module.sass';
 
 interface DayEntry {
@@ -89,6 +90,7 @@ interface CalendarContentProps {
 }
 
 const CalendarContent: React.FC<CalendarContentProps> = ({ token }) => {
+	const { t } = useLanguage();
 	const router = useRouter();
 	const now = new Date();
 	const [year, setYear] = useState(now.getFullYear());
@@ -109,8 +111,8 @@ const CalendarContent: React.FC<CalendarContentProps> = ({ token }) => {
 	const { data: buildingsData } = useGetBuildingsQuery(undefined, { skip: !token });
 
 	const buildingItems: DropDownType[] = useMemo(
-		() => [{ code: 'Toutes', value: 'Toutes' }, ...(buildingsData ?? []).map((b) => ({ code: b.nom, value: b.nom }))],
-		[buildingsData],
+		() => [{ code: t.locaux.allResidences, value: t.locaux.allResidences }, ...(buildingsData ?? []).map((b) => ({ code: b.nom, value: b.nom }))],
+		[buildingsData, t],
 	);
 
 	const lastDay = planning?.last_day ?? new Date(year, month, 0).getDate();
@@ -204,7 +206,7 @@ const CalendarContent: React.FC<CalendarContentProps> = ({ token }) => {
 							<Stack direction="row" spacing={1} alignItems="center">
 								<CalendarMonthIcon color="primary" />
 								<Typography variant="h6" fontWeight={700}>
-									{MONTH_NAMES[month - 1]} {year}
+									{t.rawData.monthNames[month - 1]} {year}
 								</Typography>
 							</Stack>
 							<Stack direction="row" spacing={1} alignItems="center">
@@ -212,12 +214,12 @@ const CalendarContent: React.FC<CalendarContentProps> = ({ token }) => {
 								<CustomDropDownSelect
 									id="building-filter"
 									size="small"
-									label="Résidence"
+									label={t.common.residence}
 									items={buildingItems}
-									value={buildingId === '' ? 'Toutes' : ((buildingsData ?? []).find((b) => b.id === buildingId)?.nom ?? 'Toutes')}
+									value={buildingId === '' ? t.locaux.allResidences : ((buildingsData ?? []).find((b) => b.id === buildingId)?.nom ?? t.locaux.allResidences)}
 									onChange={(e) => {
 										const name = e.target.value;
-										if (!name || name === 'Toutes') setBuildingId('');
+										if (!name || name === t.locaux.allResidences) setBuildingId('');
 										else {
 											const b = (buildingsData ?? []).find((x) => x.nom === name);
 											setBuildingId(b ? b.id : '');
@@ -238,7 +240,7 @@ const CalendarContent: React.FC<CalendarContentProps> = ({ token }) => {
 										setDialogOpen(true);
 									}}
 								>
-									Nouvelle réservation
+									{t.reservations.newReservation}
 								</Button>
 								<IconButton onClick={nextMonth} size="small">
 									<ChevronRightIcon />
@@ -263,7 +265,7 @@ const CalendarContent: React.FC<CalendarContentProps> = ({ token }) => {
 										borderColor: 'divider',
 									}}
 								>
-									{DAY_ABBREVIATIONS.map((day, idx) => (
+									{t.rawData.dayAbbreviations.map((day, idx) => (
 										<Box
 											key={idx}
 											sx={{
@@ -384,7 +386,7 @@ const CalendarContent: React.FC<CalendarContentProps> = ({ token }) => {
 						<CardContent sx={{ p: 2, '&:last-child': { pb: 2 } }}>
 							<Stack direction="row" spacing={1} flexWrap="wrap" gap={1}>
 								<Typography variant="caption" color="text.secondary" sx={{ alignSelf: 'center' }}>
-									Appartements :
+									{t.reservations.apartments}
 								</Typography>
 								{Object.entries(planning.apartments).map(([nom]) => {
 									const aptNames = Object.keys(planning.apartments);
@@ -410,13 +412,13 @@ const CalendarContent: React.FC<CalendarContentProps> = ({ token }) => {
 				<MenuItem onClick={handleView}>
 					<Stack direction="row" spacing={1} alignItems="center">
 						<VisibilityIcon fontSize="small" />
-						<Typography variant="body2">Voir la réservation</Typography>
+						<Typography variant="body2">{t.reservations.viewReservation}</Typography>
 					</Stack>
 				</MenuItem>
 				<MenuItem onClick={handleEdit}>
 					<Stack direction="row" spacing={1} alignItems="center">
 						<EditIcon fontSize="small" />
-						<Typography variant="body2">Modifier la réservation</Typography>
+						<Typography variant="body2">{t.reservations.editReservationMenu}</Typography>
 					</Stack>
 				</MenuItem>
 			</Menu>
@@ -436,11 +438,12 @@ const CalendarContent: React.FC<CalendarContentProps> = ({ token }) => {
 };
 
 const CalendarClient: React.FC<SessionProps> = ({ session }) => {
+	const { t } = useLanguage();
 	const token = useInitAccessToken(session);
 
 	return (
 		<Stack direction="column" spacing={2} className={Styles.flexRootStack} mt="48px">
-			<NavigationBar title="Calendrier">
+			<NavigationBar title={t.reservations.calendar}>
 				<Protected permission="can_view">
 					<CalendarContent token={token} />
 				</Protected>

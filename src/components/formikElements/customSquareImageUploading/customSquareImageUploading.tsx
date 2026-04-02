@@ -8,6 +8,7 @@ import { HighlightOff as HighlightOffIcon } from '@mui/icons-material';
 import SquareImageInputFile from '../../htmlElements/buttons/squareImageInputFile/squareImageInputFile';
 import Cropper, { type ReactCropperElement } from 'react-cropper';
 import 'cropperjs/dist/cropper.css';
+import { useLanguage } from '@/utils/hooks';
 
 type Props = {
 	image: string | ArrayBuffer | null;
@@ -18,6 +19,7 @@ type Props = {
 };
 
 const CustomSquareImageUploading: React.FC<Props> = ({ image, croppedImage, onChange, onCrop, cssClasse }) => {
+	const { t } = useLanguage();
 	const cropperRef = useRef<ReactCropperElement>(null);
 	const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -125,7 +127,7 @@ const CustomSquareImageUploading: React.FC<Props> = ({ image, croppedImage, onCh
 									width={360}
 									height={250}
 									src={typeof croppedImage === 'string' ? croppedImage : ''}
-									alt="Cropped preview"
+								alt={t.common.croppedPreview}
 									style={{ width: '100%', height: '100%', objectFit: 'cover' }}
 								/>
 								<Box
@@ -144,7 +146,7 @@ const CustomSquareImageUploading: React.FC<Props> = ({ image, croppedImage, onCh
 										'&:hover': { opacity: 1 },
 									}}
 								>
-									<span style={{ color: 'white', fontSize: '14px' }}>Cliquez pour modifier le recadrage</span>
+									<span style={{ color: 'white', fontSize: '14px' }}>{t.common.clickToModifyCrop}</span>
 								</Box>
 							</Box>
 							<Box className={Styles.closeButtonWrapper} onClick={handleClear}>

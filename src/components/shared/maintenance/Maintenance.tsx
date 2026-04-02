@@ -4,12 +4,13 @@ import React from 'react';
 import Image from 'next/image';
 import { Box, Chip, Divider, Paper, Stack, Typography } from '@mui/material';
 import BuildCircleOutlinedIcon from '@mui/icons-material/BuildCircleOutlined';
-import { useAppSelector } from '@/utils/hooks';
+import { useAppSelector, useLanguage } from '@/utils/hooks';
 import { getWSMaintenanceState } from '@/store/selectors';
 import Logo from '../../../../public/assets/images/reservation-logo.png';
 import DocumentSVG from '../../../../public/assets/images/auth_illu/document.svg';
 
 const Maintenance: React.FC = () => {
+	const { t } = useLanguage();
 	const maintenance = useAppSelector(getWSMaintenanceState);
 
 	if (!maintenance) {
@@ -47,7 +48,7 @@ const Maintenance: React.FC = () => {
 						overflow: 'hidden',
 					}}
 				>
-					<Image src={Logo} alt="E.B.H Réservation - Logo" priority style={{ width: '150px', height: 'auto' }} />
+					<Image src={Logo} alt={t.common.appName} priority style={{ width: '150px', height: 'auto' }} />
 					<Box sx={{ width: '100%', maxWidth: 420 }}>
 						<Image src={DocumentSVG} alt="" priority style={{ width: '100%', height: 'auto' }} />
 					</Box>
@@ -68,7 +69,7 @@ const Maintenance: React.FC = () => {
 					}}
 				>
 					<Stack direction="row" justifyContent="center" sx={{ display: { xs: 'flex', md: 'none' }, mb: 4 }}>
-						<Image src={Logo} alt="E.B.H Réservation - Logo" priority style={{ width: '88px', height: 'auto' }} />
+						<Image src={Logo} alt={t.common.appName} priority style={{ width: '88px', height: 'auto' }} />
 					</Stack>
 
 					<Paper
@@ -87,7 +88,7 @@ const Maintenance: React.FC = () => {
 						<Stack spacing={3}>
 							<Chip
 								icon={<BuildCircleOutlinedIcon />}
-								label="Maintenance"
+								label={t.common.maintenance}
 								sx={{
 									alignSelf: 'flex-start',
 									backgroundColor: '#FFF3E0',
@@ -107,7 +108,7 @@ const Maintenance: React.FC = () => {
 										color: '#0D070B',
 									}}
 								>
-									Maintenance en cours
+									{t.errors.maintenanceTitle}
 								</Typography>
 								<Typography
 									id="maintenance-description"
@@ -118,8 +119,7 @@ const Maintenance: React.FC = () => {
 										color: '#6B7280',
 									}}
 								>
-									Nous effectuons actuellement une maintenance sur E.B.H Réservation afin d&apos;améliorer la stabilité
-									de l&apos;application.
+									{t.errors.maintenanceText}
 								</Typography>
 							</Stack>
 
@@ -127,10 +127,10 @@ const Maintenance: React.FC = () => {
 
 							<Stack spacing={1.5}>
 								<Typography variant="body1" sx={{ color: '#0D070B', fontWeight: 600 }}>
-									L&apos;accès à l&apos;application est momentanément suspendu.
+									{t.errors.maintenanceSuspended}
 								</Typography>
 								<Typography variant="body2" sx={{ color: '#6B7280', lineHeight: 1.7 }}>
-									Merci de revenir plus tard. Vos données restent inchangées pendant l&apos;intervention.
+									{t.errors.maintenanceThanks}
 								</Typography>
 							</Stack>
 						</Stack>

@@ -1,13 +1,17 @@
 import { redirect } from 'next/navigation';
-import { type Metadata } from 'next';
+import type { Metadata } from 'next';
 import { auth } from '@/auth';
 import { AUTH_LOGIN, BUILDINGS_LIST } from '@/utils/routes';
 import BuildingFormClient from '@/components/pages/buildings/building-form';
+import { getServerTranslations } from '@/utils/getServerTranslations';
 
-export const metadata: Metadata = {
-	title: 'Modifier la résidence',
-	description: 'Modifier une résidence existante',
-};
+export async function generateMetadata(): Promise<Metadata> {
+	const t = await getServerTranslations();
+	return {
+		title: t.pageMetadata.buildingsEditTitle,
+		description: t.pageMetadata.buildingsEditDescription,
+	};
+}
 
 interface Props {
 	params: Promise<{ id: string }>;

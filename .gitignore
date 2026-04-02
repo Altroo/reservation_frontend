@@ -55,3 +55,8 @@ next-env.d.ts
 # Claude
 .claude/
 .claude/*
+# GitHub Copilot
+.docs/
+.docs/*
+.github
+.github/*

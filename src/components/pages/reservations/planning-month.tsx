@@ -28,6 +28,7 @@ import { customDropdownTheme } from '@/utils/themes';
 import type { DropDownType } from '@/types/accountTypes';
 import type { SessionProps } from '@/types/_initTypes';
 import type { ReservationListType } from '@/types/reservationTypes';
+import { useLanguage } from '@/utils/hooks';
 import Styles from '@/styles/dashboard/dashboard.module.sass';
 import NavigationBar from '@/components/layouts/navigationBar/navigationBar';
 import { Protected } from '@/components/layouts/protected/protected';
@@ -79,6 +80,7 @@ function buildRows(
 }
 
 const PlanningMonthClient: React.FC<SessionProps> = ({ session }) => {
+	const { t } = useLanguage();
 	const token = useInitAccessToken(session);
 	const theme = useTheme();
 	const isMobile = useMediaQuery(theme.breakpoints.down('md'));
@@ -91,8 +93,8 @@ const PlanningMonthClient: React.FC<SessionProps> = ({ session }) => {
 	const { data: buildingsData } = useGetBuildingsQuery(undefined, { skip: !token });
 
 	const buildingItems: DropDownType[] = useMemo(
-		() => [{ code: 'Toutes', value: 'Toutes' }, ...(buildingsData ?? []).map((b) => ({ code: b.nom, value: b.nom }))],
-		[buildingsData],
+		() => [{ code: t.locaux.allResidences, value: t.locaux.allResidences }, ...(buildingsData ?? []).map((b) => ({ code: b.nom, value: b.nom }))],
+		[buildingsData, t],
 	);
 
 	const prevMonth = () => {
@@ -142,7 +144,7 @@ const PlanningMonthClient: React.FC<SessionProps> = ({ session }) => {
 
 	return (
 		<Stack direction="column" spacing={2} className={Styles.flexRootStack} mt="48px">
-			<NavigationBar title="Planning mensuel">
+			<NavigationBar title={t.reservations.monthlyPlanning}>
 				<Protected permission="can_view">
 					<Box sx={{ px: { xs: 1, sm: 2, md: 3 }, pb: 4 }}>
 						{/* Month navigation */}
@@ -151,12 +153,12 @@ const PlanningMonthClient: React.FC<SessionProps> = ({ session }) => {
 							<CustomDropDownSelect
 								id="building-filter"
 								size="small"
-								label="Résidence"
+								label={t.common.residence}
 								items={buildingItems}
-								value={buildingId === '' ? 'Toutes' : ((buildingsData ?? []).find((b) => b.id === buildingId)?.nom ?? 'Toutes')}
+								value={buildingId === '' ? t.locaux.allResidences : ((buildingsData ?? []).find((b) => b.id === buildingId)?.nom ?? t.locaux.allResidences)}
 								onChange={(e) => {
 									const name = e.target.value;
-									if (!name || name === 'Toutes') setBuildingId('');
+									if (!name || name === t.locaux.allResidences) setBuildingId('');
 									else {
 										const b = (buildingsData ?? []).find((x) => x.nom === name);
 										setBuildingId(b ? b.id : '');
@@ -206,25 +208,25 @@ const PlanningMonthClient: React.FC<SessionProps> = ({ session }) => {
 								>
 									{[
 										{
-											label: 'Revenus du mois',
+											label: t.reservations.monthRevenue,
 											value: `${fmt(monthRevenue)} MAD`,
 											icon: <MoneyIcon fontSize="small" />,
 											color: '#1976d2',
 										},
 										{
-											label: 'Nuitées',
+											label: t.reservations.nightStays,
 											value: nightCount.toString(),
 											icon: <HotelIcon fontSize="small" />,
 											color: '#ed6c02',
 										},
 										{
-											label: 'Occupation',
+											label: t.reservations.occupation,
 											value: `${occupationPct}%`,
 											icon: <PieIcon fontSize="small" />,
 											color: '#2e7d32',
 										},
 										{
-											label: 'Jours du mois',
+											label: t.reservations.daysInMonth,
 											value: lastDay.toString(),
 											icon: <CalendarIcon fontSize="small" />,
 											color: '#9c27b0',
@@ -283,7 +285,7 @@ const PlanningMonthClient: React.FC<SessionProps> = ({ session }) => {
 														pl: 1,
 													}}
 												>
-													Appart.
+													{t.reservations.columnAppartment}
 												</Box>
 												{dayNumbers.map((day) => {
 													const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
@@ -383,7 +385,7 @@ const PlanningMonthClient: React.FC<SessionProps> = ({ session }) => {
 																					{Number(cell.reservation.amount).toLocaleString('fr-MA')} MAD
 																				</Typography>
 																				<Typography variant="caption" display="block">
-																					{cell.reservation.nights} nuit(s)
+																					{t.reservations.nightsTooltip(cell.reservation.nights ?? 0)}
 																				</Typography>
 																			</Box>
 																		}
@@ -429,7 +431,7 @@ const PlanningMonthClient: React.FC<SessionProps> = ({ session }) => {
 											{rows.length === 0 && !isLoading && (
 												<Box py={4} textAlign="center">
 													<Typography color="text.secondary">
-														Aucune réservation pour {MONTH_NAMES[month - 1]} {year}
+														{t.reservations.noReservationForMonth(MONTH_NAMES[month - 1], year)}
 													</Typography>
 												</Box>
 											)}

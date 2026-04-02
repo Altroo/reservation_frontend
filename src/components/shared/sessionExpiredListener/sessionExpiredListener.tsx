@@ -2,6 +2,7 @@
 
 import { useContext, useEffect } from 'react';
 import { ToastContext } from '@/contexts/toastContext';
+import { useLanguage } from '@/utils/hooks';
 
 /**
  * Listens for the global 'session-expired' event and displays
@@ -10,14 +11,15 @@ import { ToastContext } from '@/contexts/toastContext';
  */
 const SessionExpiredListener: React.FC = () => {
 	const toast = useContext(ToastContext);
+	const { t } = useLanguage();
 
 	useEffect(() => {
 		const handler = () => {
-			toast?.onError('Votre session a expiré, veuillez vous reconnecter.');
+			toast?.onError(t.errors.sessionExpired);
 		};
 		window.addEventListener('session-expired', handler);
 		return () => window.removeEventListener('session-expired', handler);
-	}, [toast]);
+	}, [toast, t]);
 
 	return null;
 };

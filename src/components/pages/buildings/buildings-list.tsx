@@ -24,7 +24,7 @@ import { extractApiErrorMessage, formatDate } from '@/utils/helpers';
 import { BUILDINGS_ADD, BUILDINGS_EDIT, BUILDINGS_VIEW } from '@/utils/routes';
 import { createDateRangeFilterOperator } from '@/components/shared/dateRangeFilter/dateRangeFilterOperator';
 import { createDropdownFilterOperators } from '@/components/shared/dropdownFilter/dropdownFilter';
-import { useToast } from '@/utils/hooks';
+import { useToast, useLanguage } from '@/utils/hooks';
 import {
 	useGetBuildingsQuery,
 	useDeleteBuildingMutation,
@@ -35,6 +35,7 @@ import { useInitAccessToken } from '@/contexts/InitContext';
 const BuildingsListClient: React.FC<SessionProps> = ({ session }) => {
 	const router = useRouter();
 	const { onSuccess, onError } = useToast();
+	const { t } = useLanguage();
 	const token = useInitAccessToken(session);
 
 	const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 });
@@ -102,9 +103,9 @@ const BuildingsListClient: React.FC<SessionProps> = ({ session }) => {
 	const deleteHandler = async () => {
 		try {
 			await deleteBuilding({ id: selectedId! }).unwrap();
-			onSuccess('Résidence supprimée avec succès');
+			onSuccess(t.buildings.residenceDeletedSuccess);
 		} catch (err) {
-			onError(extractApiErrorMessage(err, 'Erreur lors de la suppression de la résidence'));
+			onError(extractApiErrorMessage(err, t.buildings.residenceDeleteError));
 		} finally {
 			setShowDeleteModal(false);
 		}
@@ -113,10 +114,10 @@ const BuildingsListClient: React.FC<SessionProps> = ({ session }) => {
 	const bulkDeleteHandler = async () => {
 		try {
 			await bulkDeleteBuildings({ ids: selectedIds }).unwrap();
-			onSuccess('Résidences supprimées avec succès');
+			onSuccess(t.buildings.bulkResidencesDeletedSuccess);
 			setSelectedIds([]);
 		} catch (err) {
-			onError(extractApiErrorMessage(err, 'Erreur lors de la suppression des résidences'));
+			onError(extractApiErrorMessage(err, t.buildings.bulkResidencesDeleteError));
 		} finally {
 			setShowBulkDeleteModal(false);
 		}
@@ -124,14 +125,14 @@ const BuildingsListClient: React.FC<SessionProps> = ({ session }) => {
 
 	const deleteModalActions = [
 		{
-			text: 'Annuler',
+			text: t.common.cancel,
 			active: false,
 			onClick: () => setShowDeleteModal(false),
 			icon: <CloseIcon />,
 			color: '#6B6B6B',
 		},
 		{
-			text: 'Supprimer',
+			text: t.common.delete,
 			active: true,
 			onClick: deleteHandler,
 			icon: <DeleteIcon />,
@@ -141,14 +142,14 @@ const BuildingsListClient: React.FC<SessionProps> = ({ session }) => {
 
 	const bulkDeleteModalActions = [
 		{
-			text: 'Annuler',
+			text: t.common.cancel,
 			active: false,
 			onClick: () => setShowBulkDeleteModal(false),
 			icon: <CloseIcon />,
 			color: '#6B6B6B',
 		},
 		{
-			text: 'Supprimer',
+			text: t.common.delete,
 			active: true,
 			onClick: bulkDeleteHandler,
 			icon: <DeleteIcon />,
@@ -159,7 +160,7 @@ const BuildingsListClient: React.FC<SessionProps> = ({ session }) => {
 	const columns: GridColDef[] = [
 		{
 			field: 'nom',
-			headerName: 'Nom',
+			headerName: t.common.name,
 			flex: 2,
 			minWidth: 200,
 			renderCell: (params: GridRenderCellParams<BuildingListType>) => (
@@ -172,7 +173,7 @@ const BuildingsListClient: React.FC<SessionProps> = ({ session }) => {
 		},
 		{
 			field: 'date_created',
-			headerName: 'Date de création',
+			headerName: t.common.creationDate,
 			flex: 1,
 			minWidth: 140,
 			filterOperators: createDateRangeFilterOperator(),
@@ -184,10 +185,10 @@ const BuildingsListClient: React.FC<SessionProps> = ({ session }) => {
 		},
 		{
 			field: 'created_by_user_name',
-			headerName: 'Créé par',
+			headerName: t.common.createdBy,
 			flex: 1,
 			minWidth: 140,
-			filterOperators: createDropdownFilterOperators(createdByOptions, 'Tous'),
+			filterOperators: createDropdownFilterOperators(createdByOptions, t.common.all),
 			renderCell: (params: GridRenderCellParams<BuildingListType>) => (
 				<DarkTooltip title={params.value ?? ''}>
 					<Typography variant="body2" noWrap>
@@ -198,7 +199,7 @@ const BuildingsListClient: React.FC<SessionProps> = ({ session }) => {
 		},
 		{
 			field: 'actions',
-			headerName: 'Actions',
+			headerName: t.common.actions,
 			flex: 1.2,
 			minWidth: 130,
 			sortable: false,
@@ -206,19 +207,19 @@ const BuildingsListClient: React.FC<SessionProps> = ({ session }) => {
 			renderCell: (params) => {
 				const actions = [
 					{
-						label: 'Voir',
+						label: t.common.view,
 						icon: <VisibilityIcon />,
 						onClick: () => router.push(BUILDINGS_VIEW(params.row.id)),
 						color: 'info' as const,
 					},
 					{
-						label: 'Modifier',
+						label: t.common.edit,
 						icon: <EditIcon />,
 						onClick: () => router.push(BUILDINGS_EDIT(params.row.id)),
 						color: 'primary' as const,
 					},
 					{
-						label: 'Supprimer',
+						label: t.common.delete,
 						icon: <DeleteIcon />,
 						onClick: () => {
 							setSelectedId(params.row.id);
@@ -240,7 +241,7 @@ const BuildingsListClient: React.FC<SessionProps> = ({ session }) => {
 			mt="48px"
 			sx={{ overflowX: 'auto', overflowY: 'hidden' }}
 		>
-			<NavigationBar title="Liste des résidences">
+			<NavigationBar title={t.buildings.residencesList}>
 				<Protected permission="can_view">
 					<>
 						<Box
@@ -267,17 +268,17 @@ const BuildingsListClient: React.FC<SessionProps> = ({ session }) => {
 									fontSize: { xs: '0.85rem', sm: '0.9rem', md: '1rem' },
 								}}
 							>
-								Nouvelle résidence
-							</Button>
-							{selectedIds.length > 0 && (
-								<Button
-									variant="outlined"
-									color="error"
-									onClick={() => setShowBulkDeleteModal(true)}
-									startIcon={<DeleteIcon fontSize="small" />}
-									sx={{ whiteSpace: 'nowrap' }}
-								>
-									Supprimer ({selectedIds.length})
+							{t.buildings.newResidence}
+						</Button>
+						{selectedIds.length > 0 && (
+							<Button
+								variant="outlined"
+								color="error"
+								onClick={() => setShowBulkDeleteModal(true)}
+								startIcon={<DeleteIcon fontSize="small" />}
+								sx={{ whiteSpace: 'nowrap' }}
+							>
+								{t.buildings.bulkDeleteResidences} ({selectedIds.length})
 								</Button>
 							)}
 						</Box>
@@ -300,16 +301,16 @@ const BuildingsListClient: React.FC<SessionProps> = ({ session }) => {
 
 						{showDeleteModal && (
 							<ActionModals
-								title="Supprimer la résidence"
-								body="Êtes-vous sûr de vouloir supprimer cette résidence ? Cette action est irréversible."
+							title={t.buildings.deleteResidence}
+							body={t.buildings.deleteResidenceConfirm}
 								actions={deleteModalActions}
 							/>
 						)}
 
 						{showBulkDeleteModal && (
 							<ActionModals
-								title="Supprimer les résidences"
-								body={`Êtes-vous sûr de vouloir supprimer ${selectedIds.length} résidences ? Les résidences avec des appartements ou locaux seront ignorées.`}
+							title={t.buildings.bulkDeleteResidences}
+							body={t.buildings.bulkDeleteResidencesConfirm(selectedIds.length)}
 								actions={bulkDeleteModalActions}
 							/>
 						)}

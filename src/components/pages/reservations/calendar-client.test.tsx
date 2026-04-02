@@ -43,10 +43,16 @@ type PlanningApartment = {
 	reservations: PlanningReservation[];
 };
 
+const _now = new Date();
+const _year = _now.getFullYear();
+const _month = _now.getMonth() + 1;
+const _lastDay = new Date(_year, _month, 0).getDate();
+const _pad = (n: number) => String(n).padStart(2, '0');
+
 const mockPlanningData = {
-	year: 2026,
-	month: 3,
-	last_day: 31,
+	year: _year,
+	month: _month,
+	last_day: _lastDay,
 	apartments: {
 		'APT-1': {
 			id: 1,
@@ -57,8 +63,8 @@ const mockPlanningData = {
 					apartment: 1,
 					apartment_nom: 'Apt 1',
 					guest_name: 'Jean Dupont',
-					check_in: '2026-03-05',
-					check_out: '2026-03-10',
+					check_in: `${_year}-${_pad(_month)}-05`,
+					check_out: `${_year}-${_pad(_month)}-10`,
 					nights: 5,
 					amount: '15000.00',
 					payment_source: 'Airbnb',
@@ -156,6 +162,12 @@ jest.mock('@/styles/dashboard/dashboard.module.sass', () => ({
 
 import CalendarClient from './calendar-client';
 import type { AppSession } from '@/types/_initTypes';
+
+
+jest.mock('@/utils/hooks', () => ({
+	// eslint-disable-next-line @typescript-eslint/no-require-imports
+	useLanguage: () => ({ language: 'fr', setLanguage: jest.fn(), t: require('@/translations').translations.fr }),
+}));
 
 const mockSession: AppSession = {
 	accessToken: 'test-access-token',

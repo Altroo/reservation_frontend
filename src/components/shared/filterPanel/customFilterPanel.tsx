@@ -3,6 +3,7 @@ import { Box, Button, FormControl, IconButton, MenuItem, Select, Stack, TextFiel
 import { Add as AddIcon, Close as CloseIcon } from '@mui/icons-material';
 import type { GridColDef } from '@mui/x-data-grid';
 import { GridLogicOperator } from '@mui/x-data-grid';
+import { useLanguage } from '@/utils/hooks';
 
 export interface DateRangeFilterValue {
 	from?: string;
@@ -45,12 +46,12 @@ const VALUE_LESS_OPERATORS = new Set(['isEmpty', 'isNotEmpty']);
 
 // Default text operators
 const DEFAULT_TEXT_OPERATORS: OperatorInfo[] = [
-	{ value: 'contains', label: 'contient' },
-	{ value: 'equals', label: 'égal à' },
-	{ value: 'startsWith', label: 'commence par' },
-	{ value: 'endsWith', label: 'finit par' },
-	{ value: 'isEmpty', label: 'est vide' },
-	{ value: 'isNotEmpty', label: "n'est pas vide" },
+	{ value: 'contains', label: 'contains' },
+	{ value: 'equals', label: 'equals' },
+	{ value: 'startsWith', label: 'startsWith' },
+	{ value: 'endsWith', label: 'endsWith' },
+	{ value: 'isEmpty', label: 'isEmpty' },
+	{ value: 'isNotEmpty', label: 'isNotEmpty' },
 ];
 
 /** Check if a filter item has a meaningful value */
@@ -66,6 +67,7 @@ export function filterHasValue(item: CustomFilterItem): boolean {
 
 // Simple text input for text-based filters
 const TextFilterInput: React.FC<FilterValueInputProps> = ({ item, applyValue }) => {
+	const { t } = useLanguage();
 	const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
 		applyValue({ ...item, value: event.target.value });
 	};
@@ -81,7 +83,7 @@ const TextFilterInput: React.FC<FilterValueInputProps> = ({ item, applyValue }) 
 			size="small"
 			value={currentValue}
 			onChange={handleChange}
-			placeholder="Valeur"
+			placeholder={t.filters.value}
 			sx={{ minWidth: 200 }}
 		/>
 	);
@@ -100,6 +102,7 @@ function extractOperators(col: GridColDef): OperatorInfo[] {
 }
 
 const CustomFilterPanel: React.FC<CustomFilterPanelProps> = ({ columns, filterModel, onChange }) => {
+	const { t } = useLanguage();
 	const filterableColumns = columns.filter((col) => col.field !== 'actions' && col.filterable !== false);
 
 	// Use a ref to track the filter counter for generating IDs
@@ -180,7 +183,7 @@ const CustomFilterPanel: React.FC<CustomFilterPanelProps> = ({ columns, filterMo
 		}
 	};
 
-	const logicLabel = filterModel.logicOperator === GridLogicOperator.And ? 'ET' : 'OU';
+	const logicLabel = filterModel.logicOperator === GridLogicOperator.And ? t.filters.and : t.filters.or;
 
 	return (
 		<Box sx={{ p: 2, minWidth: 600, bgcolor: 'background.paper', borderRadius: 1, border: '1px solid', borderColor: 'divider' }}>
@@ -201,8 +204,8 @@ const CustomFilterPanel: React.FC<CustomFilterPanelProps> = ({ columns, filterMo
 											value={filterModel.logicOperator}
 											onChange={(e) => handleLogicOperatorChange(e.target.value as GridLogicOperator)}
 										>
-											<MenuItem value={GridLogicOperator.And}>ET</MenuItem>
-											<MenuItem value={GridLogicOperator.Or}>OU</MenuItem>
+									<MenuItem value={GridLogicOperator.And}>{t.filters.and}</MenuItem>
+									<MenuItem value={GridLogicOperator.Or}>{t.filters.or}</MenuItem>
 										</Select>
 									</FormControl>
 								) : (
@@ -242,11 +245,21 @@ const CustomFilterPanel: React.FC<CustomFilterPanelProps> = ({ columns, filterMo
 							{/* Operator selector */}
 							<FormControl size="small" sx={{ minWidth: 120 }}>
 								<Select value={item.operator} onChange={(e) => handleOperatorChange(item.id, e.target.value)}>
-									{operators.map((op) => (
-										<MenuItem key={op.value} value={op.value}>
-											{op.label}
-										</MenuItem>
-									))}
+									{operators.map((op) => {
+										const labelMap: Record<string, string> = {
+											contains: t.filters.contains,
+											equals: t.filters.equals,
+											startsWith: t.filters.startsWith,
+											endsWith: t.filters.endsWith,
+											isEmpty: t.filters.isEmpty,
+											isNotEmpty: t.filters.isNotEmpty,
+										};
+										return (
+											<MenuItem key={op.value} value={op.value}>
+												{labelMap[op.label] ?? op.label}
+											</MenuItem>
+										);
+									})}
 								</Select>
 							</FormControl>
 
@@ -278,16 +291,16 @@ const CustomFilterPanel: React.FC<CustomFilterPanelProps> = ({ columns, filterMo
 						disabled={filterableColumns.length === 0 || !filterModel.items.every(filterHasValue)}
 						sx={{ minWidth: 150 }}
 					>
-						Ajouter un filtre
+						{t.filters.addFilter}
 					</Button>
 
 					{filterModel.items.length > 0 && (
 						<>
 							<Button onClick={handleClearAll} size="small" variant="text" color="error">
-								Supprimer tous les filtres
+								{t.filters.removeAllFilters}
 							</Button>
 							<Typography variant="caption" color="text.secondary" sx={{ ml: 'auto' }}>
-								{filterModel.items.filter(filterHasValue).length} filtre(s) actif(s)
+								{t.filters.activeFilters(filterModel.items.filter(filterHasValue).length)}
 							</Typography>
 						</>
 					)}

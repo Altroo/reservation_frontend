@@ -116,7 +116,7 @@ describe('CustomSquareImageUploading (with MUI icon mock)', () => {
 			/>,
 		);
 
-		const preview = screen.getByAltText('Cropped preview');
+		const preview = screen.getByAltText('Aperçu recadré');
 		expect(preview).toBeInTheDocument();
 	});
 
@@ -142,7 +142,7 @@ describe('CustomSquareImageUploading (with MUI icon mock)', () => {
 			/>,
 		);
 
-		const preview = screen.getByAltText('Cropped preview');
+		const preview = screen.getByAltText('Aperçu recadré');
 		fireEvent.click(preview);
 
 		const cropper = screen.getByRole('presentation');
@@ -297,7 +297,7 @@ describe('CustomSquareImageUploading (with MUI icon mock)', () => {
 		);
 
 		// Find the close button by clicking on the parent box
-		const preview = screen.getByAltText('Cropped preview');
+		const preview = screen.getByAltText('Aperçu recadré');
 		const parent = preview.closest('div');
 		const closeButton = parent?.parentElement?.querySelector('[class*="closeButtonWrapper"]');
 		if (closeButton) {
@@ -318,7 +318,7 @@ describe('CustomSquareImageUploading (with MUI icon mock)', () => {
 		);
 
 		// Enter edit mode by clicking preview
-		const preview = screen.getByAltText('Cropped preview');
+		const preview = screen.getByAltText('Aperçu recadré');
 		fireEvent.click(preview);
 
 		// Trigger ready callback - should not crop since isNewUpload is false

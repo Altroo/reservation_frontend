@@ -4,6 +4,12 @@ import '@testing-library/jest-dom';
 import BalanceClient from './balance-view';
 import type { AppSession } from '@/types/_initTypes';
 
+
+jest.mock('@/utils/hooks', () => ({
+	// eslint-disable-next-line @typescript-eslint/no-require-imports
+	useLanguage: () => ({ language: 'fr', setLanguage: jest.fn(), t: require('@/translations').translations.fr }),
+}));
+
 // Mock next/navigation
 jest.mock('next/navigation', () => ({
 	useRouter: () => ({
@@ -208,7 +214,7 @@ describe('BalanceClient', () => {
 
 		it('renders TOTAL row', () => {
 			render(<BalanceClient session={mockSession} />);
-			expect(screen.getByText('TOTAL')).toBeInTheDocument();
+			expect(screen.getAllByText('Total').length).toBeGreaterThanOrEqual(1);
 		});
 	});
 

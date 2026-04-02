@@ -40,10 +40,9 @@ import PrimaryLoadingButton from '@/components/htmlElements/buttons/primaryLoadi
 import ApiProgress from '@/components/formikElements/apiLoading/apiProgress/apiProgress';
 import { textInputTheme } from '@/utils/themes';
 import { costSchema } from '@/utils/formValidationSchemas';
-import { costCategoryItemsList, COST_FIELD_LABELS } from '@/utils/rawData';
 import { getLabelForKey, setFormikAutoErrors } from '@/utils/helpers';
 import { COSTS_LIST } from '@/utils/routes';
-import { useToast } from '@/utils/hooks';
+import { useToast, useLanguage } from '@/utils/hooks';
 import { useCreateCostMutation, useUpdateCostMutation, useGetCostsQuery } from '@/store/services/reservation';
 import { useInitAccessToken } from '@/contexts/InitContext';
 import type { DropDownType } from '@/types/accountTypes';
@@ -57,6 +56,7 @@ type FormikContentProps = {
 };
 
 const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
+	const { t } = useLanguage();
 	const { onSuccess, onError } = useToast();
 	const isEditMode = id !== undefined;
 	const router = useRouter();
@@ -71,10 +71,13 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 	const [updateCost, { isLoading: isUpdateLoading }] = useUpdateCostMutation();
 	const [isPending, setIsPending] = useState(false);
 
-	const categoryItems: DropDownType[] = costCategoryItemsList.map((c) => ({
-		code: c.code,
-		value: c.value,
-	}));
+	const categoryItems: DropDownType[] = [
+		{ code: 'Entretien', value: t.rawData.costCategories.maintenance },
+		{ code: 'Charges', value: t.rawData.costCategories.charges },
+		{ code: 'Assurance', value: t.rawData.costCategories.insurance },
+		{ code: 'Taxes', value: t.rawData.costCategories.taxes },
+		{ code: 'Autre', value: t.rawData.costCategories.other },
+	];
 
 	const formik = useFormik<CostFormValues>({
 		initialValues: {
@@ -94,15 +97,15 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 			try {
 				if (isEditMode) {
 					await updateCost({ id: id!, data: fields }).unwrap();
-					onSuccess('Coût mis à jour avec succès.');
+					onSuccess(t.costs.costUpdatedSuccess);
 				} else {
 					await createCost({ data: fields }).unwrap();
-					onSuccess('Coût ajouté avec succès.');
+					onSuccess(t.costs.costAddedSuccess);
 				}
 				router.push(COSTS_LIST);
 			} catch (e) {
 				setFormikAutoErrors({ e, setFieldError });
-				onError(isEditMode ? 'Échec de la mise à jour du coût.' : "Échec de l'ajout du coût.");
+				onError(isEditMode ? t.costs.costUpdateError : t.costs.costAddError);
 			} finally {
 				setIsPending(false);
 			}
@@ -127,20 +130,20 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 						onClick={() => router.push(COSTS_LIST)}
 						sx={{ whiteSpace: 'nowrap' }}
 					>
-						Liste des coûts
+						{t.costs.costsList}
 					</Button>
 				</Stack>
 
 				{showValidationAlert && (
 					<Alert severity="error" icon={<WarningIcon />}>
 						<Typography variant="subtitle2" fontWeight={600}>
-							Erreurs de validation détectées:
+							{t.common.validationErrorsDetected}
 						</Typography>
 						<ul style={{ margin: '8px 0', paddingLeft: '20px' }}>
 							{validationEntries.map(([key, err]) => (
 								<li key={key}>
 									<Typography variant="body2">
-										<strong>{getLabelForKey(COST_FIELD_LABELS, key)}</strong> : {err}
+										<strong>{getLabelForKey(t.rawData.fieldLabels.cost, key)}</strong> : {err}
 									</Typography>
 								</li>
 							))}
@@ -157,7 +160,7 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 								<Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 2 }}>
 									<NotesIcon color="primary" />
 									<Typography variant="h6" fontWeight={700}>
-										Détails du coût
+									{t.costs.costDetails}
 									</Typography>
 								</Stack>
 								<Divider sx={{ mb: 3 }} />
@@ -167,7 +170,7 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 										id="description"
 										type="text"
 										size="small"
-										label="Description *"
+										label={`${t.common.description} *`}
 										value={formik.values.description}
 										onChange={formik.handleChange('description')}
 										onBlur={formik.handleBlur('description')}
@@ -182,7 +185,7 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 											id="amount"
 											type="text"
 											size="small"
-											label="Montant (MAD) *"
+											label={`${t.costs.amountMAD} *`}
 											value={formik.values.amount}
 											onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
 												if (/^(0|[1-9]\d*)?([.,]\d*)?$/.test(e.target.value))
@@ -196,7 +199,7 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 											slotProps={{ input: { inputProps: { inputMode: 'decimal' } } }}
 										/>
 										<DatePicker
-											label="Date *"
+											label={`${t.common.date} *`}
 											value={formik.values.date ? parseISO(formik.values.date) : null}
 											onChange={(date) =>
 												formik.setFieldValue('date', date ? format(date, 'yyyy-MM-dd') : '')
@@ -223,8 +226,8 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 									<CustomAutoCompleteSelect
 										id="category"
 										size="small"
-										noOptionsText="Aucune catégorie trouvée"
-										label="Catégorie *"
+										noOptionsText={t.costs.noCategoryFound}
+										label={`${t.common.category} *`}
 										items={categoryItems}
 										theme={inputTheme}
 										value={selectedCategory}
@@ -243,7 +246,7 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 
 						<Box sx={{ display: 'flex', justifyContent: 'flex-end', pt: 2 }}>
 							<PrimaryLoadingButton
-								buttonText={isEditMode ? 'Mettre à jour' : 'Ajouter le coût'}
+								buttonText={isEditMode ? t.common.update : t.costs.newCost}
 								loading={isPending}
 								active={!isPending}
 								type="submit"
@@ -260,7 +263,8 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 
 const CostFormClient: React.FC<SessionProps & { id?: number }> = ({ session, id }) => {
 	const token = useInitAccessToken(session);
-	const title = id !== undefined ? 'Modifier le coût' : 'Nouveau coût';
+	const { t } = useLanguage();
+	const title = id !== undefined ? t.costs.editCost : t.costs.newCost;
 
 	return (
 		<Stack direction="column" spacing={2} className={Styles.flexRootStack} mt="48px">

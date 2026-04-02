@@ -25,7 +25,7 @@ import ChipSelectFilterBar from '@/components/shared/chipSelectFilter/chipSelect
 import { createNumericFilterOperators } from '@/components/shared/numericFilter/numericFilterOperator';
 import { extractApiErrorMessage } from '@/utils/helpers';
 import { LOCAUX_ADD, LOCAUX_EDIT, LOCAUX_VIEW } from '@/utils/routes';
-import { useToast } from '@/utils/hooks';
+import { useToast, useLanguage } from '@/utils/hooks';
 import {
 	useGetLocauxListQuery,
 	useDeleteLocalMutation,
@@ -33,11 +33,12 @@ import {
 	useGetBuildingsQuery,
 } from '@/store/services/reservation';
 import { useInitAccessToken } from '@/contexts/InitContext';
-import { TYPE_LOCAL_CHIP_COLORS, typeLocalItemsList } from '@/utils/rawData';
+import { TYPE_LOCAL_CHIP_COLORS } from '@/utils/rawData';
 import type { ChipColor } from '@/utils/rawData';
 
 const LocauxListClient: React.FC<SessionProps> = ({ session }) => {
 	const router = useRouter();
+	const { t } = useLanguage();
 	const { onSuccess, onError } = useToast();
 	const token = useInitAccessToken(session);
 
@@ -124,9 +125,9 @@ const LocauxListClient: React.FC<SessionProps> = ({ session }) => {
 	const deleteHandler = async () => {
 		try {
 			await deleteLocal({ id: selectedId! }).unwrap();
-			onSuccess('Local supprimé avec succès');
+			onSuccess(t.locaux.localDeletedSuccess);
 		} catch (err) {
-			onError(extractApiErrorMessage(err, 'Erreur lors de la suppression du local'));
+			onError(extractApiErrorMessage(err, t.locaux.localDeleteError));
 		} finally {
 			setShowDeleteModal(false);
 		}
@@ -135,10 +136,10 @@ const LocauxListClient: React.FC<SessionProps> = ({ session }) => {
 	const bulkDeleteHandler = async () => {
 		try {
 			await bulkDeleteLocaux({ ids: selectedIds }).unwrap();
-			onSuccess('Locaux supprimés avec succès');
+			onSuccess(t.locaux.bulkLocauxDeletedSuccess);
 			setSelectedIds([]);
 		} catch (err) {
-			onError(extractApiErrorMessage(err, 'Erreur lors de la suppression des locaux'));
+			onError(extractApiErrorMessage(err, t.locaux.bulkLocauxDeleteError));
 		} finally {
 			setShowBulkDeleteModal(false);
 		}
@@ -146,14 +147,14 @@ const LocauxListClient: React.FC<SessionProps> = ({ session }) => {
 
 	const deleteModalActions = [
 		{
-			text: 'Annuler',
+			text: t.common.cancel,
 			active: false,
 			onClick: () => setShowDeleteModal(false),
 			icon: <CloseIcon />,
 			color: '#6B6B6B',
 		},
 		{
-			text: 'Supprimer',
+			text: t.common.delete,
 			active: true,
 			onClick: deleteHandler,
 			icon: <DeleteIcon />,
@@ -163,14 +164,14 @@ const LocauxListClient: React.FC<SessionProps> = ({ session }) => {
 
 	const bulkDeleteModalActions = [
 		{
-			text: 'Annuler',
+			text: t.common.cancel,
 			active: false,
 			onClick: () => setShowBulkDeleteModal(false),
 			icon: <CloseIcon />,
 			color: '#6B6B6B',
 		},
 		{
-			text: 'Supprimer',
+			text: t.common.delete,
 			active: true,
 			onClick: bulkDeleteHandler,
 			icon: <DeleteIcon />,
@@ -182,33 +183,36 @@ const LocauxListClient: React.FC<SessionProps> = ({ session }) => {
 		() => [
 			{
 				key: 'type_local',
-				label: 'Type',
+				label: t.common.type,
 				paramName: 'type_local',
-				options: typeLocalItemsList.map((t) => ({ id: t.code, nom: t.value })),
+				options: [
+					{ id: 'Bureau', nom: t.rawData.localTypes.office },
+					{ id: 'Magasin', nom: t.rawData.localTypes.shop },
+				],
 			},
 			{
 				key: 'en_location',
-				label: 'Statut',
+				label: t.common.status,
 				paramName: 'en_location',
 				options: [
-					{ id: 'true', nom: 'En location' },
-					{ id: 'false', nom: 'Libre' },
+					{ id: 'true', nom: t.common.rented },
+					{ id: 'false', nom: t.common.free },
 				],
 			},
 			{
 				key: 'building',
-				label: 'Résidence',
+				label: t.locaux.residence,
 				paramName: 'building',
 				options: (buildingsData ?? []).map((b) => ({ id: String(b.id), nom: b.nom })),
 			},
 		],
-		[buildingsData],
+		[buildingsData, t.common.status, t.common.type, t.locaux.residence, t.common.rented, t.common.free, t.rawData.localTypes.office, t.rawData.localTypes.shop],
 	);
 
 	const columns: GridColDef[] = [
 		{
 			field: 'nom',
-			headerName: 'Nom',
+			headerName: t.common.name,
 			flex: 1.2,
 			minWidth: 150,
 			renderCell: (params: GridRenderCellParams<LocalListType>) => (
@@ -221,7 +225,7 @@ const LocauxListClient: React.FC<SessionProps> = ({ session }) => {
 		},
 		{
 			field: 'building_nom',
-			headerName: 'Résidence',
+			headerName: t.locaux.residence,
 			flex: 0.8,
 			minWidth: 120,
 			filterable: false,
@@ -235,7 +239,7 @@ const LocauxListClient: React.FC<SessionProps> = ({ session }) => {
 		},
 		{
 			field: 'type_local',
-			headerName: 'Type',
+			headerName: t.common.type,
 			flex: 0.7,
 			minWidth: 100,
 			filterable: false,
@@ -255,7 +259,7 @@ const LocauxListClient: React.FC<SessionProps> = ({ session }) => {
 		},
 		{
 			field: 'prix_achat',
-			headerName: "Prix d'achat",
+			headerName: t.locaux.purchasePrice,
 			flex: 1,
 			minWidth: 120,
 			filterOperators: createNumericFilterOperators(),
@@ -269,7 +273,7 @@ const LocauxListClient: React.FC<SessionProps> = ({ session }) => {
 		},
 		{
 			field: 'prix_location_mensuel',
-			headerName: 'Loyer mensuel',
+			headerName: t.locaux.monthlyRent,
 			flex: 1,
 			minWidth: 120,
 			filterOperators: createNumericFilterOperators(),
@@ -283,13 +287,13 @@ const LocauxListClient: React.FC<SessionProps> = ({ session }) => {
 		},
 		{
 			field: 'en_location',
-			headerName: 'Statut',
+			headerName: t.common.status,
 			flex: 0.7,
 			minWidth: 100,
 			filterable: false,
 			renderCell: (params: GridRenderCellParams<LocalListType>) => (
 				<Chip
-					label={params.value ? 'En location' : 'Libre'}
+					label={params.value ? t.locaux.inRental : t.common.free}
 					size="small"
 					color={params.value ? 'success' : 'default'}
 					variant="outlined"
@@ -298,7 +302,7 @@ const LocauxListClient: React.FC<SessionProps> = ({ session }) => {
 		},
 		{
 			field: 'locataire_nom',
-			headerName: 'Locataire',
+			headerName: t.locaux.tenantName,
 			flex: 1,
 			minWidth: 120,
 			renderCell: (params: GridRenderCellParams<LocalListType>) => (
@@ -311,7 +315,7 @@ const LocauxListClient: React.FC<SessionProps> = ({ session }) => {
 		},
 		{
 			field: 'rentabilite',
-			headerName: 'Rentabilité',
+			headerName: t.locaux.profitability,
 			flex: 0.8,
 			minWidth: 100,
 			renderCell: (params: GridRenderCellParams<LocalListType>) => (
@@ -324,7 +328,7 @@ const LocauxListClient: React.FC<SessionProps> = ({ session }) => {
 		},
 		{
 			field: 'actions',
-			headerName: 'Actions',
+			headerName: t.common.actions,
 			flex: 1.2,
 			minWidth: 130,
 			sortable: false,
@@ -332,19 +336,19 @@ const LocauxListClient: React.FC<SessionProps> = ({ session }) => {
 			renderCell: (params) => {
 				const actions = [
 					{
-						label: 'Voir',
+						label: t.common.view,
 						icon: <VisibilityIcon />,
 						onClick: () => router.push(LOCAUX_VIEW(params.row.id)),
 						color: 'info' as const,
 					},
 					{
-						label: 'Modifier',
+						label: t.common.edit,
 						icon: <EditIcon />,
 						onClick: () => router.push(LOCAUX_EDIT(params.row.id)),
 						color: 'primary' as const,
 					},
 					{
-						label: 'Supprimer',
+						label: t.common.delete,
 						icon: <DeleteIcon />,
 						onClick: () => {
 							setSelectedId(params.row.id);
@@ -366,7 +370,7 @@ const LocauxListClient: React.FC<SessionProps> = ({ session }) => {
 			mt="48px"
 			sx={{ overflowX: 'auto', overflowY: 'hidden' }}
 		>
-			<NavigationBar title="Liste des locaux">
+			<NavigationBar title={t.locaux.localsList}>
 				<Protected permission="can_view">
 					<>
 						<Box
@@ -393,7 +397,7 @@ const LocauxListClient: React.FC<SessionProps> = ({ session }) => {
 									fontSize: { xs: '0.85rem', sm: '0.9rem', md: '1rem' },
 								}}
 							>
-								Nouveau local
+								{t.locaux.newLocal}
 							</Button>
 							{selectedIds.length > 0 && (
 								<Button
@@ -403,7 +407,7 @@ const LocauxListClient: React.FC<SessionProps> = ({ session }) => {
 									startIcon={<DeleteIcon fontSize="small" />}
 									sx={{ whiteSpace: 'nowrap' }}
 								>
-									Supprimer ({selectedIds.length})
+									{t.common.delete} ({selectedIds.length})
 								</Button>
 							)}
 						</Box>
@@ -428,16 +432,16 @@ const LocauxListClient: React.FC<SessionProps> = ({ session }) => {
 
 						{showDeleteModal && (
 							<ActionModals
-								title="Supprimer le local"
-								body="Êtes-vous sûr de vouloir supprimer ce local ? Cette action est irréversible."
+							title={t.locaux.deleteLocal}
+							body={t.locaux.deleteLocalConfirm}
 								actions={deleteModalActions}
 							/>
 						)}
 
 						{showBulkDeleteModal && (
 							<ActionModals
-								title="Supprimer les locaux"
-								body={`Êtes-vous sûr de vouloir supprimer ${selectedIds.length} locaux ? Les locaux avec des loyers seront ignorés.`}
+							title={t.locaux.bulkDeleteLocaux}
+							body={t.locaux.bulkDeleteLocauxConfirm(selectedIds.length)}
 								actions={bulkDeleteModalActions}
 							/>
 						)}

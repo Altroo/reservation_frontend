@@ -42,7 +42,7 @@ import {
 	Settings as SettingsIcon,
 	Apartment as ApartmentIcon,
 } from '@mui/icons-material';
-import { useAppDispatch, useAppSelector } from '@/utils/hooks';
+import { useAppDispatch, useAppSelector, useLanguage } from '@/utils/hooks';
 import { getProfilState, getUnreadNotificationCount } from '@/store/selectors';
 import { cookiesDeleter } from '@/utils/apiHelpers';
 import {
@@ -77,6 +77,7 @@ import { navigationBarTheme } from '@/utils/themes';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Desktop, TabletAndMobile } from '@/utils/clientHelpers';
+import LanguageSwitcher from '@/components/shared/languageSwitcher/languageSwitcher';
 import {
 	useGetNotificationsQuery,
 	useGetUnreadNotificationCountQuery,
@@ -85,75 +86,77 @@ import {
 import { setUnreadCount } from '@/store/slices/notificationSlice';
 import { formatDate } from '@/utils/helpers';
 
-const getNavigationMenu = (isStaff: boolean) => {
+import type { TranslationDictionary } from '@/types/languageTypes';
+
+const getNavigationMenu = (isStaff: boolean, t: TranslationDictionary) => {
 	return {
 		tableau_de_bord: {
-			title: 'Tableau de bord',
+			title: t.navigation.dashboard,
 			icon: <DashboardIcon />,
-			items: [{ title: 'Tableau de bord', label: 'Consulter le tableau de bord', path: DASHBOARD }],
+			items: [{ title: t.navigation.dashboard, label: t.navigation.viewDashboard, path: DASHBOARD }],
 		},
 		reservations: {
-			title: 'Réservations',
+			title: t.navigation.reservations,
 			icon: <HotelIcon />,
 			items: [
-				{ title: 'Liste des réservations', label: 'Liste des réservations', path: RESERVATIONS_LIST },
-				{ title: 'Nouvelle réservation', label: 'Nouvelle réservation', path: RESERVATIONS_ADD },
+				{ title: t.navigation.reservationsList, label: t.navigation.reservationsList, path: RESERVATIONS_LIST },
+				{ title: t.navigation.newReservation, label: t.navigation.newReservation, path: RESERVATIONS_ADD },
 			],
 		},
 		residences: {
-			title: 'Résidences',
+			title: t.navigation.residences,
 			icon: <ApartmentIcon />,
 			items: [
-				{ title: 'Liste des résidences', label: 'Liste des résidences', path: BUILDINGS_LIST },
-				{ title: 'Nouvelle résidence', label: 'Ajouter une résidence', path: BUILDINGS_ADD },
+				{ title: t.navigation.residencesList, label: t.navigation.residencesList, path: BUILDINGS_LIST },
+				{ title: t.navigation.newResidence, label: t.navigation.newResidence, path: BUILDINGS_ADD },
 			],
 		},
 		locaux: {
-			title: 'Locaux',
+			title: t.navigation.locaux,
 			icon: <DomainIcon />,
 			items: [
-				{ title: 'Liste des locaux', label: 'Liste des locaux', path: LOCAUX_LIST },
-				{ title: 'Nouveau local', label: 'Ajouter un local', path: LOCAUX_ADD },
-				{ title: 'Planning des loyers', label: 'Planning des loyers', path: LOCAUX_PLANNING },
-				{ title: 'Dashboard des locaux', label: 'Dashboard des locaux', path: LOCAUX_DASHBOARD },
+				{ title: t.navigation.locauxList, label: t.navigation.locauxList, path: LOCAUX_LIST },
+				{ title: t.navigation.newLocal, label: t.navigation.newLocal, path: LOCAUX_ADD },
+				{ title: t.navigation.rentPlanning, label: t.navigation.rentPlanning, path: LOCAUX_PLANNING },
+				{ title: t.navigation.locauxDashboard, label: t.navigation.locauxDashboard, path: LOCAUX_DASHBOARD },
 			],
 		},
 		couts: {
-			title: 'Coûts',
+			title: t.navigation.costs,
 			icon: <PaymentsIcon />,
 			items: [
-				{ title: 'Liste des coûts', label: 'Liste des coûts', path: COSTS_LIST },
-				{ title: 'Nouveau coût', label: 'Nouveau coût', path: COSTS_ADD },
+				{ title: t.navigation.costsList, label: t.navigation.costsList, path: COSTS_LIST },
+				{ title: t.navigation.newCost, label: t.navigation.newCost, path: COSTS_ADD },
 			],
 		},
 		analytiques: {
-			title: 'Analytiques',
+			title: t.navigation.analytics,
 			icon: <BarChartIcon />,
 			items: [
-				{ title: 'Planning mensuel', label: 'Planning mensuel', path: PLANNING },
-				{ title: "Taux d'occupation", label: "Taux d'occupation", path: OCCUPANCY },
-				{ title: 'Balance', label: 'Balance', path: BALANCE },
-				{ title: 'Gains & Revenus', label: 'Gains & Revenus', path: GAINS },
-				{ title: 'Calendrier', label: 'Calendrier des réservations', path: CALENDAR },
+				{ title: t.navigation.monthlyPlanning, label: t.navigation.monthlyPlanning, path: PLANNING },
+				{ title: t.navigation.occupancyRate, label: t.navigation.occupancyRate, path: OCCUPANCY },
+				{ title: t.navigation.balance, label: t.navigation.balance, path: BALANCE },
+				{ title: t.navigation.gainsRevenues, label: t.navigation.gainsRevenues, path: GAINS },
+				{ title: t.navigation.calendar, label: t.navigation.calendar, path: CALENDAR },
 			],
 		},
 		...(isStaff && {
 			utilisateurs: {
-				title: 'Utilisateurs',
+				title: t.navigation.users,
 				icon: <PeopleIcon />,
 				items: [
-					{ title: 'Liste des utilisateurs', label: 'Liste des utilisateurs', path: USERS_LIST },
-					{ title: 'Nouvel utilisateur', label: 'Nouvel utilisateur', path: USERS_ADD },
+					{ title: t.navigation.usersList, label: t.navigation.usersList, path: USERS_LIST },
+					{ title: t.navigation.newUser, label: t.navigation.newUser, path: USERS_ADD },
 				],
 			},
 		}),
 		parametres: {
-			title: 'Paramètres',
+			title: t.navigation.settings,
 			icon: <SettingsIcon />,
 			items: [
-				{ title: 'Mon Profil', label: 'Mon Profil', path: DASHBOARD_EDIT_PROFILE },
-				{ title: 'Mot de passe', label: 'Changer le mot de passe', path: DASHBOARD_PASSWORD },
-				{ title: 'Notifications', label: 'Préférences de notifications', path: DASHBOARD_NOTIFICATIONS },
+				{ title: t.navigation.myProfile, label: t.navigation.myProfile, path: DASHBOARD_EDIT_PROFILE },
+				{ title: t.navigation.password, label: t.navigation.changePassword, path: DASHBOARD_PASSWORD },
+				{ title: t.navigation.notifications, label: t.navigation.notificationPreferences, path: DASHBOARD_NOTIFICATIONS },
 			],
 		},
 	};
@@ -220,7 +223,8 @@ const NavigationBar = (props: Props) => {
 	const [open, setOpen] = useState(!isMobile);
 	const { data: session, status } = useSession();
 	const { avatar_cropped, first_name, last_name, gender, is_staff } = useAppSelector(getProfilState);
-	const navigationMenu = useMemo(() => getNavigationMenu(is_staff), [is_staff]);
+	const { t } = useLanguage();
+	const navigationMenu = useMemo(() => getNavigationMenu(is_staff, t), [is_staff, t]);
 	const dispatch = useAppDispatch();
 
 	// Notification state
@@ -330,7 +334,7 @@ const NavigationBar = (props: Props) => {
 						<Stack direction="row" justifyContent="space-between" alignItems="center" width="100%">
 							<Stack direction="row" alignItems="center" spacing={1}>
 								{isMobile && (
-									<IconButton color="inherit" aria-label="toggle drawer" onClick={handleDrawerToggle} size="small">
+									<IconButton color="inherit" aria-label={t.common.toggleDrawer} onClick={handleDrawerToggle} size="small">
 										<MenuIcon />
 									</IconButton>
 								)}
@@ -346,6 +350,7 @@ const NavigationBar = (props: Props) => {
 												<NotificationsIcon />
 											</Badge>
 										</IconButton>
+										<LanguageSwitcher />
 										<Desktop>
 											{is_staff && (
 												<Button
@@ -356,11 +361,11 @@ const NavigationBar = (props: Props) => {
 													rel="noopener"
 													endIcon={<DomainIcon />}
 												>
-													Administration
+													{t.navigation.administration}
 												</Button>
 											)}
 											<Button variant="text" color="inherit" endIcon={<LogoutIcon />} onClick={logOutHandler}>
-												Se déconnecter
+												{t.navigation.logout}
 											</Button>
 										</Desktop>
 										<TabletAndMobile>
@@ -420,7 +425,7 @@ const NavigationBar = (props: Props) => {
 						)}
 						<Box sx={{ display: 'flex', flexDirection: 'column' }}>
 							<Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
-								{gender === 'Homme' ? 'Bienvenu' : gender === 'Femme' ? 'Bienvenue' : 'Bienvenu(e)'}
+								{gender === 'Homme' ? t.navigation.welcomeMale : gender === 'Femme' ? t.navigation.welcomeFemale : t.navigation.welcomeNeutral}
 							</Typography>
 							<Typography variant="body2" sx={{ color: 'text.secondary' }}>
 								{first_name} {last_name}
@@ -507,10 +512,10 @@ const NavigationBar = (props: Props) => {
 				>
 					<Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ px: 2, py: 1.5 }}>
 						<Typography variant="subtitle1" fontWeight={700}>
-							Notifications
+							{t.navigation.notifications}
 						</Typography>
 						{unreadCount > 0 && (
-							<Tooltip title="Tout marquer comme lu">
+							<Tooltip title={t.navigation.markAllRead}>
 								<IconButton size="small" onClick={handleMarkAllRead}>
 									<DoneAllIcon fontSize="small" />
 								</IconButton>
@@ -545,7 +550,7 @@ const NavigationBar = (props: Props) => {
 						) : (
 							<Box sx={{ p: 3, textAlign: 'center' }}>
 								<Typography variant="body2" color="text.secondary">
-									Aucune notification
+									{t.navigation.noNotifications}
 								</Typography>
 							</Box>
 						)}

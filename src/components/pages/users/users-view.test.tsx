@@ -10,6 +10,8 @@ jest.mock('next/navigation', () => ({
 }));
 
 jest.mock('@/utils/hooks', () => ({
+	// eslint-disable-next-line @typescript-eslint/no-require-imports
+	useLanguage: () => ({ language: 'fr', setLanguage: jest.fn(), t: require('@/translations').translations.fr }),
 	useToast: () => ({ onSuccess: jest.fn(), onError: jest.fn() }),
 	useAppSelector: jest.fn(),
 	usePermission: () => ({ is_staff: true, can_view: true, can_print: true, can_create: true, can_edit: true, can_delete: true }),

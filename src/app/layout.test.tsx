@@ -2,6 +2,12 @@ import { jest } from '@jest/globals';
 import { renderToStaticMarkup } from 'react-dom/server';
 import React from 'react';
 
+
+jest.mock('@/utils/hooks', () => ({
+	// eslint-disable-next-line @typescript-eslint/no-require-imports
+	useLanguage: () => ({ language: 'fr', setLanguage: jest.fn(), t: require('@/translations').translations.fr }),
+}));
+
 type SessionUser = { pk: number; email: string };
 type Session = { user: SessionUser } | null;
 
@@ -102,13 +108,38 @@ jest.mock('@/providers/themeProvider', () => ({
 	},
 }));
 
+jest.mock('@/contexts/languageContext', () => ({
+	__esModule: true,
+	LanguageContextProvider: (props: { children?: React.ReactNode }) => {
+		// eslint-disable-next-line @typescript-eslint/no-require-imports
+		const React = require('react');
+		return React.createElement('div', null, 'LANGUAGE_PROVIDER', props.children);
+	},
+}));
+
+jest.mock('next/headers', () => ({
+	__esModule: true,
+	cookies: jest.fn(() =>
+		Promise.resolve({
+				// eslint-disable-next-line @typescript-eslint/no-unused-vars
+				get: (_: string) => undefined,
+			})
+	),
+}));
+
+jest.mock('@/utils/getServerTranslations', () => ({
+	__esModule: true,
+	// eslint-disable-next-line @typescript-eslint/no-require-imports
+	getServerTranslations: jest.fn(() => Promise.resolve(require('@/translations').translations.fr)),
+}));
+
 beforeEach(() => {
 	jest.resetModules();
 	jest.clearAllMocks();
 });
 
 describe('RootLayout', () => {
-	it('renders children wrapped with providers (session fetched client-side)', () => {
+	it('renders children wrapped with providers (session fetched client-side)', async () => {
 		let RootLayout: (props: { children: React.ReactNode }) => unknown;
 		jest.isolateModules(() => {
 			// eslint-disable-next-line @typescript-eslint/no-require-imports
@@ -116,8 +147,8 @@ describe('RootLayout', () => {
 			RootLayout = mod.default;
 		});
 
-		const result = RootLayout!({ children: React.createElement('div', null, 'CHILD_CONTENT') });
-		const html = renderToStaticMarkup(result as unknown as React.ReactElement);
+		const result = await (RootLayout!({ children: React.createElement('div', null, 'CHILD_CONTENT') }) as Promise<unknown>);
+		const html = renderToStaticMarkup(result as React.ReactElement);
 
 		expect(html).toContain('SESSION_PROVIDER');
 		expect(html).toContain('INIT_EFFECTS');

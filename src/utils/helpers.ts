@@ -2,6 +2,7 @@ import axios, { AxiosHeaders } from 'axios';
 import type { AxiosInstance, AxiosResponse, InternalAxiosRequestConfig } from 'axios';
 import { getSession, signOut } from 'next-auth/react';
 import { SITE_ROOT } from '@/utils/routes';
+import { getTranslations } from '@/utils/getTranslations';
 import type { APIContentTypeInterface, ApiErrorResponseType, InitStateToken } from '@/types/_initTypes';
 
 /**
@@ -35,7 +36,7 @@ export const isAuthenticatedInstance = (
 		},
 	});
 
-	// Request interceptor - add auth token
+	// Request interceptor - add auth token and Accept-Language
 	instance.interceptors.request.use(
 		(config: InternalAxiosRequestConfig) => {
 			const headers = new AxiosHeaders(config.headers as Record<string, string>);
@@ -43,6 +44,10 @@ export const isAuthenticatedInstance = (
 			if (token?.access) {
 				headers.set('Authorization', `Bearer ${token.access}`);
 			}
+
+			// Forward the active UI language so Django LocaleMiddleware can activate it
+			const lang = typeof window !== 'undefined' ? (localStorage.getItem('app-language') ?? 'fr') : 'fr';
+			headers.set('Accept-Language', lang);
 
 			// Let axios auto-set Content-Type (with boundary) for multipart uploads
 			if (config.data instanceof FormData) {
@@ -62,13 +67,14 @@ export const isAuthenticatedInstance = (
 				const errorData = error.response.data as ApiErrorResponseType;
 
 				if (error.response.status >= 500) {
+					const t = getTranslations();
 					return Promise.reject({
 						error: {
 							status_code: error.response.status,
-							message: 'Erreur serveur.',
+							message: t.errors.serverError,
 							details: {
 								error: [
-									'Il semble que nous ne puissions pas nous connecter. Veuillez vérifier votre connexion réseau et réessayer.',
+									t.errors.connectionCheckMessage,
 								],
 							},
 						},
@@ -85,11 +91,12 @@ export const isAuthenticatedInstance = (
 						}
 					}
 					await handleUnauthorized(onUnauthorized);
+					const t = getTranslations();
 					return Promise.reject({
 						error: {
 							status_code: 401,
-							message: errorData.message || 'Non autorisé',
-							details: errorData.details || { error: ['Authentification requise'] },
+							message: errorData.message || t.errors.unauthorized,
+							details: errorData.details || { error: [t.errors.authenticationRequired] },
 						},
 					});
 				}
@@ -106,8 +113,8 @@ export const isAuthenticatedInstance = (
 			return Promise.reject({
 				error: {
 					status_code: 0,
-					message: error.message || 'Erreur réseau',
-					details: { error: ['Impossible de se connecter au serveur'] },
+					message: error.message || getTranslations().errors.networkError,
+					details: { error: [getTranslations().errors.cannotConnectServer] },
 				},
 			});
 		},
@@ -125,6 +132,15 @@ export const allowAnyInstance = (contentType: APIContentTypeInterface = 'applica
 		headers: {
 			'Content-Type': contentType,
 		},
+	});
+
+	// Request interceptor - add Accept-Language
+	instance.interceptors.request.use((config: InternalAxiosRequestConfig) => {
+		const headers = new AxiosHeaders(config.headers as Record<string, string>);
+		const lang = typeof window !== 'undefined' ? (localStorage.getItem('app-language') ?? 'fr') : 'fr';
+		headers.set('Accept-Language', lang);
+		config.headers = headers as InternalAxiosRequestConfig['headers'];
+		return config;
 	});
 
 	instance.interceptors.response.use(
@@ -145,8 +161,8 @@ export const allowAnyInstance = (contentType: APIContentTypeInterface = 'applica
 			return Promise.reject({
 				error: {
 					status_code: error.response?.status || 0,
-					message: error.message || 'Erreur réseau',
-					details: { error: ['Impossible de se connecter au serveur'] },
+					message: error.message || getTranslations().errors.networkError,
+					details: { error: [getTranslations().errors.cannotConnectServer] },
 				},
 			});
 		},

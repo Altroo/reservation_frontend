@@ -3,11 +3,15 @@ import { auth } from '@/auth';
 import { AUTH_LOGIN, USERS_LIST } from '@/utils/routes';
 import UsersViewClient from '@/components/pages/users/users-view';
 import type { Metadata } from 'next';
+import { getServerTranslations } from '@/utils/getServerTranslations';
 
-export const metadata: Metadata = {
-	title: "Détails de l'Utilisateur",
-	description: "Consulter les détails d'un utilisateur",
-};
+export async function generateMetadata(): Promise<Metadata> {
+	const t = await getServerTranslations();
+	return {
+		title: t.pageMetadata.usersDetailTitle,
+		description: t.pageMetadata.usersDetailDescription,
+	};
+}
 
 interface Props {
 	params: Promise<{ id: string }>;

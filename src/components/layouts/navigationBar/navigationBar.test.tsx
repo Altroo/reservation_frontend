@@ -41,6 +41,8 @@ const mockUseIsClient = jest.fn(() => true);
 const mockUseAppSelector = jest.fn();
 const mockDispatch = jest.fn();
 jest.mock('@/utils/hooks', () => ({
+	// eslint-disable-next-line @typescript-eslint/no-require-imports
+	useLanguage: () => ({ language: 'fr', setLanguage: jest.fn(), t: require('@/translations').translations.fr }),
 	useAppSelector: (fn: unknown) => mockUseAppSelector(fn),
 	useAppDispatch: () => mockDispatch,
 	useIsClient: () => mockUseIsClient(),
@@ -178,7 +180,7 @@ describe('NavigationBar', () => {
 				</NavigationBar>
 			</Provider>,
 		);
-		expect(screen.queryByLabelText('toggle drawer')).not.toBeInTheDocument();
+		expect(screen.queryByLabelText('Ouvrir/fermer le menu')).not.toBeInTheDocument();
 
 		mockIsMobile = true;
 		rerender(
@@ -188,7 +190,7 @@ describe('NavigationBar', () => {
 				</NavigationBar>
 			</Provider>,
 		);
-		const toggleBtn = screen.getByLabelText('toggle drawer');
+		const toggleBtn = screen.getByLabelText('Ouvrir/fermer le menu');
 		expect(toggleBtn).toBeInTheDocument();
 		await userEvent.click(toggleBtn);
 	});
@@ -216,7 +218,7 @@ describe('NavigationBar', () => {
 		);
 		expect(screen.getByText('Locaux')).toBeInTheDocument();
 		expect(screen.getByText('Liste des locaux')).toBeInTheDocument();
-		expect(screen.getByText('Ajouter un local')).toBeInTheDocument();
+		expect(screen.getByText('Nouveau local')).toBeInTheDocument();
 		expect(screen.getByText('Planning des loyers')).toBeInTheDocument();
 		expect(screen.getByText('Dashboard des locaux')).toBeInTheDocument();
 	});

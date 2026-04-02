@@ -36,7 +36,7 @@ import ApiAlert from '@/components/formikElements/apiLoading/apiAlert/apiAlert';
 import ActionModals from '@/components/htmlElements/modals/actionModal/actionModals';
 import { Protected } from '@/components/layouts/protected/protected';
 import { extractApiErrorMessage, formatDate } from '@/utils/helpers';
-import { useToast } from '@/utils/hooks';
+import { useToast, useLanguage } from '@/utils/hooks';
 import { COST_CATEGORY_CHIP_COLORS } from '@/utils/rawData';
 import type { CostCategoryChipColor } from '@/utils/rawData';
 
@@ -113,6 +113,7 @@ interface Props extends SessionProps {
 }
 
 const CostViewClient: React.FC<Props> = ({ session, id }) => {
+	const { t } = useLanguage();
 	const router = useRouter();
 	const token = useInitAccessToken(session);
 	const { data: costs, isLoading, error } = useGetCostsQuery({}, { skip: !token });
@@ -131,10 +132,10 @@ const CostViewClient: React.FC<Props> = ({ session, id }) => {
 	const handleDelete = async () => {
 		try {
 			await deleteCost({ id }).unwrap();
-			onSuccess('Coût supprimé avec succès');
+			onSuccess(t.costs.costDeletedSuccess);
 			router.push(COSTS_LIST);
 		} catch (err) {
-			onError(extractApiErrorMessage(err, 'Erreur lors de la suppression du coût'));
+			onError(extractApiErrorMessage(err, t.costs.costDeleteError));
 		} finally {
 			setShowDeleteModal(false);
 		}
@@ -142,14 +143,14 @@ const CostViewClient: React.FC<Props> = ({ session, id }) => {
 
 	const deleteModalActions = [
 		{
-			text: 'Annuler',
+			text: t.common.cancel,
 			active: false,
 			onClick: () => setShowDeleteModal(false),
 			icon: <ArrowBackIcon />,
 			color: '#6B6B6B',
 		},
 		{
-			text: 'Supprimer',
+			text: t.common.delete,
 			active: true,
 			onClick: handleDelete,
 			icon: <DeleteIcon />,
@@ -161,7 +162,7 @@ const CostViewClient: React.FC<Props> = ({ session, id }) => {
 
 	return (
 		<Stack direction="column" spacing={2} className={Styles.flexRootStack} mt="32px">
-			<NavigationBar title="Détails du coût">
+			<NavigationBar title={t.costs.costDetails}>
 				<Protected permission="can_view">
 					<Stack spacing={3} sx={{ p: { xs: 2, md: 3 }, mt: 2 }}>
 						<Stack
@@ -176,7 +177,7 @@ const CostViewClient: React.FC<Props> = ({ session, id }) => {
 								onClick={() => router.push(COSTS_LIST)}
 								sx={{ width: isMobile ? '100%' : 'auto' }}
 							>
-								Liste des coûts
+								{t.costs.costsList}
 							</Button>
 							{!isLoading && !error && cost && (
 								<Stack direction="row" gap={1} flexWrap="wrap">
@@ -187,18 +188,18 @@ const CostViewClient: React.FC<Props> = ({ session, id }) => {
 											startIcon={<EditIcon />}
 											onClick={() => router.push(COSTS_EDIT(id))}
 										>
-											Modifier
-										</Button>
-									</Protected>
-									<Protected permission="can_delete">
-										<Button
-											variant="outlined"
-											color="error"
-											size="small"
-											startIcon={<DeleteIcon />}
-											onClick={() => setShowDeleteModal(true)}
-										>
-											Supprimer
+										{t.common.edit}
+									</Button>
+								</Protected>
+								<Protected permission="can_delete">
+									<Button
+										variant="outlined"
+										color="error"
+										size="small"
+										startIcon={<DeleteIcon />}
+										onClick={() => setShowDeleteModal(true)}
+									>
+										{t.common.delete}
 										</Button>
 									</Protected>
 								</Stack>
@@ -218,7 +219,7 @@ const CostViewClient: React.FC<Props> = ({ session, id }) => {
 								}}
 							/>
 						) : !cost ? (
-							<Alert severity="warning">Coût introuvable</Alert>
+							<Alert severity="warning">{t.costs.costNotFound}</Alert>
 						) : (
 							<Stack spacing={3}>
 								{/* Identification */}
@@ -227,14 +228,14 @@ const CostViewClient: React.FC<Props> = ({ session, id }) => {
 										<Stack direction="row" spacing={3} alignItems="center">
 											<AttachMoneyIcon color="primary" />
 											<Typography variant="h6" fontWeight={700}>
-												Coût #{cost.id}
+												{t.costs.costNumber}{cost.id}
 											</Typography>
 										</Stack>
 										<Divider sx={{ mb: { xs: 1.5, md: 2 } }} />
 										<Stack spacing={0}>
 											<InfoRow
 												icon={<CategoryIcon />}
-												label="Catégorie"
+												label={t.common.category}
 												value={
 													<Chip
 														label={cost.category as string}
@@ -247,7 +248,7 @@ const CostViewClient: React.FC<Props> = ({ session, id }) => {
 											<Divider />
 											<InfoRow
 												icon={<AttachMoneyIcon />}
-												label="Montant"
+												label={t.common.amount}
 												value={
 													<Typography fontWeight={600} color="primary">
 														{Number(cost.amount).toLocaleString('fr-MA')} MAD
@@ -257,7 +258,7 @@ const CostViewClient: React.FC<Props> = ({ session, id }) => {
 											<Divider />
 											<InfoRow
 												icon={<CalendarTodayIcon />}
-												label="Date"
+												label={t.common.date}
 												value={formatDate(cost.date)}
 											/>
 										</Stack>
@@ -270,20 +271,20 @@ const CostViewClient: React.FC<Props> = ({ session, id }) => {
 										<Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 2 }}>
 											<NotesIcon color="primary" />
 											<Typography variant="h6" fontWeight={700}>
-												Détails du coût
+											{t.costs.costDetails}
 											</Typography>
 										</Stack>
 										<Divider sx={{ mb: { xs: 1.5, md: 2 } }} />
 										<Stack spacing={0}>
 											<InfoRow
 												icon={<NotesIcon />}
-												label="Description"
+												label={t.common.description}
 												value={cost.description}
 											/>
 											<Divider />
 											<InfoRow
 												icon={<PersonIcon />}
-												label="Créé par"
+												label={t.common.createdBy}
 												value={cost.created_by_user_name ?? '—'}
 											/>
 										</Stack>
@@ -297,8 +298,8 @@ const CostViewClient: React.FC<Props> = ({ session, id }) => {
 
 			{showDeleteModal && (
 				<ActionModals
-					title="Supprimer ce coût ?"
-					body="Êtes-vous sûr de vouloir supprimer ce coût ? Cette action est irréversible."
+					title={t.costs.deleteCost}
+					body={t.costs.deleteCostConfirm}
 					actions={deleteModalActions}
 					titleIcon={<DeleteIcon />}
 					titleIconColor="#D32F2F"

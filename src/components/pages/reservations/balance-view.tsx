@@ -31,6 +31,7 @@ import CustomDropDownSelect from '@/components/formikElements/customDropDownSele
 import { customDropdownTheme } from '@/utils/themes';
 import type { DropDownType } from '@/types/accountTypes';
 import type { SessionProps } from '@/types/_initTypes';
+import { useLanguage } from '@/utils/hooks';
 import Styles from '@/styles/dashboard/dashboard.module.sass';
 import NavigationBar from '@/components/layouts/navigationBar/navigationBar';
 import { Protected } from '@/components/layouts/protected/protected';
@@ -42,7 +43,6 @@ import {
 } from '@/store/services/reservation';
 import { useInitAccessToken } from '@/contexts/InitContext';
 import { formatNumberMA as fmt } from '@/utils/helpers';
-import { MONTH_LABELS } from '@/utils/rawData';
 
 interface KpiCardProps {
 	color: string;
@@ -102,6 +102,7 @@ function KpiCard({ color, icon, label, value, tooltip }: KpiCardProps) {
 }
 
 const BalanceClient: React.FC<SessionProps> = ({ session }) => {
+	const { t } = useLanguage();
 	const token = useInitAccessToken(session);
 	const currentYear = new Date().getFullYear();
 	const [year, setYear] = useState(currentYear);
@@ -113,8 +114,8 @@ const BalanceClient: React.FC<SessionProps> = ({ session }) => {
 	const { data: buildingsData } = useGetBuildingsQuery(undefined, { skip: !token });
 
 	const buildingItems: DropDownType[] = useMemo(
-		() => [{ code: 'Toutes', value: 'Toutes' }, ...(buildingsData ?? []).map((b) => ({ code: b.nom, value: b.nom }))],
-		[buildingsData],
+		() => [{ code: t.locaux.allResidences, value: t.locaux.allResidences }, ...(buildingsData ?? []).map((b) => ({ code: b.nom, value: b.nom }))],
+		[buildingsData, t],
 	);
 
 	const yearItems: DropDownType[] = useMemo(
@@ -142,24 +143,24 @@ const BalanceClient: React.FC<SessionProps> = ({ session }) => {
 
 	return (
 		<Stack direction="column" spacing={2} className={Styles.flexRootStack} mt="48px">
-			<NavigationBar title="Balance">
+			<NavigationBar title={t.reservations.balance}>
 				<Protected permission="can_view">
 					<Box sx={{ px: { xs: 1, sm: 2, md: 3 }, pb: 4 }}>
 						<Stack direction="row" justifyContent="space-between" alignItems="center" py={2}>
 							<Typography variant="h5" fontWeight={600}>
-								Balance {year}
+								{t.reservations.balanceYear(year)}
 							</Typography>
 							<Stack direction="row" spacing={1}>
 							<Box sx={{ minWidth: 180 }}>
 								<CustomDropDownSelect
 									id="building-filter"
 									size="small"
-									label="Résidence"
+									label={t.common.residence}
 									items={buildingItems}
-									value={buildingId === '' ? 'Toutes' : ((buildingsData ?? []).find((b) => b.id === buildingId)?.nom ?? 'Toutes')}
+									value={buildingId === '' ? t.locaux.allResidences : ((buildingsData ?? []).find((b) => b.id === buildingId)?.nom ?? t.locaux.allResidences)}
 									onChange={(e) => {
 										const name = e.target.value;
-										if (!name || name === 'Toutes') setBuildingId('');
+										if (!name || name === t.locaux.allResidences) setBuildingId('');
 										else {
 											const b = (buildingsData ?? []).find((x) => x.nom === name);
 											setBuildingId(b ? b.id : '');
@@ -173,7 +174,7 @@ const BalanceClient: React.FC<SessionProps> = ({ session }) => {
 								<CustomDropDownSelect
 									id="year-filter"
 									size="small"
-									label="Année"
+									label={t.common.year}
 									items={yearItems}
 									value={String(year)}
 									onChange={(e) => setYear(Number(e.target.value))}
@@ -201,41 +202,41 @@ const BalanceClient: React.FC<SessionProps> = ({ session }) => {
 									<KpiCard
 										color="#1565c0"
 										icon={<AccountBalanceWalletIcon />}
-										label="Balance totale"
+										label={t.reservations.totalBalance}
 										value={`${fmt(totalBalance)} MAD`}
-										tooltip="Somme des revenus Airbnb & Virement bancaire"
+										tooltip={t.reservations.totalBalanceTooltip}
 									/>
 									<KpiCard
 										color="#2e7d32"
 										icon={<CheckCircleOutlineIcon />}
-										label="Montant retourné"
+										label={t.reservations.amountReturned}
 										value={`${fmt(totalReturned)} MAD`}
-										tooltip="Total des réservations dont le montant a été retourné"
+										tooltip={t.reservations.amountReturnedTooltip}
 									/>
 									<KpiCard
 										color="#d32f2f"
 										icon={<HighlightOffIcon />}
-										label="Montant non retourné"
+										label={t.reservations.amountNotReturned}
 										value={`${fmt(totalNotReturned)} MAD`}
-										tooltip="Total des réservations dont le montant n'a pas encore été retourné"
+										tooltip={t.reservations.amountNotReturnedTooltip}
 									/>
 									<KpiCard
 										color="#6a1b9a"
 										icon={<HomeWorkIcon />}
-										label="Appartements"
+										label={t.reservations.apartmentCount}
 										value={`${aptNoms.length}`}
-										tooltip="Nombre d'appartements actifs"
+										tooltip={t.reservations.apartmentCountTooltip}
 									/>
 								</Box>
 
 								{/* Detail table: individual reservations with toggle */}
 								<Card elevation={2}>
 									<CardHeader
-										title="Détail des réservations"
-										subheader={`Réservations Airbnb & Virement bancaire pour ${year}`}
+										title={t.reservations.reservationDetail}
+										subheader={t.reservations.reservationDetailSubheader(year)}
 										action={
 											<MuiTooltip
-												title="Cliquez sur le statut pour marquer un montant comme retourné ou non retourné"
+												title={t.reservations.toggleReturnedTooltip}
 												arrow
 											>
 												<IconButton size="small">
@@ -249,16 +250,16 @@ const BalanceClient: React.FC<SessionProps> = ({ session }) => {
 											<Table size="small" sx={{ minWidth: 700 }}>
 												<TableHead>
 													<TableRow sx={{ bgcolor: 'primary.main' }}>
-														<TableCell sx={{ color: 'white', fontWeight: 700, position: 'sticky', left: 0, zIndex: 3, bgcolor: 'primary.main' }}>Appartement</TableCell>
-														<TableCell sx={{ color: 'white', fontWeight: 700 }}>Client</TableCell>
-														<TableCell sx={{ color: 'white', fontWeight: 600 }}>Arrivée</TableCell>
-														<TableCell sx={{ color: 'white', fontWeight: 600 }}>Départ</TableCell>
+														<TableCell sx={{ color: 'white', fontWeight: 700, position: 'sticky', left: 0, zIndex: 3, bgcolor: 'primary.main' }}>{t.reservations.apartment}</TableCell>
+														<TableCell sx={{ color: 'white', fontWeight: 700 }}>{t.reservations.columnClient}</TableCell>
+														<TableCell sx={{ color: 'white', fontWeight: 600 }}>{t.reservations.arrival}</TableCell>
+														<TableCell sx={{ color: 'white', fontWeight: 600 }}>{t.reservations.departure}</TableCell>
 														<TableCell align="right" sx={{ color: 'white', fontWeight: 700 }}>
-															Montant
+															{t.reservations.amountLabel}
 														</TableCell>
-														<TableCell sx={{ color: 'white', fontWeight: 600 }}>Source</TableCell>
+														<TableCell sx={{ color: 'white', fontWeight: 600 }}>{t.reservations.columnSource}</TableCell>
 														<TableCell align="center" sx={{ color: 'white', fontWeight: 700 }}>
-															Retourné
+															{t.reservations.returned}
 														</TableCell>
 													</TableRow>
 												</TableHead>
@@ -266,7 +267,7 @@ const BalanceClient: React.FC<SessionProps> = ({ session }) => {
 													{reservations.length === 0 ? (
 														<TableRow>
 															<TableCell colSpan={7} align="center" sx={{ py: 4, color: 'text.secondary' }}>
-																Aucune donnée disponible pour {year}
+																{t.reservations.noDataForYear(year)}
 															</TableCell>
 														</TableRow>
 													) : (
@@ -286,7 +287,7 @@ const BalanceClient: React.FC<SessionProps> = ({ session }) => {
 																<TableCell align="center">
 																	<Chip
 																		icon={r.amount_returned ? <CheckCircleOutlineIcon /> : <HighlightOffIcon />}
-																		label={r.amount_returned ? 'Oui' : 'Non'}
+																		label={r.amount_returned ? t.common.yes : t.common.no}
 																		color={r.amount_returned ? 'success' : 'error'}
 																		size="small"
 																		variant="outlined"
@@ -306,10 +307,10 @@ const BalanceClient: React.FC<SessionProps> = ({ session }) => {
 								{/* Matrix table: apartment × month */}
 								<Card elevation={2}>
 									<CardHeader
-										title="Revenus par appartement et par mois"
-										subheader={`Détail mensuel pour ${year} (MAD)`}
+										title={t.reservations.revenueByApartmentMonth}
+										subheader={t.reservations.revenueByApartmentMonthSub(year)}
 										action={
-											<MuiTooltip title="Matrice des revenus mensuels par appartement avec totaux annuels" arrow>
+											<MuiTooltip title={t.reservations.matrixTooltip} arrow>
 												<IconButton size="small">
 													<InfoOutlinedIcon fontSize="small" sx={{ color: 'text.disabled' }} />
 												</IconButton>
@@ -321,8 +322,8 @@ const BalanceClient: React.FC<SessionProps> = ({ session }) => {
 											<Table size="small" sx={{ minWidth: 900 }}>
 												<TableHead>
 													<TableRow sx={{ bgcolor: 'primary.main' }}>
-														<TableCell sx={{ color: 'white', fontWeight: 700, width: 100, position: 'sticky', left: 0, zIndex: 3, bgcolor: 'primary.main' }}>Appartement</TableCell>
-														{MONTH_LABELS.map((m) => (
+														<TableCell sx={{ color: 'white', fontWeight: 700, width: 100, position: 'sticky', left: 0, zIndex: 3, bgcolor: 'primary.main' }}>{t.reservations.apartment}</TableCell>
+														{t.rawData.monthLabels.map((m) => (
 															<TableCell
 																key={m}
 																align="right"
@@ -335,7 +336,7 @@ const BalanceClient: React.FC<SessionProps> = ({ session }) => {
 															align="right"
 															sx={{ color: 'white', fontWeight: 700, borderLeft: '2px solid rgba(255,255,255,0.3)' }}
 														>
-															Total
+															{t.common.total}
 														</TableCell>
 													</TableRow>
 												</TableHead>
@@ -383,7 +384,7 @@ const BalanceClient: React.FC<SessionProps> = ({ session }) => {
 
 													{/* Total row */}
 													<TableRow sx={{ bgcolor: 'primary.light' }}>
-														<TableCell sx={{ fontWeight: 700, position: 'sticky', left: 0, zIndex: 1, bgcolor: 'primary.light' }}>TOTAL</TableCell>
+														<TableCell sx={{ fontWeight: 700, position: 'sticky', left: 0, zIndex: 1, bgcolor: 'primary.light' }}>{t.common.total}</TableCell>
 														{totalByMonth.map((total, i) => (
 															<TableCell
 																key={i}
@@ -413,7 +414,7 @@ const BalanceClient: React.FC<SessionProps> = ({ session }) => {
 													{aptNoms.length === 0 && (
 														<TableRow>
 															<TableCell colSpan={14} align="center" sx={{ py: 4, color: 'text.secondary' }}>
-																Aucune donnée disponible pour {year}
+																{t.reservations.noDataForYear(year)}
 															</TableCell>
 														</TableRow>
 													)}

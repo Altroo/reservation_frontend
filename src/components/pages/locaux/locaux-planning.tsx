@@ -42,9 +42,8 @@ import { Protected } from '@/components/layouts/protected/protected';
 import { LOCAUX_VIEW } from '@/utils/routes';
 import { useGetLocalPlanningQuery, useGetLocalYearsQuery, useToggleLoyerPaidMutation, useGetBuildingsQuery } from '@/store/services/reservation';
 import { useInitAccessToken } from '@/contexts/InitContext';
+import { useLanguage } from '@/utils/hooks';
 import Styles from '@/styles/dashboard/dashboard.module.sass';
-
-const MONTH_HEADERS = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun', 'Jul', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc'];
 
 interface KpiCardProps {
 	color: string;
@@ -99,6 +98,7 @@ function KpiCard({ color, icon, label, value, tooltip }: KpiCardProps) {
 
 const LocauxPlanningClient: React.FC<SessionProps> = ({ session }) => {
 	const router = useRouter();
+	const { t } = useLanguage();
 	const token = useInitAccessToken(session);
 	const theme = useTheme();
 	const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
@@ -117,8 +117,8 @@ const LocauxPlanningClient: React.FC<SessionProps> = ({ session }) => {
 	const { data: buildingsData } = useGetBuildingsQuery(undefined, { skip: !token });
 
 	const buildingItems: DropDownType[] = useMemo(
-		() => [{ code: 'Toutes', value: 'Toutes' }, ...(buildingsData ?? []).map((b) => ({ code: b.nom, value: b.nom }))],
-		[buildingsData],
+		() => [{ code: t.locaux.allResidences, value: t.locaux.allResidences }, ...(buildingsData ?? []).map((b) => ({ code: b.nom, value: b.nom }))],
+		[buildingsData, t],
 	);
 
 	const yearItems: DropDownType[] = useMemo(
@@ -160,19 +160,19 @@ const LocauxPlanningClient: React.FC<SessionProps> = ({ session }) => {
 		const data = local.months[month];
 		if (!data) {
 			return (
-				<MuiTooltip title="Pas de loyer enregistré" arrow>
+				<MuiTooltip title={t.locaux.noRentRegistered} arrow>
 					<EmptyIcon fontSize="small" sx={{ color: 'grey.400' }} />
 				</MuiTooltip>
 			);
 		}
 		return (
 			<MuiTooltip
-				title={`${Number(data.montant).toLocaleString('fr-MA')} MAD — Cliquez pour ${data.paye ? 'marquer impayé' : 'marquer payé'}`}
+				title={t.locaux.clickPaidUnpaidTooltip(Number(data.montant).toLocaleString('fr-MA'), data.paye ? t.locaux.markUnpaid : t.locaux.markPaid)}
 				arrow
 			>
 				<Chip
 					icon={data.paye ? <CheckCircleOutlineIcon /> : <HighlightOffIcon />}
-					label={data.paye ? 'Payé' : 'Impayé'}
+					label={data.paye ? t.common.paid : t.common.unpaid}
 					color={data.paye ? 'success' : 'error'}
 					size="small"
 					variant="outlined"
@@ -185,24 +185,24 @@ const LocauxPlanningClient: React.FC<SessionProps> = ({ session }) => {
 
 	return (
 		<Stack direction="column" spacing={2} className={Styles.flexRootStack} mt="48px">
-			<NavigationBar title="Planning des loyers">
+			<NavigationBar title={t.locaux.rentPlanning}>
 				<Protected permission="can_view">
 					<Box sx={{ px: { xs: 1, sm: 2, md: 3 }, pb: 4 }}>
 						<Stack direction="row" justifyContent="space-between" alignItems="center" py={2} flexWrap="wrap" gap={1}>
 							<Typography variant="h5" fontWeight={600}>
-								Planning des loyers {year}
+								{t.locaux.rentPlanningYear(year)}
 							</Typography>
 							<Stack direction="row" spacing={2}>
 							<Box sx={{ minWidth: 180 }}>
 								<CustomDropDownSelect
 									id="building-filter"
 									size="small"
-									label="Résidence"
+									label={t.locaux.residence}
 									items={buildingItems}
-									value={buildingId === '' ? 'Toutes' : ((buildingsData ?? []).find((b) => b.id === buildingId)?.nom ?? 'Toutes')}
+									value={buildingId === '' ? t.locaux.allResidences : ((buildingsData ?? []).find((b) => b.id === buildingId)?.nom ?? t.locaux.allResidences)}
 									onChange={(e) => {
 										const name = e.target.value;
-										if (!name || name === 'Toutes') setBuildingId('');
+										if (!name || name === t.locaux.allResidences) setBuildingId('');
 										else {
 											const b = (buildingsData ?? []).find((x) => x.nom === name);
 											setBuildingId(b ? b.id : '');
@@ -216,7 +216,7 @@ const LocauxPlanningClient: React.FC<SessionProps> = ({ session }) => {
 								<CustomDropDownSelect
 									id="year-filter"
 									size="small"
-									label="Année"
+									label={t.common.year}
 									items={yearItems}
 									value={String(year)}
 									onChange={(e) => setYear(Number(e.target.value))}
@@ -238,30 +238,30 @@ const LocauxPlanningClient: React.FC<SessionProps> = ({ session }) => {
 									<KpiCard
 										color="#1565c0"
 										icon={<CalendarMonthIcon />}
-										label="Locaux"
+										label={t.locaux.locauxCount}
 										value={`${locaux.length}`}
-										tooltip="Nombre total de locaux"
+										tooltip={t.locaux.locauxCountTooltip}
 									/>
 									<KpiCard
 										color="#2e7d32"
 										icon={<CheckCircleOutlineIcon />}
-										label="Loyers payés"
+										label={t.locaux.paidRentsCount}
 										value={`${stats.totalPaid.toLocaleString('fr-MA')} MAD`}
-										tooltip={`${stats.paidCount} loyer(s) payé(s) en ${year}`}
+										tooltip={t.locaux.paidRentsTooltip(stats.paidCount, year)}
 									/>
 									<KpiCard
 										color="#d32f2f"
 										icon={<HighlightOffIcon />}
-										label="Loyers impayés"
+										label={t.locaux.unpaidRentsCount}
 										value={`${stats.totalUnpaid.toLocaleString('fr-MA')} MAD`}
-										tooltip={`${stats.unpaidCount} loyer(s) impayé(s) en ${year}`}
+										tooltip={t.locaux.unpaidRentsTooltip(stats.unpaidCount, year)}
 									/>
 									<KpiCard
 										color="#6a1b9a"
 										icon={<CalendarMonthIcon />}
-										label="Taux de paiement"
+										label={t.locaux.paymentRate}
 										value={stats.paidCount + stats.unpaidCount > 0 ? `${Math.round((stats.paidCount / (stats.paidCount + stats.unpaidCount)) * 100)}%` : '—'}
-										tooltip="Pourcentage de loyers payés sur le total"
+										tooltip={t.locaux.paymentRateTooltip}
 									/>
 								</Box>
 
@@ -269,16 +269,16 @@ const LocauxPlanningClient: React.FC<SessionProps> = ({ session }) => {
 									<Card elevation={2}>
 										<CardContent sx={{ py: 6, textAlign: 'center' }}>
 											<CalendarMonthIcon sx={{ fontSize: 48, color: 'grey.400', mb: 2 }} />
-											<Typography color="text.secondary">Aucun local enregistré.</Typography>
+											<Typography color="text.secondary">{t.locaux.noLocauxRegistered}</Typography>
 										</CardContent>
 									</Card>
 								) : (
 									<Card elevation={2}>
 										<CardHeader
-											title="Détail des loyers par local"
-											subheader={`Statut de paiement mensuel pour ${year} — Cliquez sur un statut pour le modifier`}
+											title={t.locaux.rentDetailByLocal}
+											subheader={t.locaux.monthlyPaymentStatus(year)}
 											action={
-												<MuiTooltip title="Cliquez sur Payé/Impayé pour changer le statut de paiement" arrow>
+												<MuiTooltip title={t.locaux.clickToChangeStatus} arrow>
 													<IconButton size="small">
 														<InfoOutlinedIcon fontSize="small" sx={{ color: 'text.disabled' }} />
 													</IconButton>
@@ -302,7 +302,7 @@ const LocauxPlanningClient: React.FC<SessionProps> = ({ session }) => {
 																	<Box>
 																		<Typography variant="body2" fontWeight={600}>{local.nom}</Typography>
 																		<Typography variant="caption" color="text.secondary">
-																			{local.type_local} — {local.en_location ? local.locataire_nom || 'En location' : 'Libre'}
+																			{local.type_local} — {local.en_location ? local.locataire_nom || t.locaux.inRental : t.common.free}
 																		</Typography>
 																	</Box>
 																</Stack>
@@ -310,7 +310,7 @@ const LocauxPlanningClient: React.FC<SessionProps> = ({ session }) => {
 																	{Array.from({ length: 12 }, (_, i) => i + 1).map((month) => (
 																		<Stack key={month} alignItems="center" spacing={0.25}>
 																			<Typography variant="caption" sx={{ fontSize: '0.65rem', color: 'text.secondary', fontWeight: 600 }}>
-																				{MONTH_HEADERS[month - 1]}
+																				{t.rawData.monthLabels[month - 1]}
 																			</Typography>
 																			{renderMonthChip(local, month)}
 																		</Stack>
@@ -326,9 +326,9 @@ const LocauxPlanningClient: React.FC<SessionProps> = ({ session }) => {
 														<TableHead>
 															<TableRow sx={{ bgcolor: 'primary.main' }}>
 																<TableCell sx={{ color: 'white', fontWeight: 700, minWidth: 180, position: 'sticky', left: 0, zIndex: 3, bgcolor: 'primary.main' }}>
-																	Local
+																	{t.locaux.local}
 																</TableCell>
-																{MONTH_HEADERS.map((m, i) => (
+																{t.rawData.monthLabels.map((m, i) => (
 																	<TableCell key={i} align="center" sx={{ color: 'white', fontWeight: 600, fontSize: '0.75rem' }}>
 																		{m}
 																	</TableCell>
@@ -353,7 +353,7 @@ const LocauxPlanningClient: React.FC<SessionProps> = ({ session }) => {
 																		<Stack>
 																			<Typography variant="body2" fontWeight={600} noWrap>{local.nom}</Typography>
 																			<Typography variant="caption" color="text.secondary" noWrap>
-																				{local.type_local} — {local.en_location ? local.locataire_nom || 'En location' : 'Libre'}
+																				{local.type_local} — {local.en_location ? local.locataire_nom || t.locaux.inRental : t.common.free}
 																			</Typography>
 																		</Stack>
 																	</TableCell>

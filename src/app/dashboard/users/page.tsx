@@ -1,13 +1,17 @@
 import { redirect } from 'next/navigation';
-import { type Metadata } from 'next';
+import type { Metadata } from 'next';
 import { auth } from '@/auth';
 import { AUTH_LOGIN } from '@/utils/routes';
 import UsersListClient from '@/components/pages/users/users-list';
+import { getServerTranslations } from '@/utils/getServerTranslations';
 
-export const metadata: Metadata = {
-	title: 'Liste des utilisateurs',
-	description: 'Liste des utilisateurs',
-};
+export async function generateMetadata(): Promise<Metadata> {
+	const t = await getServerTranslations();
+	return {
+		title: t.pageMetadata.usersTitle,
+		description: t.pageMetadata.usersDescription,
+	};
+}
 
 const UsersListPage = async () => {
 	const session = await auth();

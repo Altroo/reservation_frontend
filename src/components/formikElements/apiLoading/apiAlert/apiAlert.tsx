@@ -2,6 +2,7 @@ import React from 'react';
 import { Alert, Typography } from '@mui/material';
 import type { SxProps } from '@mui/system';
 import type { Theme } from '@mui/material/styles';
+import { useLanguage } from '@/utils/hooks';
 
 type Props = {
 	errorDetails?: Record<string, unknown> | null;
@@ -19,6 +20,7 @@ function formatValue(value: unknown): string {
 }
 
 const ApiAlert: React.FC<Props> = (props: Props) => {
+	const { t } = useLanguage();
 	const errorDetails = props.errorDetails;
 
 	const lines: { key: string; text: string }[] = [];
@@ -40,7 +42,7 @@ const ApiAlert: React.FC<Props> = (props: Props) => {
 							<strong>{key}</strong> : {text}
 						</Typography>
 					))
-				: 'Une erreur est survenue. Veuillez réessayer plus tard.'}
+				: `${t.errors.errorOccurred}. ${t.errors.errorApology}`}
 		</Alert>
 	);
 };

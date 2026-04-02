@@ -18,6 +18,8 @@ jest.mock('next/navigation', () => ({
 
 // Mock hooks
 jest.mock('@/utils/hooks', () => ({
+	// eslint-disable-next-line @typescript-eslint/no-require-imports
+	useLanguage: () => ({ language: 'fr', setLanguage: jest.fn(), t: require('@/translations').translations.fr }),
 	__esModule: true,
 	useToast: () => ({ onSuccess: jest.fn(), onError: jest.fn() }),
 }));
@@ -149,7 +151,7 @@ describe('BuildingFormClient', () => {
 
 		it('renders submit button with add text', () => {
 			render(<BuildingFormClient session={mockSession} />);
-			expect(screen.getByTestId('submit-button')).toHaveTextContent('Ajouter la résidence');
+			expect(screen.getByTestId('submit-button')).toHaveTextContent('Ajouter');
 		});
 
 		it('renders section header', () => {

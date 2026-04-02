@@ -20,6 +20,8 @@ const mockStore = configureStore({
 const mockOnSuccess = jest.fn();
 const mockOnError = jest.fn();
 jest.mock('@/utils/hooks', () => ({
+	// eslint-disable-next-line @typescript-eslint/no-require-imports
+	useLanguage: () => ({ language: 'fr', setLanguage: jest.fn(), t: require('@/translations').translations.fr }),
 	__esModule: true,
 	useToast: () => ({
 		onSuccess: mockOnSuccess,

@@ -1,13 +1,17 @@
 import { redirect } from 'next/navigation';
-import { type Metadata } from 'next';
+import type { Metadata } from 'next';
 import { auth } from '@/auth';
 import { AUTH_LOGIN } from '@/utils/routes';
 import LocauxDashboardClient from '@/components/pages/locaux/locaux-dashboard';
+import { getServerTranslations } from '@/utils/getServerTranslations';
 
-export const metadata: Metadata = {
-	title: 'Dashboard des locaux',
-	description: 'Tableau de bord des locaux',
-};
+export async function generateMetadata(): Promise<Metadata> {
+	const t = await getServerTranslations();
+	return {
+		title: t.pageMetadata.locauxDashboardTitle,
+		description: t.pageMetadata.locauxDashboardDescription,
+	};
+}
 
 const LocauxDashboardPage = async () => {
 	const session = await auth();

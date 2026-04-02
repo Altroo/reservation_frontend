@@ -19,7 +19,7 @@ import ApiProgress from '@/components/formikElements/apiLoading/apiProgress/apiP
 import PrimaryLoadingButton from '@/components/htmlElements/buttons/primaryLoadingButton/primaryLoadingButton';
 import { useSendPasswordResetCodeMutation, usePasswordResetMutation } from '@/store/services/account';
 import { useSession } from 'next-auth/react';
-import { useToast } from '@/utils/hooks';
+import { useToast, useLanguage } from '@/utils/hooks';
 import { Send as SendIcon, ThumbUpAlt as ThumbUpAltIcon } from '@mui/icons-material';
 
 type EnterCodePageContentProps = {
@@ -32,6 +32,7 @@ const fields: FieldKey[] = ['one', 'two', 'three', 'four', 'five', 'six'];
 const EnterCodePageContent = ({ email }: EnterCodePageContentProps) => {
 	const router = useRouter();
 	const { onSuccess, onError } = useToast();
+	const { t } = useLanguage();
 	const [reSendPasswordResetCode, { isLoading: isResendLoading }] = useSendPasswordResetCodeMutation();
 	const [passwordReset, { isLoading: isPasswordResetLoading }] = usePasswordResetMutation();
 	const [isPending, setIsPending] = useState(false);
@@ -120,9 +121,9 @@ const EnterCodePageContent = ({ email }: EnterCodePageContentProps) => {
 	const renvoyerLeCodeHandler = async () => {
 		try {
 			await reSendPasswordResetCode({ email }).unwrap();
-			onSuccess('code envoyé.');
+			onSuccess(t.auth.codeSent);
 		} catch (e) {
-			onError('Échec de l\u2019envoi du code.');
+			onError(t.auth.codeSendFailed);
 			const setFieldError = formik.setFieldError;
 			setFormikAutoErrors({ e, setFieldError });
 		}
@@ -135,9 +136,9 @@ const EnterCodePageContent = ({ email }: EnterCodePageContentProps) => {
 					<ApiProgress backdropColor="#FFFFFF" circularColor="#0D070B" />
 				)}
 				<Stack direction="column" spacing={1}>
-					<span className={Styles.content}>Rentrez le code</span>
+					<span className={Styles.content}>{t.auth.enterCode}</span>
 					<span className={Styles.paragraphe}>
-						Un code a été envoyé à <span className={Styles.email}>{email}</span>
+						{t.auth.codeSentTo(email).split(email)[0]}<span className={Styles.email}>{email}</span>
 					</span>
 				</Stack>
 				<form style={{ width: '100%' }} onSubmit={(e) => e.preventDefault()}>
@@ -177,7 +178,7 @@ const EnterCodePageContent = ({ email }: EnterCodePageContentProps) => {
 						{formik.errors.globalError && <span className={Styles.errorMessage}>{formik.errors.globalError}</span>}
 						<Stack direction="column" justifyContent="center" alignItems="center" spacing={2}>
 							<PrimaryLoadingButton
-								buttonText="Confirmer le code"
+								buttonText={t.auth.confirmCode}
 								active={!isPasswordResetLoading}
 								onClick={formik.handleSubmit}
 								cssClass={Styles.emailRegisterButton}
@@ -186,7 +187,7 @@ const EnterCodePageContent = ({ email }: EnterCodePageContentProps) => {
 								loading={isPasswordResetLoading}
 							/>
 							<TextButton
-								buttonText="Renvoyer le code"
+								buttonText={t.auth.resendCode}
 								onClick={renvoyerLeCodeHandler}
 								cssClass={Styles.resendCodeButton}
 								startIcon={<SendIcon />}

@@ -1,13 +1,17 @@
 import { redirect } from 'next/navigation';
-import { type Metadata } from 'next';
+import type { Metadata } from 'next';
 import { auth } from '@/auth';
 import { AUTH_LOGIN, RESERVATIONS_LIST } from '@/utils/routes';
 import ReservationFormClient from '@/components/pages/reservations/reservation-form';
+import { getServerTranslations } from '@/utils/getServerTranslations';
 
-export const metadata: Metadata = {
-	title: 'Modifier la réservation',
-	description: 'Modifier une réservation',
-};
+export async function generateMetadata(): Promise<Metadata> {
+	const t = await getServerTranslations();
+	return {
+		title: t.pageMetadata.reservationsEditTitle,
+		description: t.pageMetadata.reservationsEditDescription,
+	};
+}
 
 interface Props {
 	params: Promise<{ id: string }>;

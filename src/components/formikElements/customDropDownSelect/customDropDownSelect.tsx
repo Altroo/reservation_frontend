@@ -14,6 +14,7 @@ import {
 import type { Theme } from '@mui/material/styles';
 import { CheckCircle as CheckCircleIcon } from '@mui/icons-material';
 import { DropDownType } from '@/types/accountTypes';
+import { useLanguage } from '@/utils/hooks';
 
 const ITEM_HEIGHT = 48;
 const ITEM_PADDING_TOP = 8;
@@ -45,6 +46,7 @@ type Props = {
 };
 
 const CustomDropDownSelect: React.FC<Props> = (props: Props) => {
+	const { t } = useLanguage();
 	return (
 		<ThemeProvider theme={props.theme}>
 			<FormControl className={`${Styles.formControl} ${props.cssClass}`} disabled={props.disabled} error={props.error}>
@@ -75,7 +77,7 @@ const CustomDropDownSelect: React.FC<Props> = (props: Props) => {
 						return (
 							<MenuItem key={index} value={value} sx={{ minHeight: ITEM_HEIGHT }}>
 								<Stack direction="row" justifyContent="space-between" sx={{ width: '100%' }}>
-									<span>{value || 'Sélectionner une valeur'}</span>
+									<span>{value || t.common.selectValue}</span>
 									{props.value === value && <CheckCircleIcon sx={{ fontSize: 20 }} color="primary" />}
 								</Stack>
 							</MenuItem>

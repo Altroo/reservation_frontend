@@ -39,7 +39,7 @@ import {
 import { USERS_LIST, USERS_EDIT } from '@/utils/routes';
 import ApiProgress from '@/components/formikElements/apiLoading/apiProgress/apiProgress';
 import { formatDate, extractApiErrorMessage } from '@/utils/helpers';
-import { useToast } from '@/utils/hooks';
+import { useToast, useLanguage } from '@/utils/hooks';
 import ActionModals from '@/components/htmlElements/modals/actionModal/actionModals';
 import { Protected } from '@/components/layouts/protected/protected';
 import ApiAlert from '@/components/formikElements/apiLoading/apiAlert/apiAlert';
@@ -125,16 +125,17 @@ const UsersViewClient: React.FC<Props> = ({ session, id }) => {
 	const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
 	const [deleteRecord] = useDeleteUserMutation();
+	const { t } = useLanguage();
 	const { onSuccess, onError } = useToast();
 	const [showDeleteModal, setShowDeleteModal] = useState(false);
 
 	const handleDelete = async () => {
 		try {
 			await deleteRecord({ id }).unwrap();
-			onSuccess('Utilisateur supprimé avec succès');
+			onSuccess(t.users.userDeletedSuccess);
 			router.push(USERS_LIST);
 		} catch (err) {
-			onError(extractApiErrorMessage(err, 'Erreur lors de la suppression de l\u2019utilisateur'));
+			onError(extractApiErrorMessage(err, t.users.userDeleteError));
 		} finally {
 			setShowDeleteModal(false);
 		}
@@ -142,14 +143,14 @@ const UsersViewClient: React.FC<Props> = ({ session, id }) => {
 
 	const deleteModalActions = [
 		{
-			text: 'Annuler',
+			text: t.common.cancel,
 			active: false,
 			onClick: () => setShowDeleteModal(false),
 			icon: <ArrowBackIcon />,
 			color: '#6B6B6B',
 		},
 		{
-			text: 'Supprimer',
+			text: t.common.delete,
 			active: true,
 			onClick: handleDelete,
 			icon: <DeleteIcon />,
@@ -159,7 +160,7 @@ const UsersViewClient: React.FC<Props> = ({ session, id }) => {
 
 	return (
 		<Stack direction="column" spacing={2} className={Styles.flexRootStack} mt="32px">
-			<NavigationBar title="Détails de l'utilisateur">
+			<NavigationBar title={t.users.userDetails}>
 				<Protected>
 					<Stack spacing={3} sx={{ p: { xs: 2, md: 3 }, mt: 2 }}>
 						<Stack direction={isMobile ? 'column' : 'row'} justifyContent="space-between" alignItems={isMobile ? 'stretch' : 'center'} spacing={2}>
@@ -169,7 +170,7 @@ const UsersViewClient: React.FC<Props> = ({ session, id }) => {
 								onClick={() => router.push(USERS_LIST)}
 								sx={{ width: isMobile ? '100%' : 'auto' }}
 							>
-								Liste des utilisateurs
+								{t.users.usersList}
 							</Button>
 							{!isLoading && !error && (
 								<Stack direction="row" gap={1} flexWrap="wrap">
@@ -179,7 +180,7 @@ const UsersViewClient: React.FC<Props> = ({ session, id }) => {
 										startIcon={<EditIcon />}
 										onClick={() => router.push(USERS_EDIT(id))}
 									>
-										Modifier
+										{t.common.edit}
 									</Button>
 									<Button
 										variant="outlined"
@@ -188,7 +189,7 @@ const UsersViewClient: React.FC<Props> = ({ session, id }) => {
 										startIcon={<DeleteIcon />}
 										onClick={() => setShowDeleteModal(true)}
 									>
-										Supprimer
+										{t.common.delete}
 									</Button>
 								</Stack>
 							)}
@@ -206,7 +207,7 @@ const UsersViewClient: React.FC<Props> = ({ session, id }) => {
 								}}
 							/>
 						) : !userData ? (
-							<Alert severity="warning">Utilisateur introuvable</Alert>
+							<Alert severity="warning">{t.users.userNotFound}</Alert>
 						) : (
 							<Stack spacing={3}>
 								<Card elevation={2} sx={{ borderRadius: 2 }}>
@@ -238,22 +239,22 @@ const UsersViewClient: React.FC<Props> = ({ session, id }) => {
 														fontSize={isMobile ? '20px' : '25px'}
 														fontWeight={700}
 													>
-														{[userData?.first_name, userData?.last_name].filter(Boolean).join(' ') || userData?.email || "Nom de l'utilisateur"}
+														{[userData?.first_name, userData?.last_name].filter(Boolean).join(' ') || userData?.email || t.users.firstName}
 													</Typography>
 													<Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap">
 														<Chip icon={<BadgeIcon />} label={`ID: ${userData?.id}`} size="small" variant="outlined" />
 														{userData?.is_staff && (
 															<Chip
 																icon={<AdminPanelSettingsIcon />}
-																label="Administrateur"
+																label={t.users.administrator}
 																color="primary"
 																size="small"
 															/>
 														)}
 														{userData?.is_active ? (
-															<Chip icon={<CheckCircleIcon />} label="Actif" color="success" size="small" />
+															<Chip icon={<CheckCircleIcon />} label={t.users.active} color="success" size="small" />
 														) : (
-															<Chip icon={<CancelIcon />} label="Inactif" color="error" size="small" />
+															<Chip icon={<CancelIcon />} label={t.users.inactive} color="error" size="small" />
 														)}
 													</Stack>
 												</Stack>
@@ -272,56 +273,56 @@ const UsersViewClient: React.FC<Props> = ({ session, id }) => {
 										<Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 2 }}>
 											<PublicIcon color="primary" />
 											<Typography variant="h6" fontWeight={700}>
-												Informations générales
+												{t.users.generalInfo}
 											</Typography>
 										</Stack>
 
 										<Divider sx={{ mb: { xs: 1.5, md: 2 } }} />
 
 										<Stack spacing={0}>
-											<InfoRow icon={<EmailIcon />} label="Email" value={userData?.email} />
+											<InfoRow icon={<EmailIcon />} label={t.users.email} value={userData?.email} />
 											<Divider />
-											<InfoRow icon={<PersonIcon />} label="Sexe" value={userData?.gender} />
+											<InfoRow icon={<PersonIcon />} label={t.users.gender} value={userData?.gender} />
 											<Divider />
 											<InfoRow
 												icon={<AdminPanelSettingsIcon />}
-												label="Admin"
+												label={t.users.admin}
 												value={
 													userData?.is_staff ? (
-														<Chip icon={<CheckCircleIcon />} label="Oui" color="primary" size="small" />
+														<Chip icon={<CheckCircleIcon />} label={t.common.yes} color="primary" size="small" />
 													) : (
-														<Chip icon={<CancelIcon />} label="Non" size="small" variant="outlined" />
+														<Chip icon={<CancelIcon />} label={t.common.no} size="small" variant="outlined" />
 													)
 												}
 											/>
 											<Divider />
 											<InfoRow
 												icon={<CheckCircleIcon />}
-												label="Active"
+												label={t.users.active}
 												value={
 													userData?.is_active ? (
-														<Chip icon={<CheckCircleIcon />} label="Oui" color="success" size="small" />
+														<Chip icon={<CheckCircleIcon />} label={t.common.yes} color="success" size="small" />
 													) : (
-														<Chip icon={<CancelIcon />} label="Non" color="error" size="small" />
+														<Chip icon={<CancelIcon />} label={t.common.no} color="error" size="small" />
 													)
 												}
 											/>
 											<Divider />
 											<InfoRow
 												icon={<CalendarTodayIcon />}
-												label="Date d&apos;inscription"
+												label={t.users.registrationDate}
 												value={userData?.date_joined && formatDate(userData?.date_joined)}
 											/>
 											<Divider />
 											<InfoRow
 												icon={<CalendarTodayIcon />}
-												label="Dernière mise à jour"
+												label={t.users.lastUpdated}
 												value={userData?.date_updated && formatDate(userData?.date_updated)}
 											/>
 											<Divider />
 											<InfoRow
 												icon={<LoginIcon />}
-												label="Dernière connexion"
+												label={t.users.lastLogin}
 												value={userData?.last_login && formatDate(userData?.last_login)}
 											/>
 										</Stack>
@@ -334,19 +335,19 @@ const UsersViewClient: React.FC<Props> = ({ session, id }) => {
 										<Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 2 }}>
 											<SecurityIcon color="primary" />
 											<Typography variant="h6" fontWeight={700}>
-												Permissions
+												{t.users.permissions}
 											</Typography>
 										</Stack>
 										<Divider sx={{ mb: 2 }} />
 										<Stack spacing={0}>
 											<InfoRow
 												icon={<CheckCircleIcon />}
-												label="Peut voir"
+												label={t.users.canView}
 												value={
 													userData?.can_view ? (
-														<Chip icon={<CheckCircleIcon />} label="Oui" color="success" size="small" />
+														<Chip icon={<CheckCircleIcon />} label={t.common.yes} color="success" size="small" />
 													) : (
-														<Chip icon={<CancelIcon />} label="Non" size="small" variant="outlined" />
+														<Chip icon={<CancelIcon />} label={t.common.no} size="small" variant="outlined" />
 													)
 												}
 											/>
@@ -354,36 +355,36 @@ const UsersViewClient: React.FC<Props> = ({ session, id }) => {
 											<InfoRow
 												icon={<CheckCircleIcon />}
 
-												label="Peut créer"
+												label={t.users.canCreate}
 												value={
 													userData?.can_create ? (
-														<Chip icon={<CheckCircleIcon />} label="Oui" color="success" size="small" />
+														<Chip icon={<CheckCircleIcon />} label={t.common.yes} color="success" size="small" />
 													) : (
-														<Chip icon={<CancelIcon />} label="Non" size="small" variant="outlined" />
+														<Chip icon={<CancelIcon />} label={t.common.no} size="small" variant="outlined" />
 													)
 												}
 											/>
 											<Divider />
 											<InfoRow
 												icon={<CheckCircleIcon />}
-												label="Peut modifier"
+												label={t.users.canEdit}
 												value={
 													userData?.can_edit ? (
-														<Chip icon={<CheckCircleIcon />} label="Oui" color="success" size="small" />
+														<Chip icon={<CheckCircleIcon />} label={t.common.yes} color="success" size="small" />
 													) : (
-														<Chip icon={<CancelIcon />} label="Non" size="small" variant="outlined" />
+														<Chip icon={<CancelIcon />} label={t.common.no} size="small" variant="outlined" />
 													)
 												}
 											/>
 											<Divider />
 											<InfoRow
 												icon={<CheckCircleIcon />}
-												label="Peut supprimer"
+												label={t.users.canDelete}
 												value={
 													userData?.can_delete ? (
-														<Chip icon={<CheckCircleIcon />} label="Oui" color="success" size="small" />
+														<Chip icon={<CheckCircleIcon />} label={t.common.yes} color="success" size="small" />
 													) : (
-														<Chip icon={<CancelIcon />} label="Non" size="small" variant="outlined" />
+														<Chip icon={<CancelIcon />} label={t.common.no} size="small" variant="outlined" />
 													)
 												}
 											/>
@@ -397,8 +398,8 @@ const UsersViewClient: React.FC<Props> = ({ session, id }) => {
 			</NavigationBar>
 		{showDeleteModal && (
 			<ActionModals
-				title="Supprimer cet utilisateur ?"
-				body="Êtes-vous sûr de vouloir supprimer cet utilisateur ? Cette action est irréversible."
+				title={t.users.deleteUser}
+				body={t.users.deleteUserConfirm}
 				actions={deleteModalActions}
 				titleIcon={<DeleteIcon />}
 				titleIconColor="#D32F2F"

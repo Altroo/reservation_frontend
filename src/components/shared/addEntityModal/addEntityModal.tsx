@@ -7,6 +7,7 @@ import { customDropdownTheme } from '@/utils/themes';
 import type { DropDownType } from '@/types/accountTypes';
 import type { ApiErrorResponseType } from '@/types/_initTypes';
 import type { Theme } from '@mui/material/styles';
+import { useLanguage } from '@/utils/hooks';
 
 type AddEntityModalProps = {
 	open: boolean;
@@ -20,6 +21,7 @@ type AddEntityModalProps = {
 };
 
 const AddEntityModal: React.FC<AddEntityModalProps> = ({ open, setOpen, label, icon, inputTheme, mutationFn, onSuccess, buildings }) => {
+	const { t } = useLanguage();
 	const [newName, setNewName] = useState('');
 	const [selectedBuilding, setSelectedBuilding] = useState<number | ''>('');
 	const [error, setError] = useState<string | null>(null);
@@ -27,10 +29,10 @@ const AddEntityModal: React.FC<AddEntityModalProps> = ({ open, setOpen, label, i
 
 	const buildingItems: DropDownType[] = useMemo(
 		() => [
-			{ code: 'none', value: 'Aucune' },
+			{ code: 'none', value: t.common.none },
 			...(buildings ?? []).map((b) => ({ code: String(b.id), value: b.nom })),
 		],
-		[buildings],
+		[buildings, t.common.none],
 	);
 
 	if (prevOpen !== open) {
@@ -63,13 +65,13 @@ const AddEntityModal: React.FC<AddEntityModalProps> = ({ open, setOpen, label, i
 				}}
 			>
 				<Typography variant="h6" mb={2}>
-					Ajouter un(e) {label}
+					{t.addEntityModal.addEntity(label)}
 				</Typography>
 
 				<CustomTextInput
 					id={`new_${label}`}
 					type="text"
-					label={`Nom du ${label}`}
+					label={t.addEntityModal.entityName(label)}
 					value={newName}
 					onChange={(e) => {
 						setNewName(e.target.value);
@@ -88,12 +90,12 @@ const AddEntityModal: React.FC<AddEntityModalProps> = ({ open, setOpen, label, i
 						<CustomDropDownSelect
 							id={`building-select-${label}`}
 							size="small"
-							label="Résidence"
+							label={t.common.residence}
 							items={buildingItems}
-							value={selectedBuilding === '' ? 'Aucune' : (buildings.find((b) => b.id === selectedBuilding)?.nom ?? 'Aucune')}
+							value={selectedBuilding === '' ? t.common.none : (buildings.find((b) => b.id === selectedBuilding)?.nom ?? t.common.none)}
 							onChange={(e) => {
 								const val = e.target.value;
-								if (!val || val === 'Aucune') setSelectedBuilding('');
+								if (!val || val === t.common.none) setSelectedBuilding('');
 								else {
 									const b = buildings.find((x) => x.nom === val);
 									setSelectedBuilding(b ? b.id : '');
@@ -106,12 +108,12 @@ const AddEntityModal: React.FC<AddEntityModalProps> = ({ open, setOpen, label, i
 				)}
 
 				<Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2, gap: 1 }}>
-					<Button onClick={() => setOpen(false)}>Annuler</Button>
+					<Button onClick={() => setOpen(false)}>{t.common.cancel}</Button>
 					<Button
 						variant="contained"
 						onClick={async () => {
 							if (!newName.trim()) {
-								setError(`Le nom du ${label} est requis.`);
+								setError(t.addEntityModal.entityNameRequired(label));
 								return;
 							}
 							
@@ -134,10 +136,10 @@ const AddEntityModal: React.FC<AddEntityModalProps> = ({ open, setOpen, label, i
 											const errorMsg = Array.isArray(firstError) ? firstError[0] : firstError;
 											setError(errorMsg as string);
 										} else {
-											setError(`Erreur lors de l'ajout du ${label}.`);
+											setError(t.addEntityModal.entityAddError(label));
 										}
 									} else {
-										setError(`Erreur lors de l'ajout du ${label}.`);
+										setError(t.addEntityModal.entityAddError(label));
 									}
 									// Don't close modal on error
 									return;
@@ -175,15 +177,15 @@ const AddEntityModal: React.FC<AddEntityModalProps> = ({ open, setOpen, label, i
 										const errorMsg = Array.isArray(firstError) ? firstError[0] : firstError;
 										setError(errorMsg as string);
 									} else {
-										setError(`Erreur lors de l'ajout du ${label}.`);
+										setError(t.addEntityModal.entityAddError(label));
 									}
 								} else {
-									setError(`Erreur lors de l'ajout du ${label}.`);
+									setError(t.addEntityModal.entityAddError(label));
 								}
 							}
 						}}
 					>
-						Ajouter
+						{t.common.add}
 					</Button>
 				</Box>
 			</Box>

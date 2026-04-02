@@ -1,13 +1,17 @@
 import { redirect } from 'next/navigation';
-import { type Metadata } from 'next';
+import type { Metadata } from 'next';
 import { auth } from '@/auth';
 import { AUTH_LOGIN } from '@/utils/routes';
 import ReservationDashboardClient from '@/components/pages/reservations/reservation-dashboard';
+import { getServerTranslations } from '@/utils/getServerTranslations';
 
-export const metadata: Metadata = {
-	title: 'Tableau de bord',
-	description: "Vue d'ensemble des réservations",
-};
+export async function generateMetadata(): Promise<Metadata> {
+	const t = await getServerTranslations();
+	return {
+		title: t.pageMetadata.dashboardTitle,
+		description: t.pageMetadata.dashboardDescription,
+	};
+}
 
 const DashboardPage = async () => {
 	const session = await auth();

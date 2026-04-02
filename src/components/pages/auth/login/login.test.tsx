@@ -71,6 +71,8 @@ jest.mock('@/utils/helpers', () => ({
 }));
 
 jest.mock('@/utils/hooks', () => ({
+	// eslint-disable-next-line @typescript-eslint/no-require-imports
+	useLanguage: () => ({ language: 'fr', setLanguage: jest.fn(), t: require('@/translations').translations.fr }),
 	useAppDispatch: () => mockDispatch,
 }));
 
@@ -115,7 +117,7 @@ describe('LoginClient', () => {
 		});
 
 		const emailInput = screen.getByLabelText(/Adresse email/i) as HTMLInputElement;
-		const passwordInput = screen.getByLabelText(/Mot de passe/i) as HTMLInputElement;
+		const passwordInput = screen.getByLabelText(/Mot de passe/i, { selector: 'input' }) as HTMLInputElement;
 		const submitButton = screen.getAllByRole('button', { name: /Me connecter/i })[0];
 
 		await act(async () => {
@@ -145,7 +147,7 @@ describe('LoginClient', () => {
 		});
 
 		const emailInput = screen.getByLabelText(/Adresse email/i) as HTMLInputElement;
-		const passwordInput = screen.getByLabelText(/Mot de passe/i) as HTMLInputElement;
+		const passwordInput = screen.getByLabelText(/Mot de passe/i, { selector: 'input' }) as HTMLInputElement;
 		const submitButton = screen.getAllByRole('button', { name: /Me connecter/i })[0];
 
 		await act(async () => {

@@ -34,12 +34,13 @@ import type { DropDownType } from '@/types/accountTypes';
 import { BarElement, CategoryScale, Chart as ChartJS, Legend, LinearScale, Title, Tooltip } from 'chart.js';
 import { Bar } from 'react-chartjs-2';
 import type { SessionProps } from '@/types/_initTypes';
+import { useLanguage } from '@/utils/hooks';
 import Styles from '@/styles/dashboard/dashboard.module.sass';
 import NavigationBar from '@/components/layouts/navigationBar/navigationBar';
 import { Protected } from '@/components/layouts/protected/protected';
 import { useGetBalanceQuery, useGetReservationYearsQuery, useGetBuildingsQuery } from '@/store/services/reservation';
 import { useInitAccessToken } from '@/contexts/InitContext';
-import { APARTMENT_COLORS, MONTH_LABELS, MONTH_NAMES, CHART_OPTS } from '@/utils/rawData';
+import { APARTMENT_COLORS, CHART_OPTS } from '@/utils/rawData';
 import { formatNumberMA as fmt } from '@/utils/helpers';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
@@ -89,6 +90,7 @@ const KpiCard: React.FC<KpiProps> = ({ icon, label, value, sub, color }) => (
 );
 
 const GainsClient: React.FC<SessionProps> = ({ session }) => {
+	const { t } = useLanguage();
 	const token = useInitAccessToken(session);
 	const currentYear = new Date().getFullYear();
 	const [year, setYear] = useState(currentYear);
@@ -99,8 +101,8 @@ const GainsClient: React.FC<SessionProps> = ({ session }) => {
 	const { data: buildingsData } = useGetBuildingsQuery(undefined, { skip: !token });
 
 	const buildingItems: DropDownType[] = useMemo(
-		() => [{ code: 'Toutes', value: 'Toutes' }, ...(buildingsData ?? []).map((b) => ({ code: b.nom, value: b.nom }))],
-		[buildingsData],
+		() => [{ code: t.locaux.allResidences, value: t.locaux.allResidences }, ...(buildingsData ?? []).map((b) => ({ code: b.nom, value: b.nom }))],
+		[buildingsData, t],
 	);
 
 	const yearItems: DropDownType[] = useMemo(
@@ -136,9 +138,9 @@ const GainsClient: React.FC<SessionProps> = ({ session }) => {
 
 		return {
 			bestApt: bestAptNom ? { nom: bestAptNom, total: bestAptTotal } : null,
-			bestMonth: bestMonthTotal > 0 ? { name: MONTH_NAMES[bestMonthIdx], total: bestMonthTotal } : null,
+			bestMonth: bestMonthTotal > 0 ? { name: t.rawData.monthNames[bestMonthIdx], total: bestMonthTotal } : null,
 		};
-	}, [apartments, aptNoms]);
+	}, [apartments, aptNoms, t.rawData.monthNames]);
 
 	// Monthly totals for cards
 	const monthlyData = useMemo(() => {
@@ -168,7 +170,7 @@ const GainsClient: React.FC<SessionProps> = ({ session }) => {
 
 	// Stacked bar chart
 	const stackedChartData = {
-		labels: MONTH_LABELS,
+		labels: t.rawData.monthLabels,
 		datasets: aptNoms.map((nom, i) => ({
 			label: nom,
 			data: Array.from({ length: 12 }, (_, monthIdx) => apartments[nom].monthly[monthIdx + 1]?.total ?? 0),
@@ -179,24 +181,24 @@ const GainsClient: React.FC<SessionProps> = ({ session }) => {
 
 	return (
 		<Stack direction="column" spacing={2} className={Styles.flexRootStack} mt="48px">
-			<NavigationBar title="Gains & Revenus">
+			<NavigationBar title={t.reservations.gainsRevenues}>
 				<Protected permission="can_view">
 					<Box sx={{ px: { xs: 1, sm: 2, md: 3 }, pb: 4 }}>
 						<Stack direction="row" justifyContent="space-between" alignItems="center" py={2}>
 							<Typography variant="h5" fontWeight={600}>
-								Gains & Revenus {year}
+								{t.reservations.gainsRevenuesYear(year)}
 							</Typography>
 							<Stack direction="row" spacing={1}>
 							<Box sx={{ minWidth: 180 }}>
 								<CustomDropDownSelect
 									id="building-filter"
 									size="small"
-									label="Résidence"
+									label={t.common.residence}
 									items={buildingItems}
-									value={buildingId === '' ? 'Toutes' : ((buildingsData ?? []).find((b) => b.id === buildingId)?.nom ?? 'Toutes')}
+									value={buildingId === '' ? t.locaux.allResidences : ((buildingsData ?? []).find((b) => b.id === buildingId)?.nom ?? t.locaux.allResidences)}
 									onChange={(e) => {
 										const name = e.target.value;
-										if (!name || name === 'Toutes') setBuildingId('');
+										if (!name || name === t.locaux.allResidences) setBuildingId('');
 										else {
 											const b = (buildingsData ?? []).find((x) => x.nom === name);
 											setBuildingId(b ? b.id : '');
@@ -210,7 +212,7 @@ const GainsClient: React.FC<SessionProps> = ({ session }) => {
 								<CustomDropDownSelect
 									id="year-filter"
 									size="small"
-									label="Année"
+									label={t.common.year}
 									items={yearItems}
 									value={String(year)}
 									onChange={(e) => setYear(Number(e.target.value))}
@@ -237,20 +239,20 @@ const GainsClient: React.FC<SessionProps> = ({ session }) => {
 								>
 									<KpiCard
 										icon={<TrendingUpIcon fontSize="small" />}
-										label="Gain total"
+										label={t.reservations.totalGain}
 										value={`${fmt(totalYearRevenue)} MAD`}
 										color="#1976d2"
 									/>
 									<KpiCard
 										icon={<TrophyIcon fontSize="small" />}
-										label="Meilleur appartement"
+										label={t.reservations.bestApartment}
 										value={bestApt?.nom ?? '—'}
 										sub={bestApt ? `${fmt(bestApt.total)} MAD` : undefined}
 										color="#d4af6e"
 									/>
 									<KpiCard
 										icon={<CalendarIcon fontSize="small" />}
-										label="Meilleur mois"
+										label={t.reservations.bestMonth}
 										value={bestMonth?.name ?? '—'}
 										sub={bestMonth ? `${fmt(bestMonth.total)} MAD` : undefined}
 										color="#66bb6a"
@@ -260,11 +262,11 @@ const GainsClient: React.FC<SessionProps> = ({ session }) => {
 								{/* ── Stacked bar chart ─────────────────────── */}
 								<Card elevation={2}>
 									<CardHeader
-										title="Gains par appartement"
-										subheader="Vue empilée — contribution de chaque appartement par mois"
+										title={t.reservations.gainsByApartment}
+										subheader={t.reservations.gainsByApartmentSub}
 										action={
 											<MuiTooltip
-												title="Revenus mensuels empilés par appartement, permettant de visualiser la contribution de chaque unité"
+												title={t.reservations.gainsByApartmentTooltip}
 												arrow
 												placement="top"
 											>
@@ -300,7 +302,7 @@ const GainsClient: React.FC<SessionProps> = ({ session }) => {
 														📊
 													</Typography>
 													<Typography variant="body2" color="text.secondary">
-														Aucune donnée disponible pour {year}
+														{t.reservations.noDataForYear(year)}
 													</Typography>
 												</Box>
 											)}
@@ -323,7 +325,7 @@ const GainsClient: React.FC<SessionProps> = ({ session }) => {
 												<Card key={md.month} elevation={1}>
 													<CardContent>
 														<Typography variant="h6" fontWeight={600} gutterBottom>
-															{MONTH_NAMES[md.month - 1]}
+															{t.rawData.monthNames[md.month - 1]}
 														</Typography>
 														<Typography
 															variant="body2"
@@ -331,7 +333,7 @@ const GainsClient: React.FC<SessionProps> = ({ session }) => {
 															component="div"
 															sx={{ pb: 1.5, borderBottom: 1, borderColor: 'divider', mb: 1.5 }}
 														>
-															Total : {fmt(md.monthTotal)} MAD
+															{t.common.total} : {fmt(md.monthTotal)} MAD
 														</Typography>
 														{md.aptBreakdown.map((ab, idx) => {
 															const pct = maxAptGain > 0 ? Math.round((ab.total / maxAptGain) * 100) : 0;
@@ -386,11 +388,11 @@ const GainsClient: React.FC<SessionProps> = ({ session }) => {
 								{aptNoms.length > 0 && (
 									<Card elevation={2}>
 										<CardHeader
-											title="Détail mensuel par appartement"
-											subheader={`Revenus en MAD — ${year}`}
+											title={t.reservations.monthlyDetailByApartment}
+											subheader={t.reservations.monthlyDetailByApartmentSub(year)}
 											action={
 												<MuiTooltip
-													title="Tableau détaillé des revenus mensuels par appartement avec totaux"
+													title={t.reservations.monthlyDetailTooltip}
 													arrow
 													placement="top"
 												>
@@ -408,9 +410,9 @@ const GainsClient: React.FC<SessionProps> = ({ session }) => {
 															<TableCell
 																sx={{ fontWeight: 700, position: 'sticky', left: 0, bgcolor: 'grey.100', zIndex: 1 }}
 															>
-																Appartement
+																{t.reservations.apartment}
 															</TableCell>
-															{MONTH_LABELS.map((m) => (
+															{t.rawData.monthLabels.map((m) => (
 																<TableCell key={m} align="right" sx={{ fontWeight: 700 }}>
 																	{m}
 																</TableCell>
@@ -419,7 +421,7 @@ const GainsClient: React.FC<SessionProps> = ({ session }) => {
 																align="right"
 																sx={{ fontWeight: 700, borderLeft: '2px solid', borderColor: 'divider' }}
 															>
-																Total
+																{t.common.total}
 															</TableCell>
 														</TableRow>
 													</TableHead>
@@ -482,7 +484,7 @@ const GainsClient: React.FC<SessionProps> = ({ session }) => {
 																	zIndex: 1,
 																}}
 															>
-																TOTAL
+																{t.common.total}
 															</TableCell>
 															{Array.from({ length: 12 }, (_, mi) => {
 																const monthTotal = aptNoms.reduce(

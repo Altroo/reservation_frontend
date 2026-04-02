@@ -29,10 +29,9 @@ import PrimaryLoadingButton from '@/components/htmlElements/buttons/primaryLoadi
 import ApiProgress from '@/components/formikElements/apiLoading/apiProgress/apiProgress';
 import { textInputTheme } from '@/utils/themes';
 import { buildingSchema } from '@/utils/formValidationSchemas';
-import { BUILDING_FIELD_LABELS } from '@/utils/rawData';
 import { getLabelForKey, setFormikAutoErrors } from '@/utils/helpers';
 import { BUILDINGS_LIST } from '@/utils/routes';
-import { useToast } from '@/utils/hooks';
+import { useToast, useLanguage } from '@/utils/hooks';
 import { useCreateBuildingMutation, useUpdateBuildingMutation, useGetBuildingQuery } from '@/store/services/reservation';
 import { useInitAccessToken } from '@/contexts/InitContext';
 import Styles from '@/styles/dashboard/dashboard.module.sass';
@@ -47,6 +46,7 @@ type FormikContentProps = {
 
 const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 	const { onSuccess, onError } = useToast();
+	const { t } = useLanguage();
 	const isEditMode = id !== undefined;
 	const router = useRouter();
 	const topRef = useRef<HTMLDivElement | null>(null);
@@ -75,15 +75,15 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 			try {
 				if (isEditMode) {
 					await updateBuilding({ id: id!, data: fields }).unwrap();
-					onSuccess('Résidence mise à jour avec succès.');
+					onSuccess(t.buildings.residenceUpdatedSuccess);
 				} else {
 					await createBuilding(fields).unwrap();
-					onSuccess('Résidence ajoutée avec succès.');
+					onSuccess(t.buildings.residenceAddedSuccess);
 				}
 				router.push(BUILDINGS_LIST);
 			} catch (e) {
 				setFormikAutoErrors({ e, setFieldError });
-				onError(isEditMode ? 'Échec de la mise à jour de la résidence.' : "Échec de l'ajout de la résidence.");
+				onError(isEditMode ? t.buildings.residenceUpdateError : t.buildings.residenceAddError);
 			} finally {
 				setIsPending(false);
 			}
@@ -96,10 +96,10 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 
 	useEffect(() => {
 		if (formik.submitCount > 0 && hasValidationErrors) {
-			onError('Veuillez corriger les erreurs de validation avant de soumettre.');
+			onError(t.common.fixValidationErrors);
 			topRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
 		}
-	}, [formik.submitCount, hasValidationErrors, onError]);
+	}, [formik.submitCount, hasValidationErrors, onError, t.common.fixValidationErrors]);
 
 	const isLoading = isCreateLoading || isUpdateLoading || isPending;
 
@@ -112,20 +112,20 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 					onClick={() => router.push(BUILDINGS_LIST)}
 					sx={{ whiteSpace: 'nowrap' }}
 				>
-					Liste des résidences
+					{t.buildings.residencesList}
 				</Button>
 			</Stack>
 
 			{showValidationAlert && (
 				<Alert severity="error" icon={<WarningIcon />}>
 					<Typography variant="subtitle2" fontWeight={600}>
-						Erreurs de validation détectées:
+						{t.common.validationErrorsDetected}
 					</Typography>
 					<ul style={{ margin: '8px 0', paddingLeft: '20px' }}>
 						{validationEntries.map(([key, err]) => (
 							<li key={key}>
 								<Typography variant="body2">
-									<strong>{getLabelForKey(BUILDING_FIELD_LABELS, key)}</strong> : {err}
+									<strong>{getLabelForKey(t.rawData.fieldLabels.building, key)}</strong> : {err}
 								</Typography>
 							</li>
 						))}
@@ -142,7 +142,7 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 							<Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 2 }}>
 								<ApartmentIcon color="primary" />
 								<Typography variant="h6" fontWeight={700}>
-									Informations de la résidence
+									{t.buildings.residenceInfo}
 								</Typography>
 							</Stack>
 							<Divider sx={{ mb: 3 }} />
@@ -152,7 +152,7 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 									id="nom"
 									type="text"
 									size="small"
-									label="Nom *"
+									label={`${t.common.name} *`}
 									value={formik.values.nom}
 									onChange={formik.handleChange('nom')}
 									onBlur={formik.handleBlur('nom')}
@@ -167,7 +167,7 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 
 					<Box sx={{ display: 'flex', justifyContent: 'flex-end', pt: 2 }}>
 						<PrimaryLoadingButton
-							buttonText={isEditMode ? 'Mettre à jour' : 'Ajouter la résidence'}
+							buttonText={isEditMode ? t.common.update : t.common.add}
 							loading={isPending}
 							active={!isPending}
 							type="submit"
@@ -183,7 +183,8 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 
 const BuildingFormClient: React.FC<SessionProps & { id?: number }> = ({ session, id }) => {
 	const token = useInitAccessToken(session);
-	const title = id !== undefined ? 'Modifier la résidence' : 'Nouvelle résidence';
+	const { t } = useLanguage();
+	const title = id !== undefined ? t.buildings.editResidence : t.buildings.newResidence;
 
 	return (
 		<Stack direction="column" spacing={2} className={Styles.flexRootStack} mt="48px">

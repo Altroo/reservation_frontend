@@ -58,12 +58,11 @@ import PrimaryLoadingButton from '@/components/htmlElements/buttons/primaryLoadi
 import ApiProgress from '@/components/formikElements/apiLoading/apiProgress/apiProgress';
 import ApiAlert from '@/components/formikElements/apiLoading/apiAlert/apiAlert';
 import { reservationSchema } from '@/utils/formValidationSchemas';
-import { paymentSourceItemsList, RESERVATION_FIELD_LABELS } from '@/utils/rawData';
 import { getLabelForKey, setFormikAutoErrors, extractApiErrorMessage } from '@/utils/helpers';
 import { textInputTheme } from '@/utils/themes';
 import { RESERVATIONS_LIST, RESERVATIONS_VIEW } from '@/utils/routes';
 import { useRouter } from 'next/navigation';
-import { useToast } from '@/utils/hooks';
+import { useToast, useLanguage } from '@/utils/hooks';
 import {
 	useAddApartmentMutation,
 	useCreateReservationMutation,
@@ -87,6 +86,7 @@ type FormikContentProps = {
 
 const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 	const { onSuccess, onError } = useToast();
+	const { t } = useLanguage();
 	const isEditMode = id !== undefined;
 	const theme = useTheme();
 	const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
@@ -151,16 +151,16 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 			try {
 				if (isEditMode) {
 					await updateReservation({ id: id!, data: fields }).unwrap();
-					onSuccess('La réservation a été mise à jour avec succès.');
+					onSuccess(t.reservations.reservationUpdatedSuccess);
 					router.push(RESERVATIONS_VIEW(id!));
 				} else {
 					await createReservation(fields).unwrap();
-					onSuccess('La réservation a été ajoutée avec succès.');
+					onSuccess(t.reservations.reservationAddedSuccess);
 					router.push(RESERVATIONS_LIST);
 				}
 			} catch (e) {
 				setFormikAutoErrors({ e, setFieldError });
-				onError(isEditMode ? 'Échec de la mise à jour de la réservation.' : "Échec de l'ajout de la réservation.");
+				onError(isEditMode ? t.reservations.reservationUpdateError : t.reservations.reservationAddError);
 			} finally {
 				setIsPending(false);
 			}
@@ -203,10 +203,10 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 		setAptActionLoading(true);
 		try {
 			await updateApartment({ id: editAptId, data: { nom: editAptName.trim(), building: editAptBuilding === '' ? null : editAptBuilding } }).unwrap();
-			onSuccess("L'appartement a été modifié avec succès.");
+			onSuccess(t.reservations.apartmentEditedSuccess);
 			setEditAptId(null);
 		} catch (e) {
-			setEditAptError(extractApiErrorMessage(e, "Échec du renommage de l'appartement."));
+			setEditAptError(extractApiErrorMessage(e, t.reservations.apartmentEditError));
 		} finally {
 			setAptActionLoading(false);
 		}
@@ -222,13 +222,13 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 		setAptActionLoading(true);
 		try {
 			await deleteApartment({ id: deleteAptId }).unwrap();
-			onSuccess("L'appartement a été supprimé avec succès.");
+			onSuccess(t.reservations.apartmentDeletedSuccess);
 			if (formik.values.apartment === deleteAptId) {
 				await formik.setFieldValue('apartment', '');
 			}
 			setDeleteAptId(null);
 		} catch (e) {
-			onError(extractApiErrorMessage(e, "Impossible de supprimer cet appartement."));
+			onError(extractApiErrorMessage(e, t.reservations.apartmentDeleteError));
 			setDeleteAptId(null);
 		} finally {
 			setAptActionLoading(false);
@@ -236,8 +236,13 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 	};
 
 	const paymentSourceItems: DropDownType[] = useMemo(
-		() => paymentSourceItemsList.map((p) => ({ code: p.value, value: p.code })),
-		[],
+		() => [
+			{ code: 'Booking', value: 'Booking' },
+			{ code: 'Airbnb', value: 'Airbnb' },
+			{ code: t.rawData.paymentSources.cash, value: 'Cash' },
+			{ code: t.rawData.paymentSources.bankTransfer, value: 'Bank' },
+		],
+		[t],
 	);
 
 	const selectedPaymentSource = useMemo<DropDownType | null>(() => {
@@ -256,10 +261,10 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 
 	useEffect(() => {
 		if (formik.submitCount > 0 && hasValidationErrors) {
-			onError('Veuillez corriger les erreurs de validation avant de soumettre.');
+			onError(t.reservations.fixValidationErrors);
 			topRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
 		}
-	}, [formik.submitCount, hasValidationErrors, onError]);
+	}, [formik.submitCount, hasValidationErrors, onError, t.reservations.fixValidationErrors]);
 
 	const isLoading =
 		isCreateLoading || isUpdateLoading || isPending || (isEditMode && isDataLoading) || isApartmentsLoading;
@@ -281,20 +286,20 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 							fontSize: { xs: '0.85rem', sm: '0.9rem', md: '1rem' },
 						}}
 					>
-						Liste des réservations
+						{t.reservations.reservationsList}
 					</Button>
 				</Stack>
 
 				{showValidationAlert && (
 					<Alert severity="error" icon={<WarningIcon />}>
 						<Typography variant="subtitle2" fontWeight={600}>
-							Erreurs de validation détectées:
+							{t.reservations.validationErrorsDetected}
 						</Typography>
 						<ul style={{ margin: '8px 0', paddingLeft: '20px' }}>
 							{validationEntries.map(([key, err]) => (
 								<li key={key}>
 									<Typography variant="body2">
-										<strong>{getLabelForKey(RESERVATION_FIELD_LABELS, key)}</strong> : {err}
+										<strong>{getLabelForKey(t.rawData.fieldLabels.reservation, key)}</strong> : {err}
 									</Typography>
 								</li>
 							))}
@@ -317,7 +322,7 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 									<Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 2 }}>
 										<HotelIcon color="primary" />
 										<Typography variant="h6" fontWeight={700}>
-											Détails de la réservation
+											{t.reservations.reservationDetailsSection}
 										</Typography>
 									</Stack>
 									<Divider sx={{ mb: 3 }} />
@@ -325,8 +330,8 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 										<CustomAutoCompleteSelect
 											id="apartment"
 											size="small"
-											noOptionsText="Aucun appartement trouvé"
-											label="Appartement *"
+											noOptionsText={t.reservations.noApartmentFound}
+											label={t.reservations.apartmentRequired}
 											items={apartmentItems}
 											theme={inputTheme}
 											value={selectedApartment}
@@ -346,14 +351,14 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 															<IconButton
 																size="small"
 																onClick={() => handleEditAptOpen(Number(selectedApartment.value), selectedApartment.code)}
-																title="Renommer"
+																title={t.common.rename}
 															>
 																<EditIcon fontSize="small" />
 															</IconButton>
 															<IconButton
 																size="small"
 																onClick={() => handleDeleteAptOpen(Number(selectedApartment.value), selectedApartment.code)}
-																title="Supprimer"
+																title={t.common.delete}
 																color="error"
 															>
 																<DeleteIcon fontSize="small" />
@@ -365,7 +370,7 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 														variant="outlined"
 														onClick={() => setOpenApartmentModal(true)}
 													>
-														Ajouter
+													{t.common.add}
 													</Button>
 												</Stack>
 											}
@@ -375,7 +380,7 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 											id="guest_name"
 											type="text"
 											size="small"
-											label="Nom du client *"
+											label={t.reservations.guestNameRequired}
 											value={formik.values.guest_name}
 											onChange={formik.handleChange('guest_name')}
 											onBlur={formik.handleBlur('guest_name')}
@@ -394,14 +399,14 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 									<Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 2 }}>
 										<CalendarMonthIcon color="primary" />
 										<Typography variant="h6" fontWeight={700}>
-											Dates du séjour
+											{t.reservations.stayDates}
 										</Typography>
 									</Stack>
 									<Divider sx={{ mb: 3 }} />
 									<Stack spacing={2.5}>
 										<Stack direction={isMobile ? 'column' : 'row'} spacing={2}>
 											<DatePicker
-												label="Date d'arrivée *"
+												label={t.reservations.checkInRequired}
 												value={formik.values.check_in ? parseISO(formik.values.check_in) : null}
 												onChange={(date) => formik.setFieldValue('check_in', date ? format(date, 'yyyy-MM-dd') : '')}
 												maxDate={formik.values.check_out ? parseISO(formik.values.check_out) : undefined}
@@ -425,7 +430,7 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 												}}
 											/>
 											<DatePicker
-												label="Date de départ *"
+												label={t.reservations.checkOutRequired}
 												value={formik.values.check_out ? parseISO(formik.values.check_out) : null}
 												onChange={(date) => formik.setFieldValue('check_out', date ? format(date, 'yyyy-MM-dd') : '')}
 												minDate={formik.values.check_in ? parseISO(formik.values.check_in) : undefined}
@@ -459,7 +464,7 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 									<Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 2 }}>
 										<CreditCardIcon color="primary" />
 										<Typography variant="h6" fontWeight={700}>
-											Paiement
+											{t.common.payment}
 										</Typography>
 									</Stack>
 									<Divider sx={{ mb: 3 }} />
@@ -470,7 +475,7 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 												id="amount"
 												type="text"
 												size="small"
-												label="Montant total (MAD) *"
+												label={t.reservations.totalAmountMAD}
 												value={formik.values.amount}
 												onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
 													if (/^(0|[1-9]\d*)?([.,]\d*)?$/.test(e.target.value))
@@ -487,8 +492,8 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 											<CustomAutoCompleteSelect
 												id="payment_source"
 												size="small"
-												noOptionsText="Aucune source trouvée"
-												label="Source de paiement *"
+												noOptionsText={t.reservations.noSourceFound}
+												label={t.reservations.paymentSourceRequired}
 												items={paymentSourceItems}
 												theme={inputTheme}
 												value={selectedPaymentSource}
@@ -513,7 +518,7 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 									<Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 2 }}>
 										<NotesIcon color="primary" />
 										<Typography variant="h6" fontWeight={700}>
-											Notes
+											{t.reservations.notes}
 										</Typography>
 									</Stack>
 									<Divider sx={{ mb: 3 }} />
@@ -523,7 +528,7 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 											id="notes"
 											type="text"
 											size="small"
-											label="Notes (optionnel)"
+											label={t.reservations.notesOptional}
 											value={formik.values.notes}
 											onChange={formik.handleChange('notes')}
 											onBlur={formik.handleBlur('notes')}
@@ -540,7 +545,7 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 							{/* Submit */}
 							<Box sx={{ display: 'flex', justifyContent: 'flex-end', pt: 2 }}>
 								<PrimaryLoadingButton
-									buttonText={isEditMode ? 'Mettre à jour' : 'Ajouter la réservation'}
+									buttonText={isEditMode ? t.common.update : t.reservations.addReservation}
 									loading={isPending}
 									active={!isPending}
 									type="submit"
@@ -548,7 +553,7 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 									onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
 										if (showValidationAlert) {
 											e.preventDefault();
-											onError('Veuillez corriger les erreurs de validation avant de soumettre.');
+											onError(t.reservations.fixValidationErrors);
 											topRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
 										}
 									}}
@@ -563,7 +568,7 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 			<AddEntityModal
 				open={openApartmentModal}
 				setOpen={setOpenApartmentModal}
-				label="appartement"
+				label={t.reservations.apartment}
 				icon={<HotelIcon fontSize="small" />}
 				inputTheme={inputTheme}
 				mutationFn={(args) => addApartment(args)}
@@ -575,12 +580,12 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 
 			{/* Edit apartment dialog */}
 			<Dialog open={editAptId !== null} onClose={() => setEditAptId(null)}>
-				<DialogTitle>Modifier l&apos;appartement</DialogTitle>
+				<DialogTitle>{t.reservations.editApartment}</DialogTitle>
 				<DialogContent>
 					<TextField
 						autoFocus
 						margin="dense"
-						label="Nouveau nom"
+						label={t.reservations.newApartmentName}
 						fullWidth
 						size="small"
 						value={editAptName}
@@ -593,14 +598,14 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 					/>
 					{buildings && buildings.length > 0 && (
 						<FormControl fullWidth size="small" sx={{ mt: 2 }}>
-							<InputLabel>Résidence</InputLabel>
+							<InputLabel>{t.reservations.residence}</InputLabel>
 							<Select
 								value={editAptBuilding}
-								label="Résidence"
+								label={t.reservations.residence}
 								onChange={(e) => setEditAptBuilding(e.target.value as number | '')}
 							>
 								<MenuItem value="">
-									<em>Aucune</em>
+									<em>{t.reservations.noResidence}</em>
 								</MenuItem>
 								{buildings.map((b) => (
 									<MenuItem key={b.id} value={b.id}>{b.nom}</MenuItem>
@@ -610,9 +615,9 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 					)}
 				</DialogContent>
 				<DialogActions>
-					<Button onClick={() => setEditAptId(null)}>Annuler</Button>
+					<Button onClick={() => setEditAptId(null)}>{t.common.cancel}</Button>
 					<Button onClick={handleEditAptSubmit} variant="contained" disabled={aptActionLoading || !editAptName.trim()}>
-						Enregistrer
+						{t.settings.save}
 					</Button>
 				</DialogActions>
 			</Dialog>
@@ -620,11 +625,11 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 			{/* Delete apartment confirmation dialog */}
 			{deleteAptId !== null && (
 				<ActionModals
-					title="Supprimer l'appartement"
-					body={`Êtes-vous sûr de vouloir supprimer l'appartement "${deleteAptName}" ? Cette action est irréversible.`}
+					title={t.reservations.deleteApartment}
+					body={t.reservations.deleteApartmentConfirm(deleteAptName)}
 					actions={[
-						{ text: 'Annuler', active: false, onClick: () => setDeleteAptId(null), icon: <CloseIcon />, color: '#6B6B6B' },
-						{ text: 'Supprimer', active: true, onClick: handleDeleteAptConfirm, icon: <DeleteIcon />, color: '#D32F2F', disabled: aptActionLoading },
+						{ text: t.common.cancel, active: false, onClick: () => setDeleteAptId(null), icon: <CloseIcon />, color: '#6B6B6B' },
+						{ text: t.common.delete, active: true, onClick: handleDeleteAptConfirm, icon: <DeleteIcon />, color: '#D32F2F', disabled: aptActionLoading },
 					]}
 					onClose={() => setDeleteAptId(null)}
 				/>
@@ -635,7 +640,8 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 
 const ReservationFormClient: React.FC<SessionProps & { id?: number }> = ({ session, id }) => {
 	const token = useInitAccessToken(session);
-	const title = id !== undefined ? 'Modifier la réservation' : 'Nouvelle réservation';
+	const { t } = useLanguage();
+	const title = id !== undefined ? t.reservations.editReservation : t.reservations.newReservation;
 
 	return (
 		<Stack direction="column" spacing={2} className={Styles.flexRootStack} mt="48px">

@@ -1,7 +1,10 @@
 import { Box, Paper, Typography } from '@mui/material';
 import { Lock as LockIcon } from '@mui/icons-material';
+import { useLanguage } from '@/utils/hooks';
 
 const NoPermission = () => {
+	const { t } = useLanguage();
+	
 	return (
 		<Box
 			sx={{
@@ -43,13 +46,12 @@ const NoPermission = () => {
 
 				{/* Title */}
 				<Typography variant="h5" fontWeight={600} gutterBottom color="text.primary">
-					Accès Refusé
+					{t.errors.accessDenied}
 				</Typography>
 
 				{/* Description */}
 				<Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
-					Vous n&#39;avez pas la permission d&#39;accéder à cette page. Veuillez contacter un administrateur si vous
-					pensez qu&#39;il s&#39;agit d&#39;une erreur.
+					{t.errors.accessDeniedText}
 				</Typography>
 			</Paper>
 		</Box>

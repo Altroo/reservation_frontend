@@ -23,7 +23,7 @@ describe('dateRangeFilterOperator', () => {
 		it('should return operator with correct properties', () => {
 			const operators = createDateRangeFilterOperator();
 			const operator = operators[0];
-			expect(operator.label).toBe('entre');
+			expect(operator.label).toBe('between');
 			expect(operator.value).toBe('between');
 			expect(operator.getApplyFilterFn).toBeDefined();
 			expect(operator.InputComponent).toBeDefined();
@@ -32,7 +32,7 @@ describe('dateRangeFilterOperator', () => {
 		it('should have correct label and value for between operator', () => {
 			const operators = createDateRangeFilterOperator();
 			const operator = operators[0];
-			expect(operator.label).toBe('entre');
+			expect(operator.label).toBe('between');
 			expect(operator.value).toBe('between');
 		});
 

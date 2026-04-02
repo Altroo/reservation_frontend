@@ -5,9 +5,11 @@ import { Box, Typography, Button, Paper } from '@mui/material';
 import { SentimentDissatisfied as SadIcon, Home as HomeIcon, ArrowBack as ArrowBackIcon } from '@mui/icons-material';
 import { useRouter } from 'next/navigation';
 import { DASHBOARD } from '@/utils/routes';
+import { useLanguage } from '@/utils/hooks';
 
 const NotFound = () => {
 	const router = useRouter();
+	const { t } = useLanguage();
 
 	return (
 		<Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', p: 3 }}>
@@ -17,17 +19,17 @@ const NotFound = () => {
 					404
 				</Typography>
 				<Typography variant="h6" gutterBottom>
-					Page introuvable
+					{t.errors.pageNotFound}
 				</Typography>
 				<Typography variant="body1" color="text.secondary" sx={{ mb: 4 }}>
-					La page que vous cherchez n&apos;existe pas ou a été déplacée.
+					{t.errors.pageNotFoundText}
 				</Typography>
 				<Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', flexWrap: 'wrap' }}>
 					<Button variant="contained" startIcon={<HomeIcon />} onClick={() => router.push(DASHBOARD)}>
-						Tableau de bord
+						{t.common.dashboard}
 					</Button>
 					<Button variant="outlined" startIcon={<ArrowBackIcon />} onClick={() => router.back()}>
-						Retour
+						{t.common.back}
 					</Button>
 				</Box>
 			</Paper>

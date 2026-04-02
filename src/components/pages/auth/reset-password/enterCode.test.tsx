@@ -34,6 +34,8 @@ jest.mock('@/utils/clientHelpers', () => ({
 
 jest.mock('@/utils/hooks', () => ({
 	useToast: () => ({ onSuccess: mockOnSuccess, onError: mockOnError }),
+	// eslint-disable-next-line @typescript-eslint/no-require-imports
+	useLanguage: () => ({ language: 'fr', setLanguage: jest.fn(), t: require('@/translations').translations.fr }),
 }));
 
 jest.mock('@/store/services/account', () => {
@@ -239,7 +241,7 @@ describe('EnterCodeClient', () => {
 
 		await waitFor(() => {
 			expect(mockSendCodeTrigger).toHaveBeenCalled();
-			expect(mockOnError).toHaveBeenCalledWith('Échec de l\u2019envoi du code.');
+			expect(mockOnError).toHaveBeenCalledWith("Échec de l\u2019envoi du code.");
 			expect(mockSetFormikAutoErrors).toHaveBeenCalled();
 		});
 	});

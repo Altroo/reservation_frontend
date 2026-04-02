@@ -12,7 +12,7 @@ import { postApi } from '@/utils/apiHelpers';
 import { AUTH_RESET_PASSWORD, DASHBOARD } from '@/utils/routes';
 import { signIn, useSession } from 'next-auth/react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { useAppDispatch } from '@/utils/hooks';
+import { useAppDispatch, useLanguage } from '@/utils/hooks';
 import AuthLayout from '@/components/layouts/auth/authLayout';
 import { useFormik } from 'formik';
 import { loginSchema } from '@/utils/formValidationSchemas';
@@ -38,9 +38,10 @@ const LoginPageContent = () => {
 	const searchParams = useSearchParams();
 	const error = searchParams.get('error') as string;
 	const [isPending, setIsPending] = useState(false);
+	const { t } = useLanguage();
 
 	// Derive error state from URL param instead of storing in state
-	const errorState = error === 'AccessDenied' ? 'Service non disponible.' : error;
+	const errorState = error === 'AccessDenied' ? t.auth.serviceUnavailable : error;
 
 	const formik = useFormik({
 		initialValues: {
@@ -77,7 +78,7 @@ const LoginPageContent = () => {
 	return (
 		<Stack direction="column" spacing={4} className={Styles.contentWrapper}>
 			<Stack direction="column" justifyContent="flex-start" alignItems="flex-start" width="100%">
-				<h1 className={Styles.content}>Connexion</h1>
+				<h1 className={Styles.content}>{t.auth.login}</h1>
 			</Stack>
 			<Stack direction="column" spacing={2} className={Styles.mobileWidth}>
 				{errorState && <span className={Styles.errorMessage}>{errorState}</span>}
@@ -96,8 +97,8 @@ const LoginPageContent = () => {
 						fullWidth={false}
 						size="medium"
 						type="email"
-						label="Adresse email"
-						placeholder="Adresse email"
+						label={t.auth.emailAddress}
+						placeholder={t.auth.emailAddress}
 						theme={inputTheme}
 						startIcon={<EmailIcon fontSize="small" />}
 						required
@@ -113,21 +114,21 @@ const LoginPageContent = () => {
 						error={formik.touched.password && Boolean(formik.errors.password)}
 						fullWidth={false}
 						size="medium"
-						label="Mot de passe"
-						placeholder="Mot de passe"
+						label={t.auth.password}
+						placeholder={t.auth.password}
 						theme={inputTheme}
 						startIcon={<LockIcon fontSize="small" />}
 					/>
 					{formik.errors.globalError && <span className={Styles.errorMessage}>{formik.errors.globalError}</span>}
 					<TextButton
-						buttonText="Mot de passe oublié ?"
+						buttonText={t.auth.forgotPassword}
 						startIcon={<LockResetIcon />}
 						onClick={() => {
 							router.push(AUTH_RESET_PASSWORD);
 						}}
 					/>
 					<PrimaryLoadingButton
-						buttonText="Me connecter"
+						buttonText={t.auth.loginButton}
 						active={!isPending}
 						cssClass={Styles.emailRegisterButton}
 						startIcon={<LoginIcon fontSize="small" />}
@@ -144,6 +145,7 @@ const LoginClient: React.FC = () => {
 	const { data: session, status } = useSession();
 	const dispatch = useAppDispatch();
 	const router = useRouter();
+	const { t } = useLanguage();
 
 	// Use ref instead of state to track session update
 	const sessionUpdatedRef = useRef(false);
@@ -179,7 +181,7 @@ const LoginClient: React.FC = () => {
 				<div style={{ display: 'flex', width: '100%', height: '100%' }}>
 					<main className={Styles.main}>
 						<Stack direction="row" alignItems="center" justifyContent="center">
-							<Image src={Logo} alt="E.B.H Réservation" width="0" height="0" sizes="100vw" className={Styles.logo} />
+							<Image src={Logo} alt={t.common.appName} width="0" height="0" sizes="100vw" className={Styles.logo} />
 						</Stack>
 						<LoginPageContent />
 					</main>

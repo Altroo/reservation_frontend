@@ -24,6 +24,8 @@ jest.mock('@/contexts/InitContext', () => ({
 const mockOnSuccess = jest.fn();
 const mockOnError = jest.fn();
 jest.mock('@/utils/hooks', () => ({
+	// eslint-disable-next-line @typescript-eslint/no-require-imports
+	useLanguage: () => ({ language: 'fr', setLanguage: jest.fn(), t: require('@/translations').translations.fr }),
 	useToast: () => ({ onSuccess: mockOnSuccess, onError: mockOnError }),
 }));
 

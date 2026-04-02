@@ -1,13 +1,17 @@
 import { redirect } from 'next/navigation';
-import { type Metadata } from 'next';
+import type { Metadata } from 'next';
 import { auth } from '@/auth';
 import { AUTH_LOGIN, LOCAUX_LIST } from '@/utils/routes';
 import LocalViewClient from '@/components/pages/locaux/local-view';
+import { getServerTranslations } from '@/utils/getServerTranslations';
 
-export const metadata: Metadata = {
-	title: 'Détail du local',
-	description: 'Détail du local',
-};
+export async function generateMetadata(): Promise<Metadata> {
+	const t = await getServerTranslations();
+	return {
+		title: t.pageMetadata.locauxDetailTitle,
+		description: t.pageMetadata.locauxDetailDescription,
+	};
+}
 
 interface Props {
 	params: Promise<{ id: string }>;

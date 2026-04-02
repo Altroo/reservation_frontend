@@ -1,13 +1,17 @@
 import { redirect } from 'next/navigation';
-import { type Metadata } from 'next';
+import type { Metadata } from 'next';
 import { auth } from '@/auth';
 import { AUTH_LOGIN, COSTS_LIST } from '@/utils/routes';
 import CostViewClient from '@/components/pages/costs/cost-view';
+import { getServerTranslations } from '@/utils/getServerTranslations';
 
-export const metadata: Metadata = {
-	title: 'Détail du coût',
-	description: 'Détail du coût',
-};
+export async function generateMetadata(): Promise<Metadata> {
+	const t = await getServerTranslations();
+	return {
+		title: t.pageMetadata.costsDetailTitle,
+		description: t.pageMetadata.costsDetailDescription,
+	};
+}
 
 interface Props {
 	params: Promise<{ id: string }>;

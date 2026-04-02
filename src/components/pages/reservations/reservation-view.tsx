@@ -38,7 +38,7 @@ import ApiAlert from '@/components/formikElements/apiLoading/apiAlert/apiAlert';
 import ActionModals from '@/components/htmlElements/modals/actionModal/actionModals';
 import { Protected } from '@/components/layouts/protected/protected';
 import { extractApiErrorMessage, formatDate } from '@/utils/helpers';
-import { useToast } from '@/utils/hooks';
+import { useToast, useLanguage } from '@/utils/hooks';
 import { PAYMENT_SOURCE_CHIP_COLORS } from '@/utils/rawData';
 
 interface InfoRowProps {
@@ -110,15 +110,16 @@ const ReservationViewClient: React.FC<Props> = ({ session, id }) => {
 
 	const [deleteRecord] = useDeleteReservationMutation();
 	const { onSuccess, onError } = useToast();
+	const { t } = useLanguage();
 	const [showDeleteModal, setShowDeleteModal] = useState(false);
 
 	const handleDelete = async () => {
 		try {
 			await deleteRecord({ id }).unwrap();
-			onSuccess('Réservation supprimée avec succès');
+			onSuccess(t.reservations.reservationDeletedSuccess);
 			router.push(RESERVATIONS_LIST);
 		} catch (err) {
-			onError(extractApiErrorMessage(err, 'Erreur lors de la suppression de la réservation'));
+			onError(extractApiErrorMessage(err, t.reservations.reservationDeleteError));
 		} finally {
 			setShowDeleteModal(false);
 		}
@@ -126,14 +127,14 @@ const ReservationViewClient: React.FC<Props> = ({ session, id }) => {
 
 	const deleteModalActions = [
 		{
-			text: 'Annuler',
+			text: t.common.cancel,
 			active: false,
 			onClick: () => setShowDeleteModal(false),
 			icon: <ArrowBackIcon />,
 			color: '#6B6B6B',
 		},
 		{
-			text: 'Supprimer',
+			text: t.common.delete,
 			active: true,
 			onClick: handleDelete,
 			icon: <DeleteIcon />,
@@ -143,7 +144,7 @@ const ReservationViewClient: React.FC<Props> = ({ session, id }) => {
 
 	return (
 		<Stack direction="column" spacing={2} className={Styles.flexRootStack} mt="32px">
-			<NavigationBar title="Détails de la réservation">
+			<NavigationBar title={t.reservations.reservationDetails}>
 				<Protected permission="can_view">
 					<Stack spacing={3} sx={{ p: { xs: 2, md: 3 }, mt: 2 }}>
 						<Stack
@@ -159,7 +160,7 @@ const ReservationViewClient: React.FC<Props> = ({ session, id }) => {
 								onClick={() => router.push(RESERVATIONS_LIST)}
 								sx={{ width: isMobile ? '100%' : 'auto' }}
 							>
-								Liste des réservations
+								{t.reservations.reservationsList}
 							</Button>
 							{!isLoading && !error && (
 								<Stack direction="row" gap={1} flexWrap="wrap">
@@ -169,7 +170,7 @@ const ReservationViewClient: React.FC<Props> = ({ session, id }) => {
 										startIcon={<EditIcon />}
 										onClick={() => router.push(RESERVATIONS_EDIT(id))}
 									>
-										Modifier
+										{t.common.edit}
 									</Button>
 									<Button
 										variant="outlined"
@@ -178,7 +179,7 @@ const ReservationViewClient: React.FC<Props> = ({ session, id }) => {
 										startIcon={<DeleteIcon />}
 										onClick={() => setShowDeleteModal(true)}
 									>
-										Supprimer
+										{t.common.delete}
 									</Button>
 								</Stack>
 							)}
@@ -190,7 +191,7 @@ const ReservationViewClient: React.FC<Props> = ({ session, id }) => {
 						) : (axiosError?.status as number) > 400 ? (
 							<ApiAlert errorDetails={axiosError?.data as Record<string, unknown>} />
 						) : !reservation ? (
-							<Alert severity="warning">Réservation introuvable</Alert>
+							<Alert severity="warning">{t.reservations.reservationNotFound}</Alert>
 						) : (
 							<Stack spacing={3}>
 								{/* Header card */}
@@ -203,7 +204,7 @@ const ReservationViewClient: React.FC<Props> = ({ session, id }) => {
 										>
 											<Stack spacing={1} sx={{ flex: 1 }}>
 												<Typography variant="h5" fontWeight={700} fontSize={isMobile ? '20px' : '24px'}>
-													Réservation #{reservation.id}
+													{t.reservations.reservationNumber(reservation.id)}
 												</Typography>
 												<Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap">
 													{reservation.apartment_building_nom && (
@@ -238,35 +239,35 @@ const ReservationViewClient: React.FC<Props> = ({ session, id }) => {
 										<Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 2 }}>
 											<PersonIcon color="primary" />
 											<Typography variant="h6" fontWeight={700}>
-												Informations du séjour
+												{t.reservations.stayInfo}
 											</Typography>
 										</Stack>
 										<Divider sx={{ mb: { xs: 1.5, md: 2 } }} />
 										<Stack spacing={0}>
-											<InfoRow icon={<PersonIcon />} label="Client" value={reservation.guest_name} />
+											<InfoRow icon={<PersonIcon />} label={t.reservations.client} value={reservation.guest_name} />
 											<Divider />
 											<InfoRow
 												icon={<ApartmentIcon />}
-												label="Résidence"
+												label={t.reservations.residence}
 												value={reservation.apartment_building_nom ? <Chip label={reservation.apartment_building_nom} size="small" color="primary" variant="outlined" /> : '—'}
 											/>
 											<Divider />
 											<InfoRow
 												icon={<HotelIcon />}
-												label="Appartement"
+												label={t.reservations.apartment}
 												value={<Chip label={reservation.apartment_nom} size="small" variant="outlined" />}
 											/>
 											<Divider />
-											<InfoRow icon={<CalendarIcon />} label="Arrivée" value={formatDate(reservation.check_in)} />
+											<InfoRow icon={<CalendarIcon />} label={t.reservations.arrival} value={formatDate(reservation.check_in)} />
 											<Divider />
-											<InfoRow icon={<CalendarIcon />} label="Départ" value={formatDate(reservation.check_out)} />
+											<InfoRow icon={<CalendarIcon />} label={t.reservations.departure} value={formatDate(reservation.check_out)} />
 											<Divider />
 											<InfoRow
 												icon={<CalendarIcon />}
-												label="Durée"
+												label={t.reservations.duration}
 												value={
 													<Chip
-														label={`${reservation.nights} nuit${(reservation.nights ?? 0) > 1 ? 's' : ''}`}
+														label={t.reservations.nightCount(reservation.nights ?? 0)}
 														size="small"
 														color="info"
 														variant="outlined"
@@ -283,14 +284,14 @@ const ReservationViewClient: React.FC<Props> = ({ session, id }) => {
 										<Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 2 }}>
 											<CreditCardIcon color="primary" />
 											<Typography variant="h6" fontWeight={700}>
-												Paiement
+												{t.common.payment}
 											</Typography>
 										</Stack>
 										<Divider sx={{ mb: { xs: 1.5, md: 2 } }} />
 										<Stack spacing={0}>
 											<InfoRow
 												icon={<MoneyIcon />}
-												label="Montant"
+												label={t.reservations.amountLabel}
 												value={
 													<Typography fontWeight={600} color="primary">
 														{Number(reservation.amount).toLocaleString('fr-MA')} MAD
@@ -300,7 +301,7 @@ const ReservationViewClient: React.FC<Props> = ({ session, id }) => {
 											<Divider />
 											<InfoRow
 												icon={<CreditCardIcon />}
-												label="Source de paiement"
+												label={t.reservations.paymentSourceLabel}
 												value={
 													<Chip
 														label={reservation.payment_source}
@@ -320,7 +321,7 @@ const ReservationViewClient: React.FC<Props> = ({ session, id }) => {
 											<Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 2 }}>
 												<NotesIcon color="primary" />
 												<Typography variant="h6" fontWeight={700}>
-													Notes
+													{t.reservations.notes}
 												</Typography>
 											</Stack>
 											<Divider sx={{ mb: { xs: 1.5, md: 2 } }} />
@@ -338,8 +339,8 @@ const ReservationViewClient: React.FC<Props> = ({ session, id }) => {
 
 			{showDeleteModal && (
 				<ActionModals
-					title="Supprimer cette réservation ?"
-					body="Êtes-vous sûr de vouloir supprimer cette réservation ? Cette action est irréversible."
+					title={t.reservations.deleteReservation}
+					body={t.reservations.deleteReservationConfirm}
 					actions={deleteModalActions}
 					titleIcon={<DeleteIcon />}
 					titleIconColor="#D32F2F"

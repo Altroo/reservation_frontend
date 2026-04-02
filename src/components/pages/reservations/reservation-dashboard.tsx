@@ -41,9 +41,10 @@ import { useGetDashboardStatsQuery, useGetReservationYearsQuery, useGetBuildings
 import { useInitAccessToken } from '@/contexts/InitContext';
 import NavigationBar from '@/components/layouts/navigationBar/navigationBar';
 import { Protected } from '@/components/layouts/protected/protected';
+import { useLanguage } from '@/utils/hooks';
 import Styles from '@/styles/dashboard/dashboard.module.sass';
 import type { SessionProps } from '@/types/_initTypes';
-import { MONTH_LABELS, CHART_COLORS, SOURCE_COLORS, APARTMENT_COLORS, CHART_OPTS } from '@/utils/rawData';
+import { CHART_COLORS, SOURCE_COLORS, APARTMENT_COLORS, CHART_OPTS } from '@/utils/rawData';
 import { formatNumberMA as fmt } from '@/utils/helpers';
 import CustomDropDownSelect from '@/components/formikElements/customDropDownSelect/customDropDownSelect';
 import { customDropdownTheme } from '@/utils/themes';
@@ -151,7 +152,9 @@ const ChartCard: React.FC<ChartCardProps> = ({ title, subheader, infoTooltip, ch
 	</Card>
 );
 
-const EmptyChart: React.FC<{ message?: string }> = ({ message }) => (
+const EmptyChart: React.FC<{ message?: string }> = ({ message }) => {
+	const { t } = useLanguage();
+	return (
 	<Box
 		display="flex"
 		flexDirection="column"
@@ -164,12 +167,14 @@ const EmptyChart: React.FC<{ message?: string }> = ({ message }) => (
 			📊
 		</Typography>
 		<Typography variant="body2" color="text.secondary" textAlign="center">
-			{message ?? 'Aucune donnée disponible'}
+			{message ?? t.analytics.noDataAvailable}
 		</Typography>
 	</Box>
 );
+};
 
 const ReservationDashboardClient: React.FC<SessionProps> = ({ session }) => {
+	const { t } = useLanguage();
 	const token = useInitAccessToken(session);
 	const currentYear = new Date().getFullYear();
 	const [year, setYear] = useState<number>(() => new Date().getFullYear());
@@ -183,8 +188,8 @@ const ReservationDashboardClient: React.FC<SessionProps> = ({ session }) => {
 	const { data: buildingsData } = useGetBuildingsQuery(undefined, { skip: !token });
 
 	const buildingItems: DropDownType[] = useMemo(
-		() => [{ code: 'Toutes', value: 'Toutes' }, ...(buildingsData ?? []).map((b) => ({ code: b.nom, value: b.nom }))],
-		[buildingsData],
+		() => [{ code: t.locaux.allResidences, value: t.locaux.allResidences }, ...(buildingsData ?? []).map((b) => ({ code: b.nom, value: b.nom }))],
+		[buildingsData, t],
 	);
 
 	const yearItems: DropDownType[] = useMemo(
@@ -211,15 +216,15 @@ const ReservationDashboardClient: React.FC<SessionProps> = ({ session }) => {
 		? monthlyRevenue.reduce((bIdx, m, i, arr) => (m.total > arr[bIdx].total ? i : bIdx), 0)
 		: -1;
 	const bestMonthHasRevenue = bestMonthIdx >= 0 && monthlyRevenue[bestMonthIdx].total > 0;
-	const bestMonthName = bestMonthHasRevenue ? MONTH_LABELS[bestMonthIdx] : '—';
+	const bestMonthName = bestMonthHasRevenue ? t.rawData.monthLabels[bestMonthIdx] : '—';
 	const bestMonthRevenue = bestMonthHasRevenue ? monthlyRevenue[bestMonthIdx].total : 0;
 
 	// Monthly revenue bar chart
 	const monthlyChartData = {
-		labels: MONTH_LABELS,
+		labels: t.rawData.monthLabels,
 		datasets: [
 			{
-				label: 'Revenus (MAD)',
+				label: t.analytics.revenueChartLabel,
 				data: monthlyRevenue.map((m) => m.total),
 				backgroundColor: CHART_COLORS.primaryLight,
 				borderColor: CHART_COLORS.primary,
@@ -246,7 +251,7 @@ const ReservationDashboardClient: React.FC<SessionProps> = ({ session }) => {
 		labels: byApartment.map((a) => a.nom),
 		datasets: [
 			{
-				label: 'Revenus (MAD)',
+				label: t.analytics.revenueChartLabel,
 				data: byApartment.map((a) => a.total),
 				backgroundColor: byApartment.map((_, i) => APARTMENT_COLORS[i % APARTMENT_COLORS.length]),
 				borderRadius: 4,
@@ -256,7 +261,7 @@ const ReservationDashboardClient: React.FC<SessionProps> = ({ session }) => {
 
 	// Monthly trend line chart (replaces sparse daily data)
 	const monthlyTrendData = {
-		labels: MONTH_LABELS,
+		labels: t.rawData.monthLabels,
 		datasets: [
 			{
 				data: monthlyRevenue.map((m) => m.total),
@@ -275,7 +280,7 @@ const ReservationDashboardClient: React.FC<SessionProps> = ({ session }) => {
 		labels: Object.keys(occupancy),
 		datasets: [
 			{
-				label: 'Jours occupés',
+				label: t.analytics.occupiedDaysChartLabel,
 				data: Object.values(occupancy).map((a) => a.occupied_days),
 				backgroundColor: Object.keys(occupancy).map((_, i) => APARTMENT_COLORS[i % APARTMENT_COLORS.length]),
 				borderRadius: 4,
@@ -285,25 +290,25 @@ const ReservationDashboardClient: React.FC<SessionProps> = ({ session }) => {
 
 	return (
 		<Stack direction="column" spacing={2} className={Styles.flexRootStack} mt="48px">
-			<NavigationBar title="Tableau de bord">
+			<NavigationBar title={t.common.dashboard}>
 				<Protected permission="can_view">
 					<Box sx={{ px: { xs: 1, sm: 2, md: 3 }, pb: 4, pt: '10px' }}>
 						{/* Year & Building selectors */}
 						<Stack direction="row" justifyContent="space-between" alignItems="center" mb={3} flexWrap="wrap" gap={2}>
 							<Typography variant="h5" fontWeight={600}>
-								Vue d&apos;ensemble {year}
+								{t.analytics.overviewYear(year)}
 							</Typography>
 							<Stack direction="row" spacing={2}>
 								<Box sx={{ minWidth: 180 }}>
 									<CustomDropDownSelect
 										id="building-filter"
 										size="small"
-										label="Résidence"
+										label={t.reservations.residence}
 										items={buildingItems}
-										value={buildingId === '' ? 'Toutes' : ((buildingsData ?? []).find((b) => b.id === buildingId)?.nom ?? 'Toutes')}
+										value={buildingId === '' ? t.locaux.allResidences : ((buildingsData ?? []).find((b) => b.id === buildingId)?.nom ?? t.locaux.allResidences)}
 										onChange={(e) => {
 											const name = e.target.value;
-											if (!name || name === 'Toutes') setBuildingId('');
+											if (!name || name === t.locaux.allResidences) setBuildingId('');
 											else {
 												const b = (buildingsData ?? []).find((x) => x.nom === name);
 												setBuildingId(b ? b.id : '');
@@ -317,7 +322,7 @@ const ReservationDashboardClient: React.FC<SessionProps> = ({ session }) => {
 									<CustomDropDownSelect
 										id="year-filter"
 										size="small"
-										label="Année"
+										label={t.common.year}
 										items={yearItems}
 										value={String(year)}
 										onChange={(e) => setYear(Number(e.target.value))}
@@ -344,44 +349,44 @@ const ReservationDashboardClient: React.FC<SessionProps> = ({ session }) => {
 								>
 									<KpiCard
 										icon={<MoneyIcon fontSize="small" />}
-										label="Revenus totaux"
+										label={t.analytics.totalRevenue}
 										value={`${fmt(totalRevenue)} MAD`}
 										color="#1976d2"
-										tooltip="Chiffre d'affaires total de l'année sélectionnée"
+										tooltip={t.analytics.totalRevenueTooltip}
 									/>
 									<KpiCard
 										icon={<CalendarIcon fontSize="small" />}
-										label="Réservations"
+										label={t.analytics.reservationCount}
 										value={totalReservations.toString()}
 										color="#ed6c02"
-										tooltip="Nombre total de réservations enregistrées"
+										tooltip={t.analytics.reservationCountTooltip}
 									/>
 									<KpiCard
 										icon={<HotelIcon fontSize="small" />}
-										label="Occupation"
+										label={t.analytics.occupation}
 										value={`${globalOccupancy}%`}
-										sub={`${totalOccupied} nuits occupées`}
+										sub={t.analytics.nightsOccupied(totalOccupied)}
 										color="#2e7d32"
-										tooltip="Taux d'occupation global de tous les appartements"
+										tooltip={t.analytics.occupationTooltip}
 									/>
 									<KpiCard
 										icon={<TrendingUpIcon fontSize="small" />}
-										label="Revenu moy. / rés."
+										label={t.analytics.avgRevenuePerRes}
 										value={
 											totalReservations > 0
 												? `${fmt(Math.round(totalRevenue / totalReservations))} MAD`
 												: '—'
 										}
 										color="#9c27b0"
-										tooltip="Montant moyen par réservation"
+										tooltip={t.analytics.avgRevenueTooltip}
 									/>
 									<KpiCard
 										icon={<TrophyIcon fontSize="small" />}
-										label="Meilleur mois"
+										label={t.analytics.bestMonth}
 										value={bestMonthName}
 										sub={bestMonthRevenue > 0 ? `${fmt(bestMonthRevenue)} MAD` : undefined}
 										color="#f57c00"
-										tooltip="Mois avec le plus haut chiffre d'affaires"
+										tooltip={t.analytics.bestMonthTooltip}
 									/>
 								</Box>
 
@@ -395,25 +400,25 @@ const ReservationDashboardClient: React.FC<SessionProps> = ({ session }) => {
 								>
 									<KpiCard
 										icon={<TrendingDownIcon fontSize="small" />}
-										label="Coüts annuels"
+										label={t.analytics.annualCosts}
 										value={`${fmt(annualCosts)} MAD`}
 										color="#d32f2f"
-										tooltip="Total des coüts pour l'année sélectionnée"
+										tooltip={t.analytics.annualCostsTooltip}
 									/>
 									<KpiCard
 										icon={<SavingsIcon fontSize="small" />}
-										label="Bénéfice net"
+										label={t.analytics.netProfit}
 										value={`${fmt(netProfit)} MAD`}
 										color={netProfit >= 0 ? '#2e7d32' : '#d32f2f'}
-										tooltip="Revenus totaux moins les coüts annuels"
+										tooltip={t.analytics.netProfitTooltip}
 									/>
 								</Box>
 
 								{/* ── Monthly Revenue Bar ────────────────── */}
 								<ChartCard
-									title="Revenus mensuels"
-									subheader={`Évolution des revenus sur l'année ${year}`}
-									infoTooltip="Total des montants encaissés par mois"
+									title={t.analytics.monthlyRevenue}
+									subheader={t.analytics.monthlyRevenueSubheader(year)}
+									infoTooltip={t.analytics.monthlyRevenueTooltip}
 									height={280}
 								>
 									{monthlyRevenue.some((m) => m.total > 0) ? (
@@ -425,9 +430,9 @@ const ReservationDashboardClient: React.FC<SessionProps> = ({ session }) => {
 
 								{/* ── Monthly Trend Line ────────────────── */}
 								<ChartCard
-									title="Tendance mensuelle des revenus"
-									subheader="Évolution des revenus mois par mois"
-									infoTooltip="Courbe de l'évolution mensuelle du chiffre d'affaires"
+									title={t.analytics.monthlyTrend}
+									subheader={t.analytics.monthlyTrendSubheader}
+									infoTooltip={t.analytics.monthlyTrendTooltip}
 									height={280}
 								>
 									{monthlyRevenue.some((m) => m.total > 0) ? (
@@ -456,9 +461,9 @@ const ReservationDashboardClient: React.FC<SessionProps> = ({ session }) => {
 									}}
 								>
 									<ChartCard
-										title="Répartition par source"
-										subheader="Booking, Airbnb, Espèces, Virement"
-										infoTooltip="Répartition du chiffre d'affaires selon la source de réservation (Booking, Airbnb, Espèces, Virement)"
+										title={t.analytics.sourceDistribution}
+										subheader={t.analytics.sourceDistributionSubheader}
+										infoTooltip={t.analytics.sourceDistributionTooltip}
 										height={280}
 									>
 										{bySource.length > 0 ? (
@@ -469,9 +474,9 @@ const ReservationDashboardClient: React.FC<SessionProps> = ({ session }) => {
 									</ChartCard>
 
 									<ChartCard
-										title="Revenus par appartement"
-										subheader="Répartition du CA par unité"
-										infoTooltip="Montant total des revenus générés par chaque appartement sur l'année"
+										title={t.analytics.revenueByApartment}
+										subheader={t.analytics.revenueByApartmentSubheader}
+										infoTooltip={t.analytics.revenueByApartmentTooltip}
 										height={280}
 									>
 										{byApartment.length > 0 ? (
@@ -484,9 +489,9 @@ const ReservationDashboardClient: React.FC<SessionProps> = ({ session }) => {
 
 								{/* ── Occupancy Bar ───────────────────────── */}
 								<ChartCard
-									title="Jours d'occupation par appartement"
-									subheader="Nombre total de nuitées enregistrées"
-									infoTooltip="Nombre total de nuits occupées par appartement, basé sur les dates d'arrivée et de départ"
+									title={t.analytics.occupancyByApartment}
+									subheader={t.analytics.occupancyByApartmentSubheader}
+									infoTooltip={t.analytics.occupancyByApartmentTooltip}
 									height={260}
 								>
 									{Object.values(occupancy).some((a) => a.occupied_days > 0) ? (
@@ -505,7 +510,7 @@ const ReservationDashboardClient: React.FC<SessionProps> = ({ session }) => {
 										<CardHeader
 											title={
 												<Typography variant="h6" sx={{ fontSize: { xs: '0.95rem', md: '1.1rem' } }}>
-													Détail par source de paiement
+													{t.analytics.paymentSourceDetail}
 												</Typography>
 											}
 										/>
@@ -533,7 +538,7 @@ const ReservationDashboardClient: React.FC<SessionProps> = ({ session }) => {
 															<Typography variant="subtitle2" fontWeight={600}>
 																{src.source}
 															</Typography>
-															<Chip label={`${src.count} rés.`} size="small" />
+															<Chip label={`${src.count} ${t.analytics.res}`} size="small" />
 														</Stack>
 														<Typography variant="h6" color="primary" mt={1}>
 															{fmt(src.total)} MAD

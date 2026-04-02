@@ -34,9 +34,9 @@ import DarkTooltip from '@/components/htmlElements/tooltip/darkTooltip/darkToolt
 import ChipSelectFilterBar from '@/components/shared/chipSelectFilter/chipSelectFilterBar';
 import type { ChipFilterConfig } from '@/components/shared/chipSelectFilter/chipSelectFilterBar';
 import { formatDate, extractApiErrorMessage } from '@/utils/helpers';
-import { paymentSourceItemsList, PAYMENT_SOURCE_CHIP_COLORS } from '@/utils/rawData';
+import { PAYMENT_SOURCE_CHIP_COLORS } from '@/utils/rawData';
 import { RESERVATIONS_ADD, RESERVATIONS_VIEW, RESERVATIONS_EDIT } from '@/utils/routes';
-import { useToast } from '@/utils/hooks';
+import { useToast, useLanguage } from '@/utils/hooks';
 import {
 	useGetReservationsListQuery,
 	useDeleteReservationMutation,
@@ -51,6 +51,7 @@ import { createDropdownFilterOperators } from '@/components/shared/dropdownFilte
 const ReservationsListClient: React.FC<SessionProps> = ({ session }) => {
 	const router = useRouter();
 	const { onSuccess, onError } = useToast();
+	const { t } = useLanguage();
 	const token = useInitAccessToken(session);
 
 	const { data: apartments } = useGetApartmentsQuery(undefined, { skip: !token });
@@ -103,10 +104,10 @@ const ReservationsListClient: React.FC<SessionProps> = ({ session }) => {
 	const deleteHandler = async () => {
 		try {
 			await deleteReservation({ id: selectedId! }).unwrap();
-			onSuccess('Réservation supprimée avec succès');
+			onSuccess(t.reservations.reservationDeletedSuccess);
 			refetch();
 		} catch (err) {
-			onError(extractApiErrorMessage(err, 'Erreur lors de la suppression de la réservation'));
+			onError(extractApiErrorMessage(err, t.reservations.reservationDeleteError));
 		} finally {
 			setShowDeleteModal(false);
 		}
@@ -115,9 +116,9 @@ const ReservationsListClient: React.FC<SessionProps> = ({ session }) => {
 	const bulkDeleteHandler = async () => {
 		try {
 			await bulkDeleteReservations({ ids: selectedIds }).unwrap();
-			onSuccess(`${selectedIds.length} réservation(s) supprimée(s) avec succès`);
+			onSuccess(t.reservations.bulkReservationsDeletedSuccess(selectedIds.length));
 		} catch (err) {
-			onError(extractApiErrorMessage(err, 'Erreur lors de la suppression'));
+			onError(extractApiErrorMessage(err, t.reservations.bulkReservationsDeleteError));
 		} finally {
 			setSelectedIds([]);
 			setShowBulkDeleteModal(false);
@@ -126,20 +127,20 @@ const ReservationsListClient: React.FC<SessionProps> = ({ session }) => {
 	};
 
 	const deleteModalActions = [
-		{ text: 'Annuler', active: false, onClick: () => setShowDeleteModal(false), icon: <CloseIcon />, color: '#6B6B6B' },
-		{ text: 'Supprimer', active: true, onClick: deleteHandler, icon: <DeleteIcon />, color: '#D32F2F' },
+		{ text: t.common.cancel, active: false, onClick: () => setShowDeleteModal(false), icon: <CloseIcon />, color: '#6B6B6B' },
+		{ text: t.common.delete, active: true, onClick: deleteHandler, icon: <DeleteIcon />, color: '#D32F2F' },
 	];
 
 	const bulkDeleteModalActions = [
 		{
-			text: 'Annuler',
+			text: t.common.cancel,
 			active: false,
 			onClick: () => setShowBulkDeleteModal(false),
 			icon: <CloseIcon />,
 			color: '#6B6B6B',
 		},
 		{
-			text: `Supprimer (${selectedIds.length})`,
+			text: t.reservations.deleteBtnCount(selectedIds.length),
 			active: true,
 			onClick: bulkDeleteHandler,
 			icon: <DeleteIcon />,
@@ -151,24 +152,29 @@ const ReservationsListClient: React.FC<SessionProps> = ({ session }) => {
 		() => [
 			{
 				key: 'apartment',
-				label: 'Appartement',
+				label: t.reservations.apartment,
 				paramName: 'apartment',
 				options: (apartments ?? []).map((a) => ({ id: String(a.id), nom: a.nom })),
 			},
 			{
 				key: 'payment_source',
-				label: 'Source',
+				label: t.reservations.columnSource,
 				paramName: 'payment_source',
-				options: paymentSourceItemsList.map((p) => ({ id: p.code, nom: p.value })),
+				options: [
+					{ id: 'Booking', nom: 'Booking' },
+					{ id: 'Airbnb', nom: 'Airbnb' },
+					{ id: 'Cash', nom: t.rawData.paymentSources.cash },
+					{ id: 'Bank', nom: t.rawData.paymentSources.bankTransfer },
+				],
 			},
 		],
-		[apartments],
+		[apartments, t.reservations.apartment, t.reservations.columnSource, t.rawData.paymentSources.bankTransfer, t.rawData.paymentSources.cash],
 	);
 
 	const columns: GridColDef[] = [
 		{
 			field: 'apartment_nom',
-			headerName: 'Appart.',
+			headerName: t.reservations.columnAppartment,
 			flex: 0.7,
 			minWidth: 90,
 			filterable: false,
@@ -180,10 +186,10 @@ const ReservationsListClient: React.FC<SessionProps> = ({ session }) => {
 		},
 		{
 			field: 'guest_name',
-			headerName: 'Client',
+			headerName: t.reservations.columnClient,
 			flex: 1.4,
 			minWidth: 130,
-			filterOperators: createDropdownFilterOperators(guestNameOptions, 'Tous les clients'),
+			filterOperators: createDropdownFilterOperators(guestNameOptions, t.reservations.allClients),
 			renderCell: (params: GridRenderCellParams<ReservationClass>) => (
 				<DarkTooltip title={params.value}>
 					<Typography variant="body2" noWrap>
@@ -194,7 +200,7 @@ const ReservationsListClient: React.FC<SessionProps> = ({ session }) => {
 		},
 		{
 			field: 'check_in',
-			headerName: 'Arrivée',
+			headerName: t.reservations.columnCheckIn,
 			flex: 0.9,
 			minWidth: 110,
 			filterOperators: createDateRangeFilterOperator(),
@@ -208,7 +214,7 @@ const ReservationsListClient: React.FC<SessionProps> = ({ session }) => {
 		},
 		{
 			field: 'check_out',
-			headerName: 'Départ',
+			headerName: t.reservations.columnCheckOut,
 			flex: 0.9,
 			minWidth: 110,
 			filterOperators: createDateRangeFilterOperator(),
@@ -222,7 +228,7 @@ const ReservationsListClient: React.FC<SessionProps> = ({ session }) => {
 		},
 		{
 			field: 'nights',
-			headerName: 'Nuits',
+			headerName: t.reservations.columnNights,
 			flex: 0.5,
 			minWidth: 70,
 			filterOperators: createNumericFilterOperators(),
@@ -232,7 +238,7 @@ const ReservationsListClient: React.FC<SessionProps> = ({ session }) => {
 		},
 		{
 			field: 'amount',
-			headerName: 'Montant',
+			headerName: t.reservations.columnAmount,
 			flex: 0.9,
 			minWidth: 110,
 			filterOperators: createNumericFilterOperators(),
@@ -246,7 +252,7 @@ const ReservationsListClient: React.FC<SessionProps> = ({ session }) => {
 		},
 		{
 			field: 'payment_source',
-			headerName: 'Source',
+			headerName: t.reservations.columnSource,
 			flex: 0.8,
 			minWidth: 100,
 			filterable: false,
@@ -266,7 +272,7 @@ const ReservationsListClient: React.FC<SessionProps> = ({ session }) => {
 		},
 		{
 			field: 'actions',
-			headerName: 'Actions',
+			headerName: t.common.actions,
 			flex: 1.2,
 			minWidth: 130,
 			sortable: false,
@@ -274,19 +280,19 @@ const ReservationsListClient: React.FC<SessionProps> = ({ session }) => {
 			renderCell: (params) => {
 				const actions = [
 					{
-						label: 'Voir',
+						label: t.common.view,
 						icon: <VisibilityIcon />,
 						onClick: () => router.push(RESERVATIONS_VIEW(params.row.id)),
 						color: 'info' as const,
 					},
 					{
-						label: 'Modifier',
+						label: t.common.edit,
 						icon: <EditIcon />,
 						onClick: () => router.push(RESERVATIONS_EDIT(params.row.id)),
 						color: 'primary' as const,
 					},
 					{
-						label: 'Supprimer',
+						label: t.common.delete,
 						icon: <DeleteIcon />,
 						onClick: () => {
 							setSelectedId(params.row.id);
@@ -308,7 +314,7 @@ const ReservationsListClient: React.FC<SessionProps> = ({ session }) => {
 			mt="48px"
 			sx={{ overflowX: 'auto', overflowY: 'hidden' }}
 		>
-			<NavigationBar title="Liste des réservations">
+			<NavigationBar title={t.reservations.reservationsList}>
 				<Protected permission="can_view">
 					<>
 						<Box
@@ -333,7 +339,7 @@ const ReservationsListClient: React.FC<SessionProps> = ({ session }) => {
 								fontSize: { xs: '0.85rem', sm: '0.9rem', md: '1rem' },
 							}}
 							>
-								Nouvelle réservation
+								{t.reservations.newReservation}
 							</Button>
 							{selectedIds.length > 0 && (
 								<Button
@@ -343,7 +349,7 @@ const ReservationsListClient: React.FC<SessionProps> = ({ session }) => {
 									startIcon={<DeleteIcon fontSize="small" />}
 									sx={{ whiteSpace: 'nowrap' }}
 								>
-									Supprimer ({selectedIds.length})
+									{t.reservations.deleteBtnCount(selectedIds.length)}
 								</Button>
 							)}
 						</Box>
@@ -351,13 +357,13 @@ const ReservationsListClient: React.FC<SessionProps> = ({ session }) => {
 						{isError ? (
 							<Box display="flex" flexDirection="column" alignItems="center" justifyContent="center" py={8} gap={2}>
 								<Typography color="text.secondary" variant="h6" textAlign="center">
-									Impossible de charger les réservations
+									{t.reservations.loadError}
 								</Typography>
 								<Typography color="error.main" variant="body2" textAlign="center">
-									{(error as { data?: { message?: string } })?.data?.message ?? 'Erreur réseau ou serveur indisponible'}
+									{(error as { data?: { message?: string } })?.data?.message ?? t.reservations.networkError}
 								</Typography>
 								<Button variant="outlined" onClick={() => refetch()}>
-									Réessayer
+									{t.common.retry}
 								</Button>
 							</Box>
 						) : (
@@ -384,8 +390,8 @@ const ReservationsListClient: React.FC<SessionProps> = ({ session }) => {
 
 						{showDeleteModal && (
 							<ActionModals
-								title="Supprimer la réservation"
-								body="Êtes-vous sûr de vouloir supprimer cette réservation ? Cette action est irréversible."
+								title={t.reservations.deleteReservation}
+								body={t.reservations.deleteReservationConfirm}
 								actions={deleteModalActions}
 								onClose={() => setShowDeleteModal(false)}
 							/>
@@ -393,8 +399,8 @@ const ReservationsListClient: React.FC<SessionProps> = ({ session }) => {
 
 						{showBulkDeleteModal && (
 							<ActionModals
-								title={`Supprimer ${selectedIds.length} réservation(s)`}
-								body="Cette action supprimera définitivement les réservations sélectionnées."
+								title={t.reservations.bulkDeleteReservations(selectedIds.length)}
+								body={t.reservations.bulkDeleteReservationsConfirm}
 								actions={bulkDeleteModalActions}
 								onClose={() => setShowBulkDeleteModal(false)}
 							/>

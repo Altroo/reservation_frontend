@@ -23,6 +23,8 @@ jest.mock('@/contexts/InitContext', () => ({
 const mockOnSuccess = jest.fn();
 const mockOnError = jest.fn();
 jest.mock('@/utils/hooks', () => ({
+	// eslint-disable-next-line @typescript-eslint/no-require-imports
+	useLanguage: () => ({ language: 'fr', setLanguage: jest.fn(), t: require('@/translations').translations.fr }),
 	__esModule: true,
 	useToast: () => ({ onSuccess: mockOnSuccess, onError: mockOnError }),
 }));
@@ -292,7 +294,7 @@ describe('LocauxListClient', () => {
 		const deleteButtons = screen.getAllByText('Supprimer');
 		fireEvent.click(deleteButtons[0]);
 		expect(screen.getByTestId('action-modal')).toBeInTheDocument();
-		expect(screen.getByText('Supprimer le local')).toBeInTheDocument();
+		expect(screen.getByText('Supprimer ce local ?')).toBeInTheDocument();
 	});
 
 	it('closes delete modal on cancel', async () => {

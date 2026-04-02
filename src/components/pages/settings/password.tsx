@@ -13,7 +13,7 @@ import PrimaryLoadingButton from '@/components/htmlElements/buttons/primaryLoadi
 import { useEditPasswordMutation } from '@/store/services/account';
 import ApiProgress from '@/components/formikElements/apiLoading/apiProgress/apiProgress';
 import NavigationBar from '@/components/layouts/navigationBar/navigationBar';
-import { useToast, useAppSelector } from '@/utils/hooks';
+import { useToast, useAppSelector, useLanguage } from '@/utils/hooks';
 import { Edit as EditIcon, Lock as LockIcon } from '@mui/icons-material';
 import { getProfilState } from '@/store/selectors';
 
@@ -21,6 +21,7 @@ const inputTheme = textInputTheme();
 
 const FormikContent: React.FC = () => {
 	const { onSuccess, onError } = useToast();
+	const { t } = useLanguage();
 	const profil = useAppSelector(getProfilState);
 	const [changePassword, { isLoading: isChangePasswordLoading }] = useEditPasswordMutation();
 	const [isPending, setIsPending] = useState(false);
@@ -44,10 +45,10 @@ const FormikContent: React.FC = () => {
 						new_password2: values.new_password2,
 					},
 				}).unwrap();
-				onSuccess('Le mot de passe a été modifié avec succès.');
+					onSuccess(t.settings.passwordChangeSuccess);
 				resetForm();
 			} catch (e) {
-				onError('Échec de la modification du mot de passe.');
+				onError(t.settings.passwordChangeError);
 				setFormikAutoErrors({ e, setFieldError });
 			} finally {
 				setIsPending(false);
@@ -58,13 +59,13 @@ const FormikContent: React.FC = () => {
 	return (
 		<Stack direction="column" alignItems="center" spacing={2} className={`${Styles.flexRootStack}`} mt="32px">
 			{(isChangePasswordLoading || isPending) && <ApiProgress backdropColor="#FFFFFF" circularColor="#0D070B" />}
-			<h2 className={Styles.pageTitle}>Modifier le mot de passe</h2>
+			<h2 className={Styles.pageTitle}>{t.settings.changePassword}</h2>
 
 			<form className={Styles.form} onSubmit={(e) => e.preventDefault()}>
 				<Stack direction="column" justifyContent="center" alignItems="center" spacing={2}>
 					{profil && profil.default_password_set && (
 						<Alert severity="warning" sx={{ maxWidth: '365px', width: '100%' }}>
-							Il est recommandé de changer votre mot de passe par défaut pour des raisons de sécurité.
+							{t.settings.defaultPasswordWarning}
 						</Alert>
 					)}
 					<CustomPasswordInput
@@ -76,8 +77,8 @@ const FormikContent: React.FC = () => {
 						error={formik.touched.old_password && Boolean(formik.errors.old_password)}
 						fullWidth={false}
 						size="small"
-						label="Ancien mot de passe"
-						placeholder="Ancien mot de passe"
+						label={t.settings.oldPassword}
+						placeholder={t.settings.oldPassword}
 						theme={inputTheme}
 						startIcon={<LockIcon fontSize="small" />}
 						cssClass={Styles.maxInputWidth}
@@ -91,8 +92,8 @@ const FormikContent: React.FC = () => {
 						error={formik.touched.new_password && Boolean(formik.errors.new_password)}
 						fullWidth={false}
 						size="small"
-						label="Nouveau mot de passe"
-						placeholder="Nouveau mot de passe"
+						label={t.settings.newPassword}
+						placeholder={t.settings.newPassword}
 						theme={inputTheme}
 						startIcon={<LockIcon fontSize="small" />}
 						cssClass={Styles.maxInputWidth}
@@ -106,14 +107,14 @@ const FormikContent: React.FC = () => {
 						error={formik.touched.new_password2 && Boolean(formik.errors.new_password2)}
 						fullWidth={false}
 						size="small"
-						label="Confirmation du nouveau mot de passe"
-						placeholder="Confirmation du nouveau mot de passe"
+						label={t.settings.confirmNewPassword}
+						placeholder={t.settings.confirmNewPassword}
 						theme={inputTheme}
 						startIcon={<LockIcon fontSize="small" />}
 						cssClass={Styles.maxInputWidth}
 					/>
 					<PrimaryLoadingButton
-						buttonText="Modifier"
+						buttonText={t.settings.modify}
 						active={!isPending}
 						onClick={formik.handleSubmit}
 						cssClass={`${Styles.maxWidth} ${Styles.mobileButton} ${Styles.submitButton}`}
@@ -130,10 +131,11 @@ const FormikContent: React.FC = () => {
 const PasswordClient: React.FC = () => {
 	const theme = useTheme();
 	const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+	const { t } = useLanguage();
 
 	return (
 		<Stack direction="column" sx={{ position: 'relative' }}>
-			<NavigationBar title="Modifier le mot de passe">
+			<NavigationBar title={t.settings.changePassword}>
 				<main className={`${Styles.main} ${Styles.fixMobile}`}>
 					<Box
 						sx={{

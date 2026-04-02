@@ -105,6 +105,7 @@ jest.mock('@/utils/helpers', () => ({
 
 jest.mock('@/utils/rawData', () => ({
 	TYPE_LOCAL_CHIP_COLORS: { Bureau: 'primary', Magasin: 'warning' } as Record<string, string>,
+	LOCAL_TYPE_LABEL_KEYS: { Bureau: 'office', Magasin: 'shop' },
 }));
 
 jest.mock('@/styles/dashboard/dashboard.module.sass', () => ({

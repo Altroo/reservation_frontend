@@ -43,6 +43,7 @@ import { LOCAUX_VIEW } from '@/utils/routes';
 import { useGetLocalPlanningQuery, useGetLocalYearsQuery, useToggleLoyerPaidMutation, useGetBuildingsQuery } from '@/store/services/reservation';
 import { useInitAccessToken } from '@/contexts/InitContext';
 import { useLanguage } from '@/utils/hooks';
+import { LOCAL_TYPE_LABEL_KEYS } from '@/utils/rawData';
 import Styles from '@/styles/dashboard/dashboard.module.sass';
 
 interface KpiCardProps {
@@ -302,7 +303,7 @@ const LocauxPlanningClient: React.FC<SessionProps> = ({ session }) => {
 																	<Box>
 																		<Typography variant="body2" fontWeight={600}>{local.nom}</Typography>
 																		<Typography variant="caption" color="text.secondary">
-																			{local.type_local} — {local.en_location ? local.locataire_nom || t.locaux.inRental : t.common.free}
+																			{t.rawData.localTypes[LOCAL_TYPE_LABEL_KEYS[local.type_local]]} — {local.en_location ? local.locataire_nom || t.locaux.inRental : t.common.free}
 																		</Typography>
 																	</Box>
 																</Stack>
@@ -353,7 +354,7 @@ const LocauxPlanningClient: React.FC<SessionProps> = ({ session }) => {
 																		<Stack>
 																			<Typography variant="body2" fontWeight={600} noWrap>{local.nom}</Typography>
 																			<Typography variant="caption" color="text.secondary" noWrap>
-																				{local.type_local} — {local.en_location ? local.locataire_nom || t.locaux.inRental : t.common.free}
+																				{t.rawData.localTypes[LOCAL_TYPE_LABEL_KEYS[local.type_local]]} — {local.en_location ? local.locataire_nom || t.locaux.inRental : t.common.free}
 																			</Typography>
 																		</Stack>
 																	</TableCell>

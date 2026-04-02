@@ -1,6 +1,6 @@
 import type { EventChannel } from 'redux-saga';
 import { END, eventChannel } from 'redux-saga';
-import { WSMaintenanceAction, WSUserAvatarAction, WSNotificationAction } from '@/store/actions/wsActions';
+import { WSMaintenanceAction, WSUserAvatarAction, WSNotificationAction, WSReconnectedAction } from '@/store/actions/wsActions';
 import { WSAction, WSEnvelope } from '@/types/wsTypes';
 import type { NotificationType } from '@/types/reservationTypes';
 
@@ -30,12 +30,18 @@ export function initWebsocket(token: string): EventChannel<WSAction> {
 	return eventChannel<WSAction>((emitter) => {
 		let reconnectDelay = WS_INITIAL_RECONNECT_DELAY_MS;
 
+		let hasConnectedBefore = false;
+
 		function createWs() {
 			const wsUrl = `${process.env.NEXT_PUBLIC_ROOT_WS_URL}`;
 			if (typeof window !== 'undefined') {
 				ws = new WebSocket(`${wsUrl}?token=${token}`);
 				ws.onopen = () => {
 					reconnectDelay = WS_INITIAL_RECONNECT_DELAY_MS;
+					if (hasConnectedBefore) {
+						emitter(WSReconnectedAction());
+					}
+					hasConnectedBefore = true;
 				};
 				ws.onerror = () => {
 					// let onclose handle retries

@@ -580,6 +580,7 @@ export type TranslationDictionary = {
 		endsWith: string;
 		isEmpty: string;
 		isNotEmpty: string;
+		is: string;
 		value: string;
 		and: string;
 		or: string;

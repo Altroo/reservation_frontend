@@ -39,7 +39,7 @@ import NavigationBar from '@/components/layouts/navigationBar/navigationBar';
 import { Protected } from '@/components/layouts/protected/protected';
 import ApiProgress from '@/components/formikElements/apiLoading/apiProgress/apiProgress';
 import { LOCAUX_VIEW } from '@/utils/routes';
-import { TYPE_LOCAL_CHIP_COLORS } from '@/utils/rawData';
+import { TYPE_LOCAL_CHIP_COLORS, LOCAL_TYPE_LABEL_KEYS } from '@/utils/rawData';
 import { useGetLocalDashboardQuery, useGetLocalYearsQuery, useGetBuildingsQuery } from '@/store/services/reservation';
 import { useInitAccessToken } from '@/contexts/InitContext';
 import { useLanguage } from '@/utils/hooks';
@@ -229,7 +229,7 @@ const LocauxDashboardClient: React.FC<SessionProps> = ({ session }) => {
 																	<Stack direction="row" justifyContent="space-between" alignItems="center" mb={1}>
 																		<Typography variant="body2" fontWeight={600}>{local.nom}</Typography>
 																		<Stack direction="row" spacing={0.5}>
-																			<Chip label={local.type_local} size="small" color={typeColor} variant="outlined" />
+																			<Chip label={t.rawData.localTypes[LOCAL_TYPE_LABEL_KEYS[local.type_local]]} size="small" color={typeColor} variant="outlined" />
 																			<Chip label={local.en_location ? t.locaux.inRental : t.common.free} size="small" color={local.en_location ? 'success' : 'default'} variant="outlined" />
 																		</Stack>
 																	</Stack>
@@ -281,7 +281,7 @@ const LocauxDashboardClient: React.FC<SessionProps> = ({ session }) => {
 																		<Typography variant="body2" fontWeight={600}>{local.nom}</Typography>
 																	</TableCell>
 																	<TableCell>
-																		<Chip label={local.type_local} size="small" color={typeColor} variant="outlined" />
+																		<Chip label={t.rawData.localTypes[LOCAL_TYPE_LABEL_KEYS[local.type_local]]} size="small" color={typeColor} variant="outlined" />
 																	</TableCell>
 																	<TableCell>
 																		<Chip

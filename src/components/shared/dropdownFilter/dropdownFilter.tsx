@@ -43,9 +43,10 @@ export const createDropdownFilterOperators = <T extends Record<string, unknown>>
 	options: DropdownFilterOption[],
 	placeholder?: string,
 	showChips?: boolean,
+	filterLabel?: string,
 ): GridFilterOperator<T, string, string>[] => [
 	{
-		label: 'est',
+		label: filterLabel ?? 'est',
 		value: 'is',
 		getApplyFilterFn: (filterItem: GridFilterItem) => {
 			if (!filterItem.value) {
@@ -64,9 +65,10 @@ export const createDropdownFilterOperators = <T extends Record<string, unknown>>
 export const createBooleanFilterOperators = <T extends Record<string, unknown>>(
 	options: DropdownFilterOption[],
 	placeholder?: string,
+	filterLabel?: string,
 ): GridFilterOperator<T, boolean, string>[] => [
 	{
-		label: 'est',
+		label: filterLabel ?? 'est',
 		value: 'is',
 		getApplyFilterFn: (filterItem: GridFilterItem) => {
 			if (!filterItem.value) {

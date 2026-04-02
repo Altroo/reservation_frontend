@@ -264,7 +264,7 @@ const CostsListClient: React.FC<SessionProps> = ({ session }) => {
 			headerName: t.common.date,
 			flex: 0.9,
 			minWidth: 110,
-			filterOperators: createDateRangeFilterOperator(),
+			filterOperators: createDateRangeFilterOperator(t.filters.between),
 			renderCell: (params: GridRenderCellParams<CostType>) => (
 				<DarkTooltip title={formatDate(params.value as string)}>
 					<Typography variant="body2" noWrap>
@@ -298,7 +298,7 @@ const CostsListClient: React.FC<SessionProps> = ({ session }) => {
 			headerName: t.common.createdBy,
 			flex: 1,
 			minWidth: 100,
-			filterOperators: createDropdownFilterOperators(createdByOptions, t.filters.allUsers),
+			filterOperators: createDropdownFilterOperators(createdByOptions, t.filters.allUsers, undefined, t.filters.is),
 			renderCell: (params: GridRenderCellParams<CostType>) => (
 				<DarkTooltip title={params.value ?? ''}>
 					<Typography variant="body2" noWrap>

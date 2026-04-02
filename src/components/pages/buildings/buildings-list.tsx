@@ -176,7 +176,7 @@ const BuildingsListClient: React.FC<SessionProps> = ({ session }) => {
 			headerName: t.common.creationDate,
 			flex: 1,
 			minWidth: 140,
-			filterOperators: createDateRangeFilterOperator(),
+			filterOperators: createDateRangeFilterOperator(t.filters.between),
 			renderCell: (params: GridRenderCellParams<BuildingListType>) => (
 				<Typography variant="body2" noWrap>
 					{formatDate(params.value)}
@@ -188,7 +188,7 @@ const BuildingsListClient: React.FC<SessionProps> = ({ session }) => {
 			headerName: t.common.createdBy,
 			flex: 1,
 			minWidth: 140,
-			filterOperators: createDropdownFilterOperators(createdByOptions, t.common.all),
+			filterOperators: createDropdownFilterOperators(createdByOptions, t.common.all, undefined, t.filters.is),
 			renderCell: (params: GridRenderCellParams<BuildingListType>) => (
 				<DarkTooltip title={params.value ?? ''}>
 					<Typography variant="body2" noWrap>

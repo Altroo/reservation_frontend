@@ -100,6 +100,10 @@ jest.mock('@/utils/rawData', () => ({
 		Bureau: 'primary',
 		Magasin: 'warning',
 	},
+	LOCAL_TYPE_LABEL_KEYS: {
+		Bureau: 'office',
+		Magasin: 'shop',
+	},
 	typeLocalItemsList: [
 		{ code: 'Bureau', value: 'Bureau' },
 		{ code: 'Magasin', value: 'Magasin' },

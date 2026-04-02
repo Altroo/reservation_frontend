@@ -33,7 +33,7 @@ import {
 	useGetBuildingsQuery,
 } from '@/store/services/reservation';
 import { useInitAccessToken } from '@/contexts/InitContext';
-import { TYPE_LOCAL_CHIP_COLORS } from '@/utils/rawData';
+import { TYPE_LOCAL_CHIP_COLORS, LOCAL_TYPE_LABEL_KEYS } from '@/utils/rawData';
 import type { ChipColor } from '@/utils/rawData';
 
 const LocauxListClient: React.FC<SessionProps> = ({ session }) => {
@@ -244,11 +244,12 @@ const LocauxListClient: React.FC<SessionProps> = ({ session }) => {
 			minWidth: 100,
 			filterable: false,
 			renderCell: (params: GridRenderCellParams<LocalListType>) => {
-				const type = params.value as string;
+				const type = params.value as 'Bureau' | 'Magasin';
+				const label = t.rawData.localTypes[LOCAL_TYPE_LABEL_KEYS[type]] ?? type;
 				return (
-					<DarkTooltip title={type}>
+					<DarkTooltip title={label}>
 						<Chip
-							label={type}
+							label={label}
 							size="small"
 							color={(TYPE_LOCAL_CHIP_COLORS[type] ?? 'default') as ChipColor}
 							variant="outlined"

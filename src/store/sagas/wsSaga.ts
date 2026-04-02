@@ -9,6 +9,7 @@ import { setWSMaintenance } from '@/store/slices/wsSlice';
 import { incrementUnreadCount, setLatestNotification } from '@/store/slices/notificationSlice';
 import { reservationApi } from '@/store/services/reservation';
 import type { NotificationType } from '@/types/reservationTypes';
+import { initMaintenanceSaga } from '@/store/sagas/_initSaga';
 
 type WSChannelAction = Action & {
   maintenance?: boolean;
@@ -39,6 +40,8 @@ export function* watchWS(): SagaIterator<void> {
       const action: WSChannelAction = yield take(channel);
       if (action.type === Types.WS_MAINTENANCE && typeof action.maintenance === 'boolean') {
         yield put(setWSMaintenance(action.maintenance));
+      } else if (action.type === Types.WS_RECONNECTED) {
+        yield call(initMaintenanceSaga);
       } else if (action.type === Types.WS_NOTIFICATION && action.notification) {
         yield put(incrementUnreadCount());
         yield put(setLatestNotification(action.notification));

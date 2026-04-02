@@ -189,7 +189,7 @@ const ReservationsListClient: React.FC<SessionProps> = ({ session }) => {
 			headerName: t.reservations.columnClient,
 			flex: 1.4,
 			minWidth: 130,
-			filterOperators: createDropdownFilterOperators(guestNameOptions, t.reservations.allClients),
+			filterOperators: createDropdownFilterOperators(guestNameOptions, t.reservations.allClients, undefined, t.filters.is),
 			renderCell: (params: GridRenderCellParams<ReservationClass>) => (
 				<DarkTooltip title={params.value}>
 					<Typography variant="body2" noWrap>
@@ -203,7 +203,7 @@ const ReservationsListClient: React.FC<SessionProps> = ({ session }) => {
 			headerName: t.reservations.columnCheckIn,
 			flex: 0.9,
 			minWidth: 110,
-			filterOperators: createDateRangeFilterOperator(),
+			filterOperators: createDateRangeFilterOperator(t.filters.between),
 			renderCell: (params: GridRenderCellParams<ReservationClass>) => (
 				<DarkTooltip title={formatDate(params.value as string)}>
 					<Typography variant="body2" noWrap>
@@ -217,7 +217,7 @@ const ReservationsListClient: React.FC<SessionProps> = ({ session }) => {
 			headerName: t.reservations.columnCheckOut,
 			flex: 0.9,
 			minWidth: 110,
-			filterOperators: createDateRangeFilterOperator(),
+			filterOperators: createDateRangeFilterOperator(t.filters.between),
 			renderCell: (params: GridRenderCellParams<ReservationClass>) => (
 				<DarkTooltip title={formatDate(params.value as string)}>
 					<Typography variant="body2" noWrap>

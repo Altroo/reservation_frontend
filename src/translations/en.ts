@@ -596,6 +596,7 @@ export const en: TranslationDictionary = {
 		endsWith: 'ends with',
 		isEmpty: 'is empty',
 		isNotEmpty: 'is not empty',
+		is: 'is',
 		value: 'Value',
 		and: 'AND',
 		or: 'OR',

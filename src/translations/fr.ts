@@ -598,6 +598,7 @@ export const fr: TranslationDictionary = {
 		endsWith: 'finit par',
 		isEmpty: 'est vide',
 		isNotEmpty: "n'est pas vide",
+		is: 'est',
 		value: 'Valeur',
 		and: 'ET',
 		or: 'OU',

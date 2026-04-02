@@ -51,7 +51,7 @@ import ApiAlert from '@/components/formikElements/apiLoading/apiAlert/apiAlert';
 import ActionModals from '@/components/htmlElements/modals/actionModal/actionModals';
 import { extractApiErrorMessage, formatDate } from '@/utils/helpers';
 import { LOCAUX_EDIT, LOCAUX_LIST } from '@/utils/routes';
-import { TYPE_LOCAL_CHIP_COLORS } from '@/utils/rawData';
+import { TYPE_LOCAL_CHIP_COLORS, LOCAL_TYPE_LABEL_KEYS } from '@/utils/rawData';
 import { useToast, useLanguage } from '@/utils/hooks';
 import {
 	useGetLocalQuery,
@@ -216,7 +216,7 @@ const LocalViewClient: React.FC<Props> = ({ session, id }) => {
 												<InfoRow
 													icon={<BusinessIcon />}
 													label={t.common.type}
-													value={<Chip label={local.type_local as string} size="small" color={typeColor} variant="outlined" />}
+													value={<Chip label={t.rawData.localTypes[LOCAL_TYPE_LABEL_KEYS[local.type_local as 'Bureau' | 'Magasin']]} size="small" color={typeColor} variant="outlined" />}
 												/>
 												<Divider />
 												<InfoRow

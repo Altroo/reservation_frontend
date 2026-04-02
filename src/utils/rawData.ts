@@ -126,6 +126,11 @@ export const TYPE_LOCAL_CHIP_COLORS: Record<string, ChipColor> = {
 	Magasin: 'warning',
 };
 
+export const LOCAL_TYPE_LABEL_KEYS: Record<'Bureau' | 'Magasin', 'office' | 'shop'> = {
+	Bureau: 'office',
+	Magasin: 'shop',
+};
+
 export const LOCAL_FIELD_LABELS: Record<string, string> = {
 	nom: 'Nom',
 	type_local: 'Type',

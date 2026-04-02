@@ -36,6 +36,7 @@ import ApiProgress from '@/components/formikElements/apiLoading/apiProgress/apiP
 import ApiAlert from '@/components/formikElements/apiLoading/apiAlert/apiAlert';
 import ActionModals from '@/components/htmlElements/modals/actionModal/actionModals';
 import { extractApiErrorMessage, formatDate } from '@/utils/helpers';
+import { LOCAL_TYPE_LABEL_KEYS } from '@/utils/rawData';
 import { BUILDINGS_EDIT, BUILDINGS_LIST, LOCAUX_VIEW } from '@/utils/routes';
 import { useToast, useLanguage } from '@/utils/hooks';
 import {
@@ -263,7 +264,7 @@ const BuildingViewClient: React.FC<SessionProps & { id: number }> = ({ session, 
 														</ListItemIcon>
 														<ListItemText
 															primary={loc.nom}
-															secondary={loc.type_local}
+															secondary={t.rawData.localTypes[LOCAL_TYPE_LABEL_KEYS[loc.type_local as 'Bureau' | 'Magasin']] ?? loc.type_local}
 														/>
 													</ListItem>
 												))}

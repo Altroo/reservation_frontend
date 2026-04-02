@@ -38,7 +38,6 @@ import {
 	DoneAll as DoneAllIcon,
 	ExpandMore as ExpandMoreIcon,
 	Hotel as HotelIcon,
-	Language as LanguageIcon,
 	Logout as LogoutIcon,
 	Menu as MenuIcon,
 	MoreVert as MoreVertIcon,
@@ -401,7 +400,7 @@ const NavigationBar = (props: Props) => {
 													<MenuListItemText>{t.navigation.notifications}</MenuListItemText>
 												</MenuItem>
 												<MenuItem onClick={() => { setLanguage(language === 'fr' ? 'en' : 'fr'); setMobileMenuAnchor(null); }}>
-													<MenuListItemIcon><LanguageIcon fontSize="small" /></MenuListItemIcon>
+												<MenuListItemIcon><span style={{ fontSize: '1.2rem', lineHeight: 1 }}>{language === 'fr' ? '🇬🇧' : '🇫🇷'}</span></MenuListItemIcon>
 													<MenuListItemText>{language === 'fr' ? 'English' : 'Français'}</MenuListItemText>
 												</MenuItem>
 												{is_staff && (

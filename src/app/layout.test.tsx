@@ -129,9 +129,9 @@ jest.mock('@/contexts/languageContext', () => ({
 
 jest.mock('next/headers', () => ({
 	__esModule: true,
-	cookies: jest.fn().mockResolvedValue({
+	cookies: jest.fn().mockImplementation(async () => ({
 		get: jest.fn().mockReturnValue(undefined),
-	}),
+	})),
 }));
 
 jest.mock('@/utils/getServerTranslations', () => ({

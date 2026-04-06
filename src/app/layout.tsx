@@ -85,7 +85,7 @@ const RootLayout: React.FC<EntryPointProps> = async (props) => {
 							<InitEffects />
 							<AppRouterCacheProvider>
 								<ThemeProvider>
-									<LanguageContextProvider>									<SkipToContent />										<ErrorBoundary>
+									<LanguageContextProvider initialLanguage={lang}>									<SkipToContent />										<ErrorBoundary>
 											<ToastContextProvider>
 												<SessionExpiredListener />
 												<Maintenance />

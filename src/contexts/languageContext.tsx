@@ -19,20 +19,15 @@ export const LanguageContext = createContext<LanguageContextType>({
 	t: translations[DEFAULT_LANGUAGE],
 });
 
-const getInitialLanguage = (): Language => {
-	if (typeof window === 'undefined') return DEFAULT_LANGUAGE;
-	const stored = localStorage.getItem(STORAGE_KEY);
-	if (stored === 'fr' || stored === 'en') return stored;
-	return DEFAULT_LANGUAGE;
-};
+export const LanguageContextProvider: React.FC<{ children: React.ReactNode; initialLanguage?: Language }> = ({ children, initialLanguage }) => {
+	const [language, setLanguageState] = useState<Language>(initialLanguage ?? DEFAULT_LANGUAGE);
 
-export const LanguageContextProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-	const [language, setLanguageState] = useState<Language>(getInitialLanguage);
-
-	// Sync cookie on mount for existing users who have localStorage but no cookie yet
 	useEffect(() => {
-		document.cookie = `${STORAGE_KEY}=${language};path=/;max-age=31536000;SameSite=Lax`;
-	}, [language]);
+		const stored = localStorage.getItem(STORAGE_KEY);
+		if (stored === 'fr' || stored === 'en') {
+			document.cookie = `${STORAGE_KEY}=${stored};path=/;max-age=31536000;SameSite=Lax`;
+		}
+	}, []);
 
 	const setLanguage = useCallback((lang: Language) => {
 		setLanguageState(lang);

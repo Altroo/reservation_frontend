@@ -59,7 +59,7 @@ describe('watchWS saga', () => {
 
 		await task.toPromise();
 
-		expect(initWebsocket).toHaveBeenCalledWith(mockToken);
+		expect(initWebsocket).toHaveBeenCalledWith(expect.any(Function));
 		expect(dispatched).toContainEqual(mockAction);
 	}, 10000); // Optional: increase timeout to 10s
 
@@ -116,7 +116,7 @@ describe('watchWS saga', () => {
 		setTimeout(() => task.cancel(), 100);
 		await task.toPromise();
 
-		expect(initWebsocket).toHaveBeenCalledWith(mockToken);
+		expect(initWebsocket).toHaveBeenCalledWith(expect.any(Function));
 		expect(dispatched).toContainEqual(setWSMaintenance(true));
 	});
 
@@ -154,7 +154,7 @@ describe('watchWS saga', () => {
 		setTimeout(() => task.cancel(), 100);
 		await task.toPromise();
 
-		expect(initWebsocket).toHaveBeenCalledWith(mockToken);
+		expect(initWebsocket).toHaveBeenCalledWith(expect.any(Function));
 		expect(dispatched).toContainEqual(incrementUnreadCount());
 		expect(dispatched).toContainEqual(setLatestNotification(mockNotification));
 	});

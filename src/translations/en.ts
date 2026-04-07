@@ -108,6 +108,7 @@ export const en: TranslationDictionary = {
 		welcomeNeutral: 'Welcome',
 		markAllRead: 'Mark all as read',
 		noNotifications: 'No notifications',
+		loadMore: 'Load more',
 	},
 	reservations: {
 		apartment: 'Apartment',

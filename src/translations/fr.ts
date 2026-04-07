@@ -108,6 +108,7 @@ export const fr: TranslationDictionary = {
 		welcomeNeutral: 'Bienvenu(e)',
 		markAllRead: 'Tout marquer comme lu',
 		noNotifications: 'Aucune notification',
+		loadMore: 'Voir plus',
 	},
 	reservations: {
 		apartment: 'Appartement',

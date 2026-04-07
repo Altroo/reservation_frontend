@@ -108,6 +108,7 @@ export type TranslationDictionary = {
 		welcomeNeutral: string;
 		markAllRead: string;
 		noNotifications: string;
+		loadMore: string;
 	};
 	reservations: {
 		apartment: string;

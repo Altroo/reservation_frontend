@@ -38,6 +38,7 @@ import {
 	DoneAll as DoneAllIcon,
 	ExpandMore as ExpandMoreIcon,
 	Hotel as HotelIcon,
+	Login as LoginIcon,
 	Logout as LogoutIcon,
 	Menu as MenuIcon,
 	MoreVert as MoreVertIcon,
@@ -72,12 +73,13 @@ import {
 	PLANNING,
 	RESERVATIONS_ADD,
 	RESERVATIONS_LIST,
+	RESERVATIONS_VIEW,
 	SITE_ROOT,
 	USERS_ADD,
 	USERS_LIST,
 } from '@/utils/routes';
 import { signOut, useSession } from 'next-auth/react';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { navigationBarTheme } from '@/utils/themes';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -231,6 +233,7 @@ const NavigationBar = (props: Props) => {
 	const { t, language, setLanguage } = useLanguage();
 	const navigationMenu = useMemo(() => getNavigationMenu(is_staff, t), [is_staff, t]);
 	const dispatch = useAppDispatch();
+	const router = useRouter();
 	const moreVertRef = useRef<HTMLButtonElement>(null);
 	const [mobileMenuAnchor, setMobileMenuAnchor] = useState<HTMLElement | null>(null);
 
@@ -240,6 +243,7 @@ const NavigationBar = (props: Props) => {
 	const { data: notifications } = useGetNotificationsQuery(undefined, { skip: status !== 'authenticated' });
 	const [markRead] = useMarkNotificationsReadMutation();
 	const [notifAnchor, setNotifAnchor] = useState<HTMLElement | null>(null);
+	const [visibleCount, setVisibleCount] = useState(10);
 
 	useEffect(() => {
 		if (unreadCountData?.count !== undefined) {
@@ -248,6 +252,7 @@ const NavigationBar = (props: Props) => {
 	}, [unreadCountData, dispatch]);
 
 	const handleNotifOpen = (e: React.MouseEvent<HTMLElement>) => {
+		setVisibleCount(10);
 		setNotifAnchor(e.currentTarget);
 	};
 	const handleNotifClose = () => {
@@ -256,6 +261,13 @@ const NavigationBar = (props: Props) => {
 	const handleMarkAllRead = async () => {
 		await markRead({});
 		dispatch(setUnreadCount(0));
+	};
+
+	const handleNotifClick = (reservationId: number | null) => {
+		handleNotifClose();
+		if (reservationId) {
+			router.push(RESERVATIONS_VIEW(reservationId));
+		}
 	};
 
 	const loading = status === 'loading';
@@ -354,7 +366,7 @@ const NavigationBar = (props: Props) => {
 									<>
 										<Desktop>
 											<IconButton color="inherit" onClick={handleNotifOpen}>
-												<Badge badgeContent={unreadCount} color="error" max={99}>
+											<Badge badgeContent={unreadCount} color="primary" max={99}>
 													<NotificationsIcon />
 												</Badge>
 											</IconButton>
@@ -393,7 +405,7 @@ const NavigationBar = (props: Props) => {
 											>
 												<MenuItem onClick={() => { setMobileMenuAnchor(null); setNotifAnchor(moreVertRef.current); }}>
 													<MenuListItemIcon>
-														<Badge badgeContent={unreadCount} color="error" max={99}>
+												<Badge badgeContent={unreadCount} color="primary" max={99}>
 															<NotificationsIcon fontSize="small" />
 														</Badge>
 													</MenuListItemIcon>
@@ -562,28 +574,49 @@ const NavigationBar = (props: Props) => {
 					<Divider />
 					<Box sx={{ maxHeight: 340, overflow: 'auto' }}>
 						{notifications && notifications.length > 0 ? (
-							notifications.map((n) => (
-								<Box
-									key={n.id}
-									sx={{
-										px: 2,
-										py: 1.5,
-										backgroundColor: n.is_read ? 'transparent' : 'action.hover',
-										borderBottom: '1px solid',
-										borderColor: 'divider',
-									}}
-								>
-									<Typography variant="body2" fontWeight={n.is_read ? 400 : 700}>
-										{n.title}
-									</Typography>
-									<Typography variant="caption" color="text.secondary">
-										{n.message}
-									</Typography>
-									<Typography variant="caption" display="block" color="text.disabled" mt={0.5}>
-										{formatDate(n.date_created)}
-									</Typography>
-								</Box>
-							))
+							<>
+								{notifications.slice(0, visibleCount).map((n) => (
+									<Box
+										key={n.id}
+										onClick={() => handleNotifClick(n.reservation_id)}
+										sx={{
+											px: 2,
+											py: 1.5,
+											display: 'flex',
+											alignItems: 'flex-start',
+											gap: 1.5,
+											backgroundColor: n.is_read ? 'transparent' : 'action.hover',
+											borderBottom: '1px solid',
+											borderColor: 'divider',
+											cursor: n.reservation_id ? 'pointer' : 'default',
+											transition: 'background-color 0.15s',
+											'&:hover': n.reservation_id ? { backgroundColor: 'action.selected' } : {},
+										}}
+									>
+										<Box sx={{ mt: 0.25, color: 'primary.main', flexShrink: 0 }}>
+											{n.notification_type === 'check_in' ? <LoginIcon fontSize="small" /> : <LogoutIcon fontSize="small" />}
+										</Box>
+										<Box sx={{ minWidth: 0, flex: 1 }}>
+											<Typography variant="body2" fontWeight={n.is_read ? 400 : 600} noWrap>
+												{n.title}
+											</Typography>
+											<Typography variant="caption" color="text.secondary" sx={{ display: 'block', lineHeight: 1.4 }}>
+												{n.message}
+											</Typography>
+											<Typography variant="caption" color="text.disabled" sx={{ display: 'block', mt: 0.5 }}>
+												{formatDate(n.date_created)}
+											</Typography>
+										</Box>
+									</Box>
+								))}
+								{notifications.length > visibleCount && (
+									<Box sx={{ p: 1.5, textAlign: 'center' }}>
+										<Button size="small" onClick={() => setVisibleCount((prev) => prev + 10)}>
+											{t.navigation.loadMore}
+										</Button>
+									</Box>
+								)}
+							</>
 						) : (
 							<Box sx={{ p: 3, textAlign: 'center' }}>
 								<Typography variant="body2" color="text.secondary">

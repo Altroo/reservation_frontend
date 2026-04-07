@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useRef, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useMemo, useState } from 'react';
 import { styled, ThemeProvider } from '@mui/material/styles';
 import MuiAppBar, { type AppBarProps as MuiAppBarProps } from '@mui/material/AppBar';
 import {
@@ -87,12 +87,14 @@ import { Desktop, TabletAndMobile } from '@/utils/clientHelpers';
 import LanguageSwitcher from '@/components/shared/languageSwitcher/languageSwitcher';
 import {
 	useGetNotificationsQuery,
+	useLazyGetNotificationsQuery,
 	useGetUnreadNotificationCountQuery,
 	useMarkNotificationsReadMutation,
 } from '@/store/services/reservation';
 import { setUnreadCount } from '@/store/slices/notificationSlice';
 import { formatDate } from '@/utils/helpers';
 
+import type { NotificationType } from '@/types/reservationTypes';
 import type { TranslationDictionary } from '@/types/languageTypes';
 
 const getNavigationMenu = (isStaff: boolean, t: TranslationDictionary) => {
@@ -240,10 +242,22 @@ const NavigationBar = (props: Props) => {
 	// Notification state
 	const unreadCount = useAppSelector(getUnreadNotificationCount);
 	const { data: unreadCountData } = useGetUnreadNotificationCountQuery(undefined, { skip: status !== 'authenticated' });
-	const { data: notifications } = useGetNotificationsQuery(undefined, { skip: status !== 'authenticated' });
+	const { data: firstPage } = useGetNotificationsQuery({ page: 1 }, { skip: status !== 'authenticated' });
+	const [fetchNotifications] = useLazyGetNotificationsQuery();
 	const [markRead] = useMarkNotificationsReadMutation();
 	const [notifAnchor, setNotifAnchor] = useState<HTMLElement | null>(null);
-	const [visibleCount, setVisibleCount] = useState(10);
+	const [allNotifications, setAllNotifications] = useState<NotificationType[]>([]);
+	const [notifPage, setNotifPage] = useState(1);
+	const [hasMore, setHasMore] = useState(false);
+	const [loadingMore, setLoadingMore] = useState(false);
+
+	useEffect(() => {
+		if (firstPage) {
+			setAllNotifications(firstPage.results);
+			setHasMore(firstPage.next !== null);
+			setNotifPage(1);
+		}
+	}, [firstPage]);
 
 	useEffect(() => {
 		if (unreadCountData?.count !== undefined) {
@@ -252,7 +266,6 @@ const NavigationBar = (props: Props) => {
 	}, [unreadCountData, dispatch]);
 
 	const handleNotifOpen = (e: React.MouseEvent<HTMLElement>) => {
-		setVisibleCount(10);
 		setNotifAnchor(e.currentTarget);
 	};
 	const handleNotifClose = () => {
@@ -269,6 +282,19 @@ const NavigationBar = (props: Props) => {
 			router.push(RESERVATIONS_VIEW(reservationId));
 		}
 	};
+
+	const handleLoadMore = useCallback(async () => {
+		const nextPage = notifPage + 1;
+		setLoadingMore(true);
+		try {
+			const result = await fetchNotifications({ page: nextPage }).unwrap();
+			setAllNotifications((prev) => [...prev, ...result.results]);
+			setHasMore(result.next !== null);
+			setNotifPage(nextPage);
+		} finally {
+			setLoadingMore(false);
+		}
+	}, [notifPage, fetchNotifications]);
 
 	const loading = status === 'loading';
 
@@ -573,9 +599,9 @@ const NavigationBar = (props: Props) => {
 					</Stack>
 					<Divider />
 					<Box sx={{ maxHeight: 340, overflow: 'auto' }}>
-						{notifications && notifications.length > 0 ? (
+						{allNotifications.length > 0 ? (
 							<>
-								{notifications.slice(0, visibleCount).map((n) => (
+								{allNotifications.map((n) => (
 									<Box
 										key={n.id}
 										onClick={() => handleNotifClick(n.reservation_id)}
@@ -609,10 +635,10 @@ const NavigationBar = (props: Props) => {
 										</Box>
 									</Box>
 								))}
-								{notifications.length > visibleCount && (
+								{hasMore && (
 									<Box sx={{ p: 1.5, textAlign: 'center' }}>
-										<Button size="small" onClick={() => setVisibleCount((prev) => prev + 10)}>
-											{t.navigation.loadMore}
+										<Button size="small" onClick={handleLoadMore} disabled={loadingMore}>
+											{loadingMore ? t.common.loading : t.navigation.loadMore}
 										</Button>
 									</Box>
 								)}

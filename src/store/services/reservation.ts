@@ -281,10 +281,11 @@ export const reservationApi = createApi({
 		}),
 
 		// ── Notifications ────────────────────────────────────────────────
-		getNotifications: builder.query<NotificationType[], void>({
-			query: () => ({
+		getNotifications: builder.query<PaginationResponseType<NotificationType>, { page?: number }>({
+			query: ({ page } = {}) => ({
 				url: process.env.NEXT_PUBLIC_RESERVATION_NOTIFICATIONS,
 				method: 'GET',
+				params: { page: page || 1 },
 			}),
 			providesTags: ['Notification'],
 		}),
@@ -558,6 +559,7 @@ export const {
 	useDeleteCostMutation,
 	useBulkDeleteCostsMutation,
 	useGetNotificationsQuery,
+	useLazyGetNotificationsQuery,
 	useGetNotificationPreferencesQuery,
 	useUpdateNotificationPreferencesMutation,
 	useMarkNotificationsReadMutation,

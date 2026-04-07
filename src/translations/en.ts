@@ -575,8 +575,7 @@ export const en: TranslationDictionary = {
 		accessDeniedText:
 			'You do not have permission to access this page. Please contact an administrator if you believe this is an error.',
 		maintenanceTitle: 'Maintenance in progress',
-		maintenanceText:
-			'We are currently performing maintenance on E.B.H Reservation to improve application stability.',
+		maintenanceText: 'We are currently performing maintenance on the application. Thank you for your patience.',
 		maintenanceSuspended: 'Access to the application is temporarily suspended.',
 		maintenanceThanks: 'Please come back later. Your data remains unchanged during the intervention.',
 		sessionExpired: 'Your session has expired, please log in again.',

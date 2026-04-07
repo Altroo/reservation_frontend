@@ -38,9 +38,9 @@ const mockUseGetReservationsListQuery = jest.fn(() => ({
 		results: [
 			{
 				id: 1,
-									apartment_code: 'APT-01',
-									apartment_name: 'Appartement Luxe',
-									apartment_nom: 'APT-01',
+				apartment_code: 'APT-01',
+				apartment_name: 'Appartement Luxe',
+				apartment_nom: 'APT-01',
 				guest_name: 'Ahmed Ben Ali',
 				check_in: '2024-06-01',
 				check_out: '2024-06-05',
@@ -50,9 +50,9 @@ const mockUseGetReservationsListQuery = jest.fn(() => ({
 			},
 			{
 				id: 2,
-									apartment_code: 'APT-02',
-									apartment_name: 'Studio Marina',
-									apartment_nom: 'APT-02',
+				apartment_code: 'APT-02',
+				apartment_name: 'Studio Marina',
+				apartment_nom: 'APT-02',
 				guest_name: 'Marie Dupont',
 				check_in: '2024-07-10',
 				check_out: '2024-07-15',

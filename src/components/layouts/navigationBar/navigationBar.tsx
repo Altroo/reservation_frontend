@@ -283,6 +283,18 @@ const NavigationBar = (props: Props) => {
 		}
 	};
 
+	// Request browser notification permission once when user is authenticated
+	useEffect(() => {
+		if (
+			status === 'authenticated' &&
+			typeof window !== 'undefined' &&
+			'Notification' in window &&
+			Notification.permission === 'default'
+		) {
+			void Notification.requestPermission();
+		}
+	}, [status]);
+
 	const handleLoadMore = useCallback(async () => {
 		const nextPage = notifPage + 1;
 		setLoadingMore(true);

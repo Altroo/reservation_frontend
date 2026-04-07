@@ -55,7 +55,7 @@ export function* watchWS(): SagaIterator<void> {
         if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
           new Notification(action.notification.title, {
             body: action.notification.message,
-            icon: '/assets/images/logo.png',
+            icon: '/assets/images/reservation-logo.png',
           });
         }
       } else {

@@ -175,8 +175,8 @@ const ReservationsListClient: React.FC<SessionProps> = ({ session }) => {
 		{
 			field: 'apartment_nom',
 			headerName: t.reservations.columnAppartment,
-			flex: 0.7,
-			minWidth: 90,
+			flex: 0.8,
+			minWidth: 100,
 			filterable: false,
 			renderCell: (params: GridRenderCellParams<ReservationClass>) => (
 				<DarkTooltip title={params.value ?? ''}>

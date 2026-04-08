@@ -8,10 +8,10 @@ beforeAll(() => {
 	process.env.NEXT_PUBLIC_RESERVATION_PLANNING ||= 'https://example.com/api/planning/';
 	process.env.NEXT_PUBLIC_RESERVATION_BALANCE ||= 'https://example.com/api/balance/';
 	process.env.NEXT_PUBLIC_RESERVATION_COSTS ||= 'https://example.com/api/costs/';
-	process.env.NEXT_PUBLIC_RESERVATION_NOTIFICATIONS ||= 'https://example.com/api/notifications/';
-	process.env.NEXT_PUBLIC_RESERVATION_NOTIFICATION_PREFERENCES ||= 'https://example.com/api/notifications/preferences/';
-	process.env.NEXT_PUBLIC_RESERVATION_NOTIFICATION_MARK_READ ||= 'https://example.com/api/notifications/mark-read/';
-	process.env.NEXT_PUBLIC_RESERVATION_NOTIFICATION_UNREAD_COUNT ||= 'https://example.com/api/notifications/unread-count/';
+	process.env.NEXT_PUBLIC_RESERVATION_NOTIFICATIONS ||= 'https://example.com/notifications/';
+	process.env.NEXT_PUBLIC_RESERVATION_NOTIFICATION_PREFERENCES ||= 'https://example.com/notifications/preferences/';
+	process.env.NEXT_PUBLIC_RESERVATION_NOTIFICATION_MARK_READ ||= 'https://example.com/notifications/mark-read/';
+	process.env.NEXT_PUBLIC_RESERVATION_NOTIFICATION_UNREAD_COUNT ||= 'https://example.com/notifications/unread-count/';
 });
 
 jest.mock('@/utils/axiosBaseQuery', () => ({

@@ -26,6 +26,7 @@ type Props = {
 	name?: string;
 	required?: boolean;
 	autoComplete?: string;
+	autoFocus?: boolean;
 	maxLength?: number;
 	shrink?: boolean;
 	multiline?: boolean;
@@ -33,7 +34,7 @@ type Props = {
 };
 
 const CustomTextInput = forwardRef<HTMLInputElement, Props>((props: Props, ref: ForwardedRef<HTMLInputElement>) => {
-	const { cssClass, theme, startIcon, endIcon, maxLength, shrink, multiline, rows, ...restOfProps } = props;
+	const { cssClass, theme, startIcon, endIcon, maxLength, shrink, multiline, rows, autoFocus, ...restOfProps } = props;
 
 	return (
 		<ThemeProvider theme={theme}>
@@ -54,6 +55,7 @@ const CustomTextInput = forwardRef<HTMLInputElement, Props>((props: Props, ref: 
 				fullWidth={props.fullWidth}
 				className={cssClass}
 				size={props.size}
+				autoFocus={autoFocus}
 				onClick={props.onClick}
 				color="primary"
 				disabled={props.disabled}

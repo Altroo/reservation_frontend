@@ -72,6 +72,15 @@ jest.mock('@/components/formikElements/customAutoCompleteSelect/customAutoComple
 	),
 }));
 
+jest.mock('@/components/formikElements/customDropDownSelect/customDropDownSelect', () => ({
+	__esModule: true,
+	default: ({ id, label }: { id: string; label: string }) => (
+		<div data-testid={`dropdown-${id}`}>
+			<label>{label}</label>
+		</div>
+	),
+}));
+
 jest.mock('@/components/htmlElements/buttons/primaryLoadingButton/primaryLoadingButton', () => ({
 	__esModule: true,
 	default: ({ buttonText, type }: { buttonText: string; type?: string }) => (
@@ -97,7 +106,9 @@ jest.mock('@/components/shared/addEntityModal/addEntityModal', () => ({
 }));
 
 jest.mock('@/utils/themes', () => ({
+	__esModule: true,
 	textInputTheme: jest.fn(() => ({})),
+	customDropdownTheme: jest.fn(() => ({})),
 }));
 
 // Mock Protected

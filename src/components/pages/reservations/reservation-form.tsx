@@ -16,14 +16,9 @@ import {
 	DialogContent,
 	DialogTitle,
 	Divider,
-	FormControl,
 	IconButton,
 	InputAdornment,
-	InputLabel,
-	MenuItem,
-	Select,
 	Stack,
-	TextField,
 	Typography,
 	useMediaQuery,
 	useTheme,
@@ -51,6 +46,7 @@ import { fr } from 'date-fns/locale';
 import { format, parseISO, isWithinInterval, subDays } from 'date-fns';
 import CustomTextInput from '@/components/formikElements/customTextInput/customTextInput';
 import CustomAutoCompleteSelect from '@/components/formikElements/customAutoCompleteSelect/customAutoCompleteSelect';
+import CustomDropDownSelect from '@/components/formikElements/customDropDownSelect/customDropDownSelect';
 import AddEntityModal from '@/components/shared/addEntityModal/addEntityModal';
 import ActionModals from '@/components/htmlElements/modals/actionModal/actionModals';
 import type { DropDownType } from '@/types/accountTypes';
@@ -59,7 +55,7 @@ import ApiProgress from '@/components/formikElements/apiLoading/apiProgress/apiP
 import ApiAlert from '@/components/formikElements/apiLoading/apiAlert/apiAlert';
 import { reservationSchema } from '@/utils/formValidationSchemas';
 import { getLabelForKey, setFormikAutoErrors, extractApiErrorMessage } from '@/utils/helpers';
-import { textInputTheme } from '@/utils/themes';
+import { customDropdownTheme, textInputTheme } from '@/utils/themes';
 import { RESERVATIONS_LIST, RESERVATIONS_VIEW } from '@/utils/routes';
 import { useRouter } from 'next/navigation';
 import { useToast, useLanguage } from '@/utils/hooks';
@@ -78,6 +74,7 @@ import { useInitAccessToken } from '@/contexts/InitContext';
 import { Protected } from '@/components/layouts/protected/protected';
 
 const inputTheme = textInputTheme();
+const dropdownTheme = customDropdownTheme();
 
 type FormikContentProps = {
 	token: string | undefined;
@@ -250,6 +247,19 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 		if (!v) return null;
 		return paymentSourceItems.find((p) => p.value === v) ?? null;
 	}, [formik.values.payment_source, paymentSourceItems]);
+
+	const buildingItems: DropDownType[] = useMemo(
+		() => [
+			{ code: 'none', value: t.common.none },
+			...(buildings ?? []).map((building) => ({ code: String(building.id), value: building.nom })),
+		],
+		[buildings, t.common.none],
+	);
+
+	const selectedBuildingValue = useMemo(() => {
+		if (editAptBuilding === '') return t.common.none;
+		return buildings?.find((building) => building.id === editAptBuilding)?.nom ?? t.common.none;
+	}, [buildings, editAptBuilding, t.common.none]);
 
 	const validationEntries = useMemo(
 		() => Object.entries(formik.errors).filter(([k]) => k !== 'globalError') as [string, string][],
@@ -582,36 +592,45 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 			<Dialog open={editAptId !== null} onClose={() => setEditAptId(null)}>
 				<DialogTitle>{t.reservations.editApartment}</DialogTitle>
 				<DialogContent>
-					<TextField
-						autoFocus
-						margin="dense"
-						label={t.reservations.newApartmentName}
-						fullWidth
-						size="small"
-						value={editAptName}
-						onChange={(e) => {
-							setEditAptName(e.target.value);
-							if (editAptError) setEditAptError(null);
-						}}
-						error={Boolean(editAptError)}
-						helperText={editAptError ?? ''}
-					/>
+					<Box sx={{ mt: 1 }}>
+						<CustomTextInput
+							autoFocus
+							id="edit_apartment_name"
+							type="text"
+							label={t.reservations.newApartmentName}
+							fullWidth
+							size="small"
+							value={editAptName}
+							onChange={(e) => {
+								setEditAptName(e.target.value);
+								if (editAptError) setEditAptError(null);
+							}}
+							error={Boolean(editAptError)}
+							helperText={editAptError ?? ''}
+							theme={inputTheme}
+						/>
+					</Box>
 					{buildings && buildings.length > 0 && (
-						<FormControl fullWidth size="small" sx={{ mt: 2 }}>
-							<InputLabel>{t.reservations.residence}</InputLabel>
-							<Select
-								value={editAptBuilding}
+						<Box sx={{ mt: 2 }}>
+							<CustomDropDownSelect
+								id="edit_apartment_building"
+								size="small"
 								label={t.reservations.residence}
-								onChange={(e) => setEditAptBuilding(e.target.value as number | '')}
-							>
-								<MenuItem value="">
-									<em>{t.reservations.noResidence}</em>
-								</MenuItem>
-								{buildings.map((b) => (
-									<MenuItem key={b.id} value={b.id}>{b.nom}</MenuItem>
-								))}
-							</Select>
-						</FormControl>
+								items={buildingItems}
+								value={selectedBuildingValue}
+								onChange={(e) => {
+									const nextValue = e.target.value;
+									if (!nextValue || nextValue === t.common.none) {
+										setEditAptBuilding('');
+										return;
+									}
+
+									const building = buildings.find((item) => item.nom === nextValue);
+									setEditAptBuilding(building ? building.id : '');
+								}}
+								theme={dropdownTheme}
+							/>
+						</Box>
 					)}
 				</DialogContent>
 				<DialogActions>

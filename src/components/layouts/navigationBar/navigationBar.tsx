@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useCallback, useEffect, useRef, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { styled, ThemeProvider } from '@mui/material/styles';
 import MuiAppBar, { type AppBarProps as MuiAppBarProps } from '@mui/material/AppBar';
 import {
@@ -17,8 +17,8 @@ import {
 	ListItem,
 	ListItemButton,
 	ListItemIcon,
-	ListItemText,
 	ListItemIcon as MenuListItemIcon,
+	ListItemText,
 	ListItemText as MenuListItemText,
 	Menu,
 	MenuItem,
@@ -32,6 +32,7 @@ import {
 	useTheme,
 } from '@mui/material';
 import {
+	Apartment as ApartmentIcon,
 	BarChart as BarChartIcon,
 	Dashboard as DashboardIcon,
 	Domain as DomainIcon,
@@ -46,7 +47,6 @@ import {
 	Payments as PaymentsIcon,
 	People as PeopleIcon,
 	Settings as SettingsIcon,
-	Apartment as ApartmentIcon,
 } from '@mui/icons-material';
 import { useAppDispatch, useAppSelector, useLanguage } from '@/utils/hooks';
 import { getProfilState, getUnreadNotificationCount } from '@/store/selectors';
@@ -61,14 +61,14 @@ import {
 	COSTS_ADD,
 	COSTS_LIST,
 	DASHBOARD,
-	LOCAUX_ADD,
-	LOCAUX_DASHBOARD,
-	LOCAUX_LIST,
-	LOCAUX_PLANNING,
 	DASHBOARD_EDIT_PROFILE,
 	DASHBOARD_NOTIFICATIONS,
 	DASHBOARD_PASSWORD,
 	GAINS,
+	LOCAUX_ADD,
+	LOCAUX_DASHBOARD,
+	LOCAUX_LIST,
+	LOCAUX_PLANNING,
 	OCCUPANCY,
 	PLANNING,
 	RESERVATIONS_ADD,
@@ -87,8 +87,8 @@ import { Desktop, TabletAndMobile } from '@/utils/clientHelpers';
 import LanguageSwitcher from '@/components/shared/languageSwitcher/languageSwitcher';
 import {
 	useGetNotificationsQuery,
-	useLazyGetNotificationsQuery,
 	useGetUnreadNotificationCountQuery,
+	useLazyGetNotificationsQuery,
 	useMarkNotificationsReadMutation,
 } from '@/store/services/reservation';
 import { setUnreadCount } from '@/store/slices/notificationSlice';
@@ -165,7 +165,11 @@ const getNavigationMenu = (isStaff: boolean, t: TranslationDictionary) => {
 			items: [
 				{ title: t.navigation.myProfile, label: t.navigation.myProfile, path: DASHBOARD_EDIT_PROFILE },
 				{ title: t.navigation.password, label: t.navigation.changePassword, path: DASHBOARD_PASSWORD },
-				{ title: t.navigation.notifications, label: t.navigation.notificationPreferences, path: DASHBOARD_NOTIFICATIONS },
+				{
+					title: t.navigation.notifications,
+					label: t.navigation.notificationPreferences,
+					path: DASHBOARD_NOTIFICATIONS,
+				},
 			],
 		},
 	};
@@ -388,10 +392,28 @@ const NavigationBar = (props: Props) => {
 			<Box sx={{ display: 'flex' }}>
 				<AppBar position="fixed" open={open}>
 					<Toolbar>
-						<Stack direction="row" justifyContent="space-between" alignItems="center" width="100%">
-							<Stack direction="row" alignItems="center" spacing={1}>
+						<Stack
+							direction="row"
+							sx={{
+								justifyContent: 'space-between',
+								alignItems: 'center',
+								width: '100%',
+							}}
+						>
+							<Stack
+								direction="row"
+								spacing={1}
+								sx={{
+									alignItems: 'center',
+								}}
+							>
 								{isMobile && (
-									<IconButton color="inherit" aria-label={t.common.toggleDrawer} onClick={handleDrawerToggle} size="small">
+									<IconButton
+										color="inherit"
+										aria-label={t.common.toggleDrawer}
+										onClick={handleDrawerToggle}
+										size="small"
+									>
 										<MenuIcon />
 									</IconButton>
 								)}
@@ -404,7 +426,7 @@ const NavigationBar = (props: Props) => {
 									<>
 										<Desktop>
 											<IconButton color="inherit" onClick={handleNotifOpen}>
-											<Badge badgeContent={unreadCount} color="primary" max={99}>
+												<Badge badgeContent={unreadCount} color="primary" max={99}>
 													<NotificationsIcon />
 												</Badge>
 											</IconButton>
@@ -441,26 +463,53 @@ const NavigationBar = (props: Props) => {
 												anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
 												transformOrigin={{ vertical: 'top', horizontal: 'right' }}
 											>
-												<MenuItem onClick={() => { setMobileMenuAnchor(null); setNotifAnchor(moreVertRef.current); }}>
+												<MenuItem
+													onClick={() => {
+														setMobileMenuAnchor(null);
+														setNotifAnchor(moreVertRef.current);
+													}}
+												>
 													<MenuListItemIcon>
-												<Badge badgeContent={unreadCount} color="primary" max={99}>
+														<Badge badgeContent={unreadCount} color="primary" max={99}>
 															<NotificationsIcon fontSize="small" />
 														</Badge>
 													</MenuListItemIcon>
 													<MenuListItemText>{t.navigation.notifications}</MenuListItemText>
 												</MenuItem>
-												<MenuItem onClick={() => { setLanguage(language === 'fr' ? 'en' : 'fr'); setMobileMenuAnchor(null); }}>
-												<MenuListItemIcon><span style={{ fontSize: '1.2rem', lineHeight: 1 }}>{language === 'fr' ? '🇬🇧' : '🇫🇷'}</span></MenuListItemIcon>
+												<MenuItem
+													onClick={() => {
+														setLanguage(language === 'fr' ? 'en' : 'fr');
+														setMobileMenuAnchor(null);
+													}}
+												>
+													<MenuListItemIcon>
+														<span style={{ fontSize: '1.2rem', lineHeight: 1 }}>{language === 'fr' ? '🇬🇧' : '🇫🇷'}</span>
+													</MenuListItemIcon>
 													<MenuListItemText>{language === 'fr' ? 'English' : 'Français'}</MenuListItemText>
 												</MenuItem>
 												{is_staff && (
-													<MenuItem component="a" href={BACKEND_SITE_ADMIN} target="_blank" rel="noopener" onClick={() => setMobileMenuAnchor(null)}>
-														<MenuListItemIcon><DomainIcon fontSize="small" /></MenuListItemIcon>
+													<MenuItem
+														component="a"
+														href={BACKEND_SITE_ADMIN}
+														target="_blank"
+														rel="noopener"
+														onClick={() => setMobileMenuAnchor(null)}
+													>
+														<MenuListItemIcon>
+															<DomainIcon fontSize="small" />
+														</MenuListItemIcon>
 														<MenuListItemText>{t.navigation.administration}</MenuListItemText>
 													</MenuItem>
 												)}
-												<MenuItem onClick={() => { setMobileMenuAnchor(null); void logOutHandler(); }}>
-													<MenuListItemIcon><LogoutIcon fontSize="small" /></MenuListItemIcon>
+												<MenuItem
+													onClick={() => {
+														setMobileMenuAnchor(null);
+														void logOutHandler();
+													}}
+												>
+													<MenuListItemIcon>
+														<LogoutIcon fontSize="small" />
+													</MenuListItemIcon>
 													<MenuListItemText>{t.navigation.logout}</MenuListItemText>
 												</MenuItem>
 											</Menu>
@@ -512,7 +561,11 @@ const NavigationBar = (props: Props) => {
 						)}
 						<Box sx={{ display: 'flex', flexDirection: 'column' }}>
 							<Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
-								{gender === 'Homme' ? t.navigation.welcomeMale : gender === 'Femme' ? t.navigation.welcomeFemale : t.navigation.welcomeNeutral}
+								{gender === 'Homme'
+									? t.navigation.welcomeMale
+									: gender === 'Femme'
+										? t.navigation.welcomeFemale
+										: t.navigation.welcomeNeutral}
 							</Typography>
 							<Typography variant="body2" sx={{ color: 'text.secondary' }}>
 								{first_name} {last_name}
@@ -597,8 +650,21 @@ const NavigationBar = (props: Props) => {
 					transformOrigin={{ vertical: 'top', horizontal: 'right' }}
 					slotProps={{ paper: { sx: { width: 360, maxHeight: 420 } } }}
 				>
-					<Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ px: 2, py: 1.5 }}>
-						<Typography variant="subtitle1" fontWeight={700}>
+					<Stack
+						direction="row"
+						sx={{
+							justifyContent: 'space-between',
+							alignItems: 'center',
+							px: 2,
+							py: 1.5,
+						}}
+					>
+						<Typography
+							variant="subtitle1"
+							sx={{
+								fontWeight: 700,
+							}}
+						>
 							{t.navigation.notifications}
 						</Typography>
 						{unreadCount > 0 && (
@@ -632,16 +698,40 @@ const NavigationBar = (props: Props) => {
 										}}
 									>
 										<Box sx={{ mt: 0.25, color: 'primary.main', flexShrink: 0 }}>
-											{n.notification_type === 'check_in' ? <LoginIcon fontSize="small" /> : <LogoutIcon fontSize="small" />}
+											{n.notification_type === 'check_in' ? (
+												<LoginIcon fontSize="small" />
+											) : (
+												<LogoutIcon fontSize="small" />
+											)}
 										</Box>
 										<Box sx={{ minWidth: 0, flex: 1 }}>
-											<Typography variant="body2" fontWeight={n.is_read ? 400 : 600} noWrap>
+											<Typography
+												variant="body2"
+												noWrap
+												sx={{
+													fontWeight: n.is_read ? 400 : 600,
+												}}
+											>
 												{n.title}
 											</Typography>
-											<Typography variant="caption" color="text.secondary" sx={{ display: 'block', lineHeight: 1.4 }}>
+											<Typography
+												variant="caption"
+												sx={{
+													color: 'text.secondary',
+													display: 'block',
+													lineHeight: 1.4,
+												}}
+											>
 												{n.message}
 											</Typography>
-											<Typography variant="caption" color="text.disabled" sx={{ display: 'block', mt: 0.5 }}>
+											<Typography
+												variant="caption"
+												sx={{
+													color: 'text.disabled',
+													display: 'block',
+													mt: 0.5,
+												}}
+											>
 												{formatDate(n.date_created)}
 											</Typography>
 										</Box>
@@ -657,7 +747,12 @@ const NavigationBar = (props: Props) => {
 							</>
 						) : (
 							<Box sx={{ p: 3, textAlign: 'center' }}>
-								<Typography variant="body2" color="text.secondary">
+								<Typography
+									variant="body2"
+									sx={{
+										color: 'text.secondary',
+									}}
+								>
 									{t.navigation.noNotifications}
 								</Typography>
 							</Box>

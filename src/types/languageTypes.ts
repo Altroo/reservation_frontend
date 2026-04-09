@@ -574,6 +574,12 @@ export type TranslationDictionary = {
 		unauthorized: string;
 		authenticationRequired: string;
 	};
+	notFound: {
+		title: string;
+		message: string;
+		backBtn: string;
+		homeBtn: string;
+	};
 	filters: {
 		contains: string;
 		equals: string;

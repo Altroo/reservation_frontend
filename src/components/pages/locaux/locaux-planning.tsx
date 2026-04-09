@@ -26,10 +26,10 @@ import {
 import {
 	CalendarMonth as CalendarMonthIcon,
 	CalendarToday as CalendarTodayIcon,
-	CheckCircleOutline as CheckCircleOutlineIcon,
+	CheckCircleOutlined as CheckCircleOutlineIcon,
 	HighlightOff as HighlightOffIcon,
 	InfoOutlined as InfoOutlinedIcon,
-	RemoveCircleOutline as EmptyIcon,
+	RemoveCircleOutlined as EmptyIcon,
 } from '@mui/icons-material';
 import ApartmentIcon from '@mui/icons-material/Apartment';
 import CustomDropDownSelect from '@/components/formikElements/customDropDownSelect/customDropDownSelect';
@@ -40,7 +40,12 @@ import type { PlanningLocalType } from '@/types/localTypes';
 import NavigationBar from '@/components/layouts/navigationBar/navigationBar';
 import { Protected } from '@/components/layouts/protected/protected';
 import { LOCAUX_VIEW } from '@/utils/routes';
-import { useGetLocalPlanningQuery, useGetLocalYearsQuery, useToggleLoyerPaidMutation, useGetBuildingsQuery } from '@/store/services/reservation';
+import {
+	useGetBuildingsQuery,
+	useGetLocalPlanningQuery,
+	useGetLocalYearsQuery,
+	useToggleLoyerPaidMutation,
+} from '@/store/services/reservation';
 import { useInitAccessToken } from '@/contexts/InitContext';
 import { useLanguage } from '@/utils/hooks';
 import { LOCAL_TYPE_LABEL_KEYS } from '@/utils/rawData';
@@ -74,14 +79,40 @@ function KpiCard({ color, icon, label, value, tooltip }: KpiCardProps) {
 			}}
 		>
 			<CardContent sx={{ py: 1.5, px: 2, '&:last-child': { pb: 1.5 } }}>
-				<Stack direction="row" alignItems="center" justifyContent="space-between">
-					<Stack direction="row" alignItems="center" spacing={1.5}>
+				<Stack
+					direction="row"
+					sx={{
+						alignItems: 'center',
+						justifyContent: 'space-between',
+					}}
+				>
+					<Stack
+						direction="row"
+						spacing={1.5}
+						sx={{
+							alignItems: 'center',
+						}}
+					>
 						<Box sx={{ color }}>{icon}</Box>
 						<Box>
-							<Typography variant="caption" color="text.secondary" sx={{ textTransform: 'uppercase', letterSpacing: 0.5 }}>
+							<Typography
+								variant="caption"
+								sx={{
+									color: 'text.secondary',
+									textTransform: 'uppercase',
+									letterSpacing: 0.5,
+								}}
+							>
 								{label}
 							</Typography>
-							<Typography variant="h6" fontWeight={700}>{value}</Typography>
+							<Typography
+								variant="h6"
+								sx={{
+									fontWeight: 700,
+								}}
+							>
+								{value}
+							</Typography>
 						</Box>
 					</Stack>
 					{tooltip && (
@@ -118,7 +149,10 @@ const LocauxPlanningClient: React.FC<SessionProps> = ({ session }) => {
 	const { data: buildingsData } = useGetBuildingsQuery(undefined, { skip: !token });
 
 	const buildingItems: DropDownType[] = useMemo(
-		() => [{ code: t.locaux.allResidences, value: t.locaux.allResidences }, ...(buildingsData ?? []).map((b) => ({ code: b.nom, value: b.nom }))],
+		() => [
+			{ code: t.locaux.allResidences, value: t.locaux.allResidences },
+			...(buildingsData ?? []).map((b) => ({ code: b.nom, value: b.nom })),
+		],
 		[buildingsData, t],
 	);
 
@@ -127,7 +161,10 @@ const LocauxPlanningClient: React.FC<SessionProps> = ({ session }) => {
 		[availableYears],
 	);
 
-	const { data: planningData, isLoading } = useGetLocalPlanningQuery({ year, ...(buildingId ? { building: buildingId } : {}) }, { skip: !token });
+	const { data: planningData, isLoading } = useGetLocalPlanningQuery(
+		{ year, ...(buildingId ? { building: buildingId } : {}) },
+		{ skip: !token },
+	);
 	const locaux = useMemo(() => (planningData?.locaux ?? []) as PlanningLocalType[], [planningData]);
 	const [toggleLoyerPaid] = useToggleLoyerPaidMutation();
 
@@ -168,7 +205,10 @@ const LocauxPlanningClient: React.FC<SessionProps> = ({ session }) => {
 		}
 		return (
 			<MuiTooltip
-				title={t.locaux.clickPaidUnpaidTooltip(Number(data.montant).toLocaleString('fr-MA'), data.paye ? t.locaux.markUnpaid : t.locaux.markPaid)}
+				title={t.locaux.clickPaidUnpaidTooltip(
+					Number(data.montant).toLocaleString('fr-MA'),
+					data.paye ? t.locaux.markUnpaid : t.locaux.markPaid,
+				)}
 				arrow
 			>
 				<Chip
@@ -185,57 +225,94 @@ const LocauxPlanningClient: React.FC<SessionProps> = ({ session }) => {
 	};
 
 	return (
-		<Stack direction="column" spacing={2} className={Styles.flexRootStack} mt="48px">
+		<Stack
+			direction="column"
+			spacing={2}
+			className={Styles.flexRootStack}
+			sx={{
+				mt: '48px',
+			}}
+		>
 			<NavigationBar title={t.locaux.rentPlanning}>
 				<Protected permission="can_view">
 					<Box sx={{ px: { xs: 1, sm: 2, md: 3 }, pb: 4 }}>
-						<Stack direction="row" justifyContent="space-between" alignItems="center" py={2} flexWrap="wrap" gap={1}>
-							<Typography variant="h5" fontWeight={600}>
+						<Stack
+							direction="row"
+							sx={{
+								justifyContent: 'space-between',
+								alignItems: 'center',
+								py: 2,
+								flexWrap: 'wrap',
+								gap: 1,
+							}}
+						>
+							<Typography
+								variant="h5"
+								sx={{
+									fontWeight: 600,
+								}}
+							>
 								{t.locaux.rentPlanningYear(year)}
 							</Typography>
 							<Stack direction="row" spacing={2}>
-							<Box sx={{ minWidth: 180 }}>
-								<CustomDropDownSelect
-									id="building-filter"
-									size="small"
-									label={t.locaux.residence}
-									items={buildingItems}
-									value={buildingId === '' ? t.locaux.allResidences : ((buildingsData ?? []).find((b) => b.id === buildingId)?.nom ?? t.locaux.allResidences)}
-									onChange={(e) => {
-										const name = e.target.value;
-										if (!name || name === t.locaux.allResidences) setBuildingId('');
-										else {
-											const b = (buildingsData ?? []).find((x) => x.nom === name);
-											setBuildingId(b ? b.id : '');
+								<Box sx={{ minWidth: 180 }}>
+									<CustomDropDownSelect
+										id="building-filter"
+										size="small"
+										label={t.locaux.residence}
+										items={buildingItems}
+										value={
+											buildingId === ''
+												? t.locaux.allResidences
+												: ((buildingsData ?? []).find((b) => b.id === buildingId)?.nom ?? t.locaux.allResidences)
 										}
-									}}
-									theme={customDropdownTheme()}
-									startIcon={<ApartmentIcon />}
-								/>
-							</Box>
-							<Box sx={{ minWidth: 150 }}>
-								<CustomDropDownSelect
-									id="year-filter"
-									size="small"
-									label={t.common.year}
-									items={yearItems}
-									value={String(year)}
-									onChange={(e) => setYear(Number(e.target.value))}
-									theme={customDropdownTheme()}
-									startIcon={<CalendarTodayIcon />}
-								/>
-							</Box>
+										onChange={(e) => {
+											const name = e.target.value;
+											if (!name || name === t.locaux.allResidences) setBuildingId('');
+											else {
+												const b = (buildingsData ?? []).find((x) => x.nom === name);
+												setBuildingId(b ? b.id : '');
+											}
+										}}
+										theme={customDropdownTheme()}
+										startIcon={<ApartmentIcon />}
+									/>
+								</Box>
+								<Box sx={{ minWidth: 150 }}>
+									<CustomDropDownSelect
+										id="year-filter"
+										size="small"
+										label={t.common.year}
+										items={yearItems}
+										value={String(year)}
+										onChange={(e) => setYear(Number(e.target.value))}
+										theme={customDropdownTheme()}
+										startIcon={<CalendarTodayIcon />}
+									/>
+								</Box>
 							</Stack>
 						</Stack>
 
 						{isLoading ? (
-							<Box display="flex" justifyContent="center" py={8}>
+							<Box
+								sx={{
+									display: 'flex',
+									justifyContent: 'center',
+									py: 8,
+								}}
+							>
 								<CircularProgress />
 							</Box>
 						) : (
 							<Stack spacing={3}>
 								{/* KPI cards */}
-								<Box sx={{ display: 'grid', gap: 2, gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(4, 1fr)' } }}>
+								<Box
+									sx={{
+										display: 'grid',
+										gap: 2,
+										gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(4, 1fr)' },
+									}}
+								>
 									<KpiCard
 										color="#1565c0"
 										icon={<CalendarMonthIcon />}
@@ -261,7 +338,11 @@ const LocauxPlanningClient: React.FC<SessionProps> = ({ session }) => {
 										color="#6a1b9a"
 										icon={<CalendarMonthIcon />}
 										label={t.locaux.paymentRate}
-										value={stats.paidCount + stats.unpaidCount > 0 ? `${Math.round((stats.paidCount / (stats.paidCount + stats.unpaidCount)) * 100)}%` : '—'}
+										value={
+											stats.paidCount + stats.unpaidCount > 0
+												? `${Math.round((stats.paidCount / (stats.paidCount + stats.unpaidCount)) * 100)}%`
+												: '—'
+										}
 										tooltip={t.locaux.paymentRateTooltip}
 									/>
 								</Box>
@@ -270,7 +351,13 @@ const LocauxPlanningClient: React.FC<SessionProps> = ({ session }) => {
 									<Card elevation={2}>
 										<CardContent sx={{ py: 6, textAlign: 'center' }}>
 											<CalendarMonthIcon sx={{ fontSize: 48, color: 'grey.400', mb: 2 }} />
-											<Typography color="text.secondary">{t.locaux.noLocauxRegistered}</Typography>
+											<Typography
+												sx={{
+													color: 'text.secondary',
+												}}
+											>
+												{t.locaux.noLocauxRegistered}
+											</Typography>
 										</CardContent>
 									</Card>
 								) : (
@@ -294,23 +381,47 @@ const LocauxPlanningClient: React.FC<SessionProps> = ({ session }) => {
 															<CardContent sx={{ py: 1.5, px: 2, '&:last-child': { pb: 1.5 } }}>
 																<Stack
 																	direction="row"
-																	justifyContent="space-between"
-																	alignItems="center"
-																	mb={1}
-																	sx={{ cursor: 'pointer' }}
 																	onClick={() => router.push(LOCAUX_VIEW(local.id))}
+																	sx={{
+																		justifyContent: 'space-between',
+																		alignItems: 'center',
+																		mb: 1,
+																		cursor: 'pointer',
+																	}}
 																>
 																	<Box>
-																		<Typography variant="body2" fontWeight={600}>{local.nom}</Typography>
-																		<Typography variant="caption" color="text.secondary">
-																			{t.rawData.localTypes[LOCAL_TYPE_LABEL_KEYS[local.type_local]]} — {local.en_location ? local.locataire_nom || t.locaux.inRental : t.common.free}
+																		<Typography
+																			variant="body2"
+																			sx={{
+																				fontWeight: 600,
+																			}}
+																		>
+																			{local.nom}
+																		</Typography>
+																		<Typography
+																			variant="caption"
+																			sx={{
+																				color: 'text.secondary',
+																			}}
+																		>
+																			{t.rawData.localTypes[LOCAL_TYPE_LABEL_KEYS[local.type_local]]} —{' '}
+																			{local.en_location ? local.locataire_nom || t.locaux.inRental : t.common.free}
 																		</Typography>
 																	</Box>
 																</Stack>
 																<Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 0.5 }}>
 																	{Array.from({ length: 12 }, (_, i) => i + 1).map((month) => (
-																		<Stack key={month} alignItems="center" spacing={0.25}>
-																			<Typography variant="caption" sx={{ fontSize: '0.65rem', color: 'text.secondary', fontWeight: 600 }}>
+																		<Stack
+																			key={month}
+																			spacing={0.25}
+																			sx={{
+																				alignItems: 'center',
+																			}}
+																		>
+																			<Typography
+																				variant="caption"
+																				sx={{ fontSize: '0.65rem', color: 'text.secondary', fontWeight: 600 }}
+																			>
 																				{t.rawData.monthLabels[month - 1]}
 																			</Typography>
 																			{renderMonthChip(local, month)}
@@ -326,11 +437,25 @@ const LocauxPlanningClient: React.FC<SessionProps> = ({ session }) => {
 													<Table size="small" sx={{ minWidth: 900 }}>
 														<TableHead>
 															<TableRow sx={{ bgcolor: 'primary.main' }}>
-																<TableCell sx={{ color: 'white', fontWeight: 700, minWidth: 180, position: 'sticky', left: 0, zIndex: 3, bgcolor: 'primary.main' }}>
+																<TableCell
+																	sx={{
+																		color: 'white',
+																		fontWeight: 700,
+																		minWidth: 180,
+																		position: 'sticky',
+																		left: 0,
+																		zIndex: 3,
+																		bgcolor: 'primary.main',
+																	}}
+																>
 																	{t.locaux.local}
 																</TableCell>
 																{t.rawData.monthLabels.map((m, i) => (
-																	<TableCell key={i} align="center" sx={{ color: 'white', fontWeight: 600, fontSize: '0.75rem' }}>
+																	<TableCell
+																		key={i}
+																		align="center"
+																		sx={{ color: 'white', fontWeight: 600, fontSize: '0.75rem' }}
+																	>
 																		{m}
 																	</TableCell>
 																))}
@@ -338,7 +463,10 @@ const LocauxPlanningClient: React.FC<SessionProps> = ({ session }) => {
 														</TableHead>
 														<TableBody>
 															{locaux.map((local, rowIdx) => (
-																<TableRow key={local.id} sx={{ bgcolor: rowIdx % 2 === 0 ? 'background.default' : 'action.hover' }}>
+																<TableRow
+																	key={local.id}
+																	sx={{ bgcolor: rowIdx % 2 === 0 ? 'background.default' : 'action.hover' }}
+																>
 																	<TableCell
 																		sx={{
 																			fontWeight: 600,
@@ -352,9 +480,24 @@ const LocauxPlanningClient: React.FC<SessionProps> = ({ session }) => {
 																		onClick={() => router.push(LOCAUX_VIEW(local.id))}
 																	>
 																		<Stack>
-																			<Typography variant="body2" fontWeight={600} noWrap>{local.nom}</Typography>
-																			<Typography variant="caption" color="text.secondary" noWrap>
-																				{t.rawData.localTypes[LOCAL_TYPE_LABEL_KEYS[local.type_local]]} — {local.en_location ? local.locataire_nom || t.locaux.inRental : t.common.free}
+																			<Typography
+																				variant="body2"
+																				noWrap
+																				sx={{
+																					fontWeight: 600,
+																				}}
+																			>
+																				{local.nom}
+																			</Typography>
+																			<Typography
+																				variant="caption"
+																				noWrap
+																				sx={{
+																					color: 'text.secondary',
+																				}}
+																			>
+																				{t.rawData.localTypes[LOCAL_TYPE_LABEL_KEYS[local.type_local]]} —{' '}
+																				{local.en_location ? local.locataire_nom || t.locaux.inRental : t.common.free}
 																			</Typography>
 																		</Stack>
 																	</TableCell>

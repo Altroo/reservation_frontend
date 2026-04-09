@@ -38,7 +38,7 @@ import { useLanguage } from '@/utils/hooks';
 import Styles from '@/styles/dashboard/dashboard.module.sass';
 import NavigationBar from '@/components/layouts/navigationBar/navigationBar';
 import { Protected } from '@/components/layouts/protected/protected';
-import { useGetBalanceQuery, useGetReservationYearsQuery, useGetBuildingsQuery } from '@/store/services/reservation';
+import { useGetBalanceQuery, useGetBuildingsQuery, useGetReservationYearsQuery } from '@/store/services/reservation';
 import { useInitAccessToken } from '@/contexts/InitContext';
 import { APARTMENT_COLORS, CHART_OPTS } from '@/utils/rawData';
 import { formatNumberMA as fmt } from '@/utils/helpers';
@@ -71,17 +71,41 @@ const KpiCard: React.FC<KpiProps> = ({ icon, label, value, sub, color }) => (
 		}}
 	>
 		<CardContent sx={{ pl: 2.5 }}>
-			<Stack direction="row" spacing={1.5} alignItems="center" mb={0.5}>
+			<Stack
+				direction="row"
+				spacing={1.5}
+				sx={{
+					alignItems: 'center',
+					mb: 0.5,
+				}}
+			>
 				<Box sx={{ color: color ?? 'primary.main', display: 'flex' }}>{icon}</Box>
-				<Typography variant="caption" color="text.secondary" textTransform="uppercase" letterSpacing={1}>
+				<Typography
+					variant="caption"
+					sx={{
+						color: 'text.secondary',
+						textTransform: 'uppercase',
+						letterSpacing: 1,
+					}}
+				>
 					{label}
 				</Typography>
 			</Stack>
-			<Typography variant="h5" fontWeight={700}>
+			<Typography
+				variant="h5"
+				sx={{
+					fontWeight: 700,
+				}}
+			>
 				{value}
 			</Typography>
 			{sub && (
-				<Typography variant="body2" color="text.secondary">
+				<Typography
+					variant="body2"
+					sx={{
+						color: 'text.secondary',
+					}}
+				>
 					{sub}
 				</Typography>
 			)}
@@ -96,12 +120,18 @@ const GainsClient: React.FC<SessionProps> = ({ session }) => {
 	const [year, setYear] = useState(currentYear);
 	const [buildingId, setBuildingId] = useState<number | ''>('');
 
-	const { data, isLoading } = useGetBalanceQuery({ year, ...(buildingId ? { building: buildingId } : {}) }, { skip: !token });
+	const { data, isLoading } = useGetBalanceQuery(
+		{ year, ...(buildingId ? { building: buildingId } : {}) },
+		{ skip: !token },
+	);
 	const { data: yearsData } = useGetReservationYearsQuery(undefined, { skip: !token });
 	const { data: buildingsData } = useGetBuildingsQuery(undefined, { skip: !token });
 
 	const buildingItems: DropDownType[] = useMemo(
-		() => [{ code: t.locaux.allResidences, value: t.locaux.allResidences }, ...(buildingsData ?? []).map((b) => ({ code: b.nom, value: b.nom }))],
+		() => [
+			{ code: t.locaux.allResidences, value: t.locaux.allResidences },
+			...(buildingsData ?? []).map((b) => ({ code: b.nom, value: b.nom })),
+		],
 		[buildingsData, t],
 	);
 
@@ -180,51 +210,80 @@ const GainsClient: React.FC<SessionProps> = ({ session }) => {
 	};
 
 	return (
-		<Stack direction="column" spacing={2} className={Styles.flexRootStack} mt="48px">
+		<Stack
+			direction="column"
+			spacing={2}
+			className={Styles.flexRootStack}
+			sx={{
+				mt: '48px',
+			}}
+		>
 			<NavigationBar title={t.reservations.gainsRevenues}>
 				<Protected permission="can_view">
 					<Box sx={{ px: { xs: 1, sm: 2, md: 3 }, pb: 4 }}>
-						<Stack direction="row" justifyContent="space-between" alignItems="center" py={2}>
-							<Typography variant="h5" fontWeight={600}>
+						<Stack
+							direction="row"
+							sx={{
+								justifyContent: 'space-between',
+								alignItems: 'center',
+								py: 2,
+							}}
+						>
+							<Typography
+								variant="h5"
+								sx={{
+									fontWeight: 600,
+								}}
+							>
 								{t.reservations.gainsRevenuesYear(year)}
 							</Typography>
 							<Stack direction="row" spacing={1}>
-							<Box sx={{ minWidth: 180 }}>
-								<CustomDropDownSelect
-									id="building-filter"
-									size="small"
-									label={t.common.residence}
-									items={buildingItems}
-									value={buildingId === '' ? t.locaux.allResidences : ((buildingsData ?? []).find((b) => b.id === buildingId)?.nom ?? t.locaux.allResidences)}
-									onChange={(e) => {
-										const name = e.target.value;
-										if (!name || name === t.locaux.allResidences) setBuildingId('');
-										else {
-											const b = (buildingsData ?? []).find((x) => x.nom === name);
-											setBuildingId(b ? b.id : '');
+								<Box sx={{ minWidth: 180 }}>
+									<CustomDropDownSelect
+										id="building-filter"
+										size="small"
+										label={t.common.residence}
+										items={buildingItems}
+										value={
+											buildingId === ''
+												? t.locaux.allResidences
+												: ((buildingsData ?? []).find((b) => b.id === buildingId)?.nom ?? t.locaux.allResidences)
 										}
-									}}
-									theme={customDropdownTheme()}
-									startIcon={<ApartmentIcon />}
-								/>
-							</Box>
-							<Box sx={{ minWidth: 150 }}>
-								<CustomDropDownSelect
-									id="year-filter"
-									size="small"
-									label={t.common.year}
-									items={yearItems}
-									value={String(year)}
-									onChange={(e) => setYear(Number(e.target.value))}
-									theme={customDropdownTheme()}
-									startIcon={<CalendarTodayIcon />}
-								/>
-							</Box>
+										onChange={(e) => {
+											const name = e.target.value;
+											if (!name || name === t.locaux.allResidences) setBuildingId('');
+											else {
+												const b = (buildingsData ?? []).find((x) => x.nom === name);
+												setBuildingId(b ? b.id : '');
+											}
+										}}
+										theme={customDropdownTheme()}
+										startIcon={<ApartmentIcon />}
+									/>
+								</Box>
+								<Box sx={{ minWidth: 150 }}>
+									<CustomDropDownSelect
+										id="year-filter"
+										size="small"
+										label={t.common.year}
+										items={yearItems}
+										value={String(year)}
+										onChange={(e) => setYear(Number(e.target.value))}
+										theme={customDropdownTheme()}
+										startIcon={<CalendarTodayIcon />}
+									/>
+								</Box>
 							</Stack>
 						</Stack>
 
 						{isLoading ? (
-							<Box display="flex" justifyContent="center" py={8}>
+							<Box
+								sx={{
+									display: 'flex',
+									justifyContent: 'center',
+									py: 8,
+								}}
+							>
 								<CircularProgress />
 							</Box>
 						) : (
@@ -265,11 +324,7 @@ const GainsClient: React.FC<SessionProps> = ({ session }) => {
 										title={t.reservations.gainsByApartment}
 										subheader={t.reservations.gainsByApartmentSub}
 										action={
-											<MuiTooltip
-												title={t.reservations.gainsByApartmentTooltip}
-												arrow
-												placement="top"
-											>
+											<MuiTooltip title={t.reservations.gainsByApartmentTooltip} arrow placement="top">
 												<IconButton size="small">
 													<InfoOutlinedIcon fontSize="small" />
 												</IconButton>
@@ -277,7 +332,11 @@ const GainsClient: React.FC<SessionProps> = ({ session }) => {
 										}
 									/>
 									<CardContent>
-										<Box height={360}>
+										<Box
+											sx={{
+												height: 360,
+											}}
+										>
 											{aptNoms.some((c) => apartments[c].year_total > 0) ? (
 												<Bar
 													data={stackedChartData}
@@ -291,17 +350,33 @@ const GainsClient: React.FC<SessionProps> = ({ session }) => {
 												/>
 											) : (
 												<Box
-													display="flex"
-													flexDirection="column"
-													alignItems="center"
-													justifyContent="center"
-													height="100%"
-													sx={{ bgcolor: 'grey.50', borderRadius: 2, border: '1px dashed', borderColor: 'grey.300' }}
+													sx={{
+														display: 'flex',
+														flexDirection: 'column',
+														alignItems: 'center',
+														justifyContent: 'center',
+														height: '100%',
+														bgcolor: 'grey.50',
+														borderRadius: 2,
+														border: '1px dashed',
+														borderColor: 'grey.300',
+													}}
 												>
-													<Typography variant="h6" color="text.secondary" gutterBottom>
+													<Typography
+														variant="h6"
+														gutterBottom
+														sx={{
+															color: 'text.secondary',
+														}}
+													>
 														📊
 													</Typography>
-													<Typography variant="body2" color="text.secondary">
+													<Typography
+														variant="body2"
+														sx={{
+															color: 'text.secondary',
+														}}
+													>
 														{t.reservations.noDataForYear(year)}
 													</Typography>
 												</Box>
@@ -324,14 +399,25 @@ const GainsClient: React.FC<SessionProps> = ({ session }) => {
 											return (
 												<Card key={md.month} elevation={1}>
 													<CardContent>
-														<Typography variant="h6" fontWeight={600} gutterBottom>
+														<Typography
+															variant="h6"
+															gutterBottom
+															sx={{
+																fontWeight: 600,
+															}}
+														>
 															{t.rawData.monthNames[md.month - 1]}
 														</Typography>
 														<Typography
 															variant="body2"
-															color="text.secondary"
 															component="div"
-															sx={{ pb: 1.5, borderBottom: 1, borderColor: 'divider', mb: 1.5 }}
+															sx={{
+																color: 'text.secondary',
+																pb: 1.5,
+																borderBottom: 1,
+																borderColor: 'divider',
+																mb: 1.5,
+															}}
 														>
 															{t.common.total} : {fmt(md.monthTotal)} MAD
 														</Typography>
@@ -341,18 +427,31 @@ const GainsClient: React.FC<SessionProps> = ({ session }) => {
 																<Stack
 																	key={ab.nom}
 																	direction="row"
-																	alignItems="center"
-																	justifyContent="space-between"
 																	sx={{
+																		alignItems: 'center',
+																		justifyContent: 'space-between',
 																		py: 0.75,
 																		borderBottom: idx < md.aptBreakdown.length - 1 ? 1 : 0,
 																		borderColor: 'divider',
 																	}}
 																>
-																	<Typography variant="body2" color="text.secondary" sx={{ minWidth: 80 }}>
+																	<Typography
+																		variant="body2"
+																		sx={{
+																			color: 'text.secondary',
+																			minWidth: 80,
+																		}}
+																	>
 																		{ab.nom}
 																	</Typography>
-																	<Stack direction="row" alignItems="center" spacing={1} sx={{ flex: 1 }}>
+																	<Stack
+																		direction="row"
+																		spacing={1}
+																		sx={{
+																			alignItems: 'center',
+																			flex: 1,
+																		}}
+																	>
 																		<LinearProgress
 																			variant="determinate"
 																			value={pct}
@@ -369,8 +468,11 @@ const GainsClient: React.FC<SessionProps> = ({ session }) => {
 																		/>
 																		<Typography
 																			variant="body2"
-																			fontWeight={600}
-																			sx={{ minWidth: 80, textAlign: 'right' }}
+																			sx={{
+																				fontWeight: 600,
+																				minWidth: 80,
+																				textAlign: 'right',
+																			}}
 																		>
 																			{fmt(ab.total)}
 																		</Typography>
@@ -391,11 +493,7 @@ const GainsClient: React.FC<SessionProps> = ({ session }) => {
 											title={t.reservations.monthlyDetailByApartment}
 											subheader={t.reservations.monthlyDetailByApartmentSub(year)}
 											action={
-												<MuiTooltip
-													title={t.reservations.monthlyDetailTooltip}
-													arrow
-													placement="top"
-												>
+												<MuiTooltip title={t.reservations.monthlyDetailTooltip} arrow placement="top">
 													<IconButton size="small">
 														<InfoOutlinedIcon fontSize="small" />
 													</IconButton>

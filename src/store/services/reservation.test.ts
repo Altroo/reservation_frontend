@@ -23,9 +23,7 @@ describe('reservationApi', () => {
 
 	describe('Apartment endpoints', () => {
 		it('getApartments query should complete without error', async () => {
-			const result = await storeRef.store.dispatch(
-				reservationApi.endpoints.getApartments.initiate(),
-			);
+			const result = await storeRef.store.dispatch(reservationApi.endpoints.getApartments.initiate());
 			expect('error' in result).toBe(false);
 		});
 
@@ -44,9 +42,7 @@ describe('reservationApi', () => {
 		});
 
 		it('deleteApartment mutation should complete without error', async () => {
-			const result = await storeRef.store.dispatch(
-				reservationApi.endpoints.deleteApartment.initiate({ id: 1 }),
-			);
+			const result = await storeRef.store.dispatch(reservationApi.endpoints.deleteApartment.initiate({ id: 1 }));
 			expect('error' in result).toBe(false);
 		});
 	});
@@ -65,9 +61,7 @@ describe('reservationApi', () => {
 		});
 
 		it('getReservation query should complete without error', async () => {
-			const result = await storeRef.store.dispatch(
-				reservationApi.endpoints.getReservation.initiate({ id: 1 }),
-			);
+			const result = await storeRef.store.dispatch(reservationApi.endpoints.getReservation.initiate({ id: 1 }));
 			expect('error' in result).toBe(false);
 		});
 
@@ -105,9 +99,7 @@ describe('reservationApi', () => {
 		});
 
 		it('deleteReservation mutation should complete without error', async () => {
-			const result = await storeRef.store.dispatch(
-				reservationApi.endpoints.deleteReservation.initiate({ id: 1 }),
-			);
+			const result = await storeRef.store.dispatch(reservationApi.endpoints.deleteReservation.initiate({ id: 1 }));
 			expect('error' in result).toBe(false);
 		});
 
@@ -121,9 +113,7 @@ describe('reservationApi', () => {
 
 	describe('Dashboard endpoints', () => {
 		it('getDashboardStats query should complete without error', async () => {
-			const result = await storeRef.store.dispatch(
-				reservationApi.endpoints.getDashboardStats.initiate({ year: 2024 }),
-			);
+			const result = await storeRef.store.dispatch(reservationApi.endpoints.getDashboardStats.initiate({ year: 2024 }));
 			expect('error' in result).toBe(false);
 		});
 	});
@@ -139,18 +129,14 @@ describe('reservationApi', () => {
 
 	describe('Balance endpoints', () => {
 		it('getBalance query should complete without error', async () => {
-			const result = await storeRef.store.dispatch(
-				reservationApi.endpoints.getBalance.initiate({ year: 2024 }),
-			);
+			const result = await storeRef.store.dispatch(reservationApi.endpoints.getBalance.initiate({ year: 2024 }));
 			expect('error' in result).toBe(false);
 		});
 	});
 
 	describe('Cost endpoints', () => {
 		it('getCosts query should complete without error', async () => {
-			const result = await storeRef.store.dispatch(
-				reservationApi.endpoints.getCosts.initiate({ year: 2024 }),
-			);
+			const result = await storeRef.store.dispatch(reservationApi.endpoints.getCosts.initiate({ year: 2024 }));
 			expect('error' in result).toBe(false);
 		});
 
@@ -184,25 +170,19 @@ describe('reservationApi', () => {
 		});
 
 		it('deleteCost mutation should complete without error', async () => {
-			const result = await storeRef.store.dispatch(
-				reservationApi.endpoints.deleteCost.initiate({ id: 1 }),
-			);
+			const result = await storeRef.store.dispatch(reservationApi.endpoints.deleteCost.initiate({ id: 1 }));
 			expect('error' in result).toBe(false);
 		});
 	});
 
 	describe('Notification endpoints', () => {
 		it('getNotifications query should complete without error', async () => {
-			const result = await storeRef.store.dispatch(
-				reservationApi.endpoints.getNotifications.initiate(),
-			);
+			const result = await storeRef.store.dispatch(reservationApi.endpoints.getNotifications.initiate({}));
 			expect('error' in result).toBe(false);
 		});
 
 		it('getNotificationPreferences query should complete without error', async () => {
-			const result = await storeRef.store.dispatch(
-				reservationApi.endpoints.getNotificationPreferences.initiate(),
-			);
+			const result = await storeRef.store.dispatch(reservationApi.endpoints.getNotificationPreferences.initiate());
 			expect('error' in result).toBe(false);
 		});
 
@@ -225,9 +205,7 @@ describe('reservationApi', () => {
 		});
 
 		it('getUnreadNotificationCount query should complete without error', async () => {
-			const result = await storeRef.store.dispatch(
-				reservationApi.endpoints.getUnreadNotificationCount.initiate(),
-			);
+			const result = await storeRef.store.dispatch(reservationApi.endpoints.getUnreadNotificationCount.initiate());
 			expect('error' in result).toBe(false);
 		});
 	});

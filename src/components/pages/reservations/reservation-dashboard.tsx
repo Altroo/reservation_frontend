@@ -6,49 +6,54 @@ import {
 	Card,
 	CardContent,
 	CardHeader,
-	Typography,
-	CircularProgress,
-	Stack,
 	Chip,
+	CircularProgress,
 	IconButton,
+	Stack,
 	Tooltip as MuiTooltip,
+	Typography,
 } from '@mui/material';
 import {
-	Hotel as HotelIcon,
+	Apartment as ApartmentIcon,
 	AttachMoney as MoneyIcon,
 	CalendarMonth as CalendarIcon,
-	TrendingUp as TrendingUpIcon,
-	TrendingDown as TrendingDownIcon,
+	CalendarToday as CalendarTodayIcon,
 	EmojiEvents as TrophyIcon,
-	Savings as SavingsIcon,
+	Hotel as HotelIcon,
 	InfoOutlined as InfoIcon,
+	Savings as SavingsIcon,
+	TrendingDown as TrendingDownIcon,
+	TrendingUp as TrendingUpIcon,
 } from '@mui/icons-material';
 import {
-	Chart as ChartJS,
-	CategoryScale,
-	LinearScale,
-	BarElement,
 	ArcElement,
-	Title,
-	Tooltip,
+	BarElement,
+	CategoryScale,
+	Chart as ChartJS,
+	Filler,
 	Legend,
+	LinearScale,
 	LineElement,
 	PointElement,
-	Filler,
+	Title,
+	Tooltip,
 } from 'chart.js';
 import { Bar, Doughnut, Line } from 'react-chartjs-2';
-import { useGetDashboardStatsQuery, useGetReservationYearsQuery, useGetBuildingsQuery } from '@/store/services/reservation';
+import {
+	useGetBuildingsQuery,
+	useGetDashboardStatsQuery,
+	useGetReservationYearsQuery,
+} from '@/store/services/reservation';
 import { useInitAccessToken } from '@/contexts/InitContext';
 import NavigationBar from '@/components/layouts/navigationBar/navigationBar';
 import { Protected } from '@/components/layouts/protected/protected';
 import { useLanguage } from '@/utils/hooks';
 import Styles from '@/styles/dashboard/dashboard.module.sass';
 import type { SessionProps } from '@/types/_initTypes';
-import { CHART_COLORS, SOURCE_COLORS, APARTMENT_COLORS, CHART_OPTS } from '@/utils/rawData';
+import { APARTMENT_COLORS, CHART_COLORS, CHART_OPTS, SOURCE_COLORS } from '@/utils/rawData';
 import { formatNumberMA as fmt } from '@/utils/helpers';
 import CustomDropDownSelect from '@/components/formikElements/customDropDownSelect/customDropDownSelect';
 import { customDropdownTheme } from '@/utils/themes';
-import { Apartment as ApartmentIcon, CalendarToday as CalendarTodayIcon } from '@mui/icons-material';
 import type { DropDownType } from '@/types/accountTypes';
 
 ChartJS.register(
@@ -63,7 +68,6 @@ ChartJS.register(
 	Legend,
 	Filler,
 );
-
 
 /* ── KPI Card with left accent bar ─────────────────────────────────────────── */
 interface KpiCardProps {
@@ -94,10 +98,30 @@ const KpiCard: React.FC<KpiCardProps> = ({ icon, label, value, sub, color, toolt
 		}}
 	>
 		<CardContent sx={{ pl: 2.5 }}>
-			<Stack direction="row" justifyContent="space-between" alignItems="flex-start">
-				<Stack direction="row" spacing={1.5} alignItems="center" mb={0.5}>
+			<Stack
+				direction="row"
+				sx={{
+					justifyContent: 'space-between',
+					alignItems: 'flex-start',
+				}}
+			>
+				<Stack
+					direction="row"
+					spacing={1.5}
+					sx={{
+						alignItems: 'center',
+						mb: 0.5,
+					}}
+				>
 					<Box sx={{ color, display: 'flex' }}>{icon}</Box>
-					<Typography variant="caption" color="text.secondary" textTransform="uppercase" letterSpacing={0.8}>
+					<Typography
+						variant="caption"
+						sx={{
+							color: 'text.secondary',
+							textTransform: 'uppercase',
+							letterSpacing: 0.8,
+						}}
+					>
 						{label}
 					</Typography>
 				</Stack>
@@ -109,11 +133,21 @@ const KpiCard: React.FC<KpiCardProps> = ({ icon, label, value, sub, color, toolt
 					</MuiTooltip>
 				)}
 			</Stack>
-			<Typography variant="h5" fontWeight={700}>
+			<Typography
+				variant="h5"
+				sx={{
+					fontWeight: 700,
+				}}
+			>
 				{value}
 			</Typography>
 			{sub && (
-				<Typography variant="body2" color="text.secondary">
+				<Typography
+					variant="body2"
+					sx={{
+						color: 'text.secondary',
+					}}
+				>
 					{sub}
 				</Typography>
 			)}
@@ -133,8 +167,23 @@ interface ChartCardProps {
 const ChartCard: React.FC<ChartCardProps> = ({ title, subheader, infoTooltip, children, height = 300 }) => (
 	<Card elevation={2} sx={{ overflow: 'hidden' }}>
 		<CardHeader
-			title={<Typography variant="h6" sx={{ fontSize: { xs: '0.95rem', md: '1.1rem' } }}>{title}</Typography>}
-			subheader={subheader && <Typography variant="caption" color="text.secondary">{subheader}</Typography>}
+			title={
+				<Typography variant="h6" sx={{ fontSize: { xs: '0.95rem', md: '1.1rem' } }}>
+					{title}
+				</Typography>
+			}
+			subheader={
+				subheader && (
+					<Typography
+						variant="caption"
+						sx={{
+							color: 'text.secondary',
+						}}
+					>
+						{subheader}
+					</Typography>
+				)
+			}
 			action={
 				infoTooltip ? (
 					<MuiTooltip title={infoTooltip} arrow placement="top">
@@ -155,22 +204,39 @@ const ChartCard: React.FC<ChartCardProps> = ({ title, subheader, infoTooltip, ch
 const EmptyChart: React.FC<{ message?: string }> = ({ message }) => {
 	const { t } = useLanguage();
 	return (
-	<Box
-		display="flex"
-		flexDirection="column"
-		justifyContent="center"
-		alignItems="center"
-		height="100%"
-		sx={{ bgcolor: 'grey.50', borderRadius: 2, border: '1px dashed', borderColor: 'grey.300' }}
-	>
-		<Typography variant="h6" color="text.secondary" gutterBottom>
-			📊
-		</Typography>
-		<Typography variant="body2" color="text.secondary" textAlign="center">
-			{message ?? t.analytics.noDataAvailable}
-		</Typography>
-	</Box>
-);
+		<Box
+			sx={{
+				display: 'flex',
+				flexDirection: 'column',
+				justifyContent: 'center',
+				alignItems: 'center',
+				height: '100%',
+				bgcolor: 'grey.50',
+				borderRadius: 2,
+				border: '1px dashed',
+				borderColor: 'grey.300',
+			}}
+		>
+			<Typography
+				variant="h6"
+				gutterBottom
+				sx={{
+					color: 'text.secondary',
+				}}
+			>
+				📊
+			</Typography>
+			<Typography
+				variant="body2"
+				sx={{
+					color: 'text.secondary',
+					textAlign: 'center',
+				}}
+			>
+				{message ?? t.analytics.noDataAvailable}
+			</Typography>
+		</Box>
+	);
 };
 
 const ReservationDashboardClient: React.FC<SessionProps> = ({ session }) => {
@@ -188,7 +254,10 @@ const ReservationDashboardClient: React.FC<SessionProps> = ({ session }) => {
 	const { data: buildingsData } = useGetBuildingsQuery(undefined, { skip: !token });
 
 	const buildingItems: DropDownType[] = useMemo(
-		() => [{ code: t.locaux.allResidences, value: t.locaux.allResidences }, ...(buildingsData ?? []).map((b) => ({ code: b.nom, value: b.nom }))],
+		() => [
+			{ code: t.locaux.allResidences, value: t.locaux.allResidences },
+			...(buildingsData ?? []).map((b) => ({ code: b.nom, value: b.nom })),
+		],
 		[buildingsData, t],
 	);
 
@@ -213,8 +282,8 @@ const ReservationDashboardClient: React.FC<SessionProps> = ({ session }) => {
 
 	const bestMonthIdx =
 		monthlyRevenue.length > 0
-		? monthlyRevenue.reduce((bIdx, m, i, arr) => (m.total > arr[bIdx].total ? i : bIdx), 0)
-		: -1;
+			? monthlyRevenue.reduce((bIdx, m, i, arr) => (m.total > arr[bIdx].total ? i : bIdx), 0)
+			: -1;
 	const bestMonthHasRevenue = bestMonthIdx >= 0 && monthlyRevenue[bestMonthIdx].total > 0;
 	const bestMonthName = bestMonthHasRevenue ? t.rawData.monthLabels[bestMonthIdx] : '—';
 	const bestMonthRevenue = bestMonthHasRevenue ? monthlyRevenue[bestMonthIdx].total : 0;
@@ -289,13 +358,34 @@ const ReservationDashboardClient: React.FC<SessionProps> = ({ session }) => {
 	};
 
 	return (
-		<Stack direction="column" spacing={2} className={Styles.flexRootStack} mt="48px">
+		<Stack
+			direction="column"
+			spacing={2}
+			className={Styles.flexRootStack}
+			sx={{
+				mt: '48px',
+			}}
+		>
 			<NavigationBar title={t.common.dashboard}>
 				<Protected permission="can_view">
 					<Box sx={{ px: { xs: 1, sm: 2, md: 3 }, pb: 4, pt: '10px' }}>
 						{/* Year & Building selectors */}
-						<Stack direction="row" justifyContent="space-between" alignItems="center" mb={3} flexWrap="wrap" gap={2}>
-							<Typography variant="h5" fontWeight={600}>
+						<Stack
+							direction="row"
+							sx={{
+								justifyContent: 'space-between',
+								alignItems: 'center',
+								mb: 3,
+								flexWrap: 'wrap',
+								gap: 2,
+							}}
+						>
+							<Typography
+								variant="h5"
+								sx={{
+									fontWeight: 600,
+								}}
+							>
 								{t.analytics.overviewYear(year)}
 							</Typography>
 							<Stack direction="row" spacing={2}>
@@ -305,7 +395,11 @@ const ReservationDashboardClient: React.FC<SessionProps> = ({ session }) => {
 										size="small"
 										label={t.reservations.residence}
 										items={buildingItems}
-										value={buildingId === '' ? t.locaux.allResidences : ((buildingsData ?? []).find((b) => b.id === buildingId)?.nom ?? t.locaux.allResidences)}
+										value={
+											buildingId === ''
+												? t.locaux.allResidences
+												: ((buildingsData ?? []).find((b) => b.id === buildingId)?.nom ?? t.locaux.allResidences)
+										}
 										onChange={(e) => {
 											const name = e.target.value;
 											if (!name || name === t.locaux.allResidences) setBuildingId('');
@@ -334,7 +428,13 @@ const ReservationDashboardClient: React.FC<SessionProps> = ({ session }) => {
 						</Stack>
 
 						{isLoading ? (
-							<Box display="flex" justifyContent="center" py={8}>
+							<Box
+								sx={{
+									display: 'flex',
+									justifyContent: 'center',
+									py: 8,
+								}}
+							>
 								<CircularProgress />
 							</Box>
 						) : (
@@ -372,11 +472,7 @@ const ReservationDashboardClient: React.FC<SessionProps> = ({ session }) => {
 									<KpiCard
 										icon={<TrendingUpIcon fontSize="small" />}
 										label={t.analytics.avgRevenuePerRes}
-										value={
-											totalReservations > 0
-												? `${fmt(Math.round(totalRevenue / totalReservations))} MAD`
-												: '—'
-										}
+										value={totalReservations > 0 ? `${fmt(Math.round(totalRevenue / totalReservations))} MAD` : '—'}
 										color="#9c27b0"
 										tooltip={t.analytics.avgRevenueTooltip}
 									/>
@@ -518,7 +614,11 @@ const ReservationDashboardClient: React.FC<SessionProps> = ({ session }) => {
 											<Box
 												sx={{
 													display: 'grid',
-													gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: `repeat(${Math.min(bySource.length, 4)}, 1fr)` },
+													gridTemplateColumns: {
+														xs: '1fr',
+														sm: 'repeat(2, 1fr)',
+														md: `repeat(${Math.min(bySource.length, 4)}, 1fr)`,
+													},
 													gap: 2,
 												}}
 											>
@@ -534,13 +634,30 @@ const ReservationDashboardClient: React.FC<SessionProps> = ({ session }) => {
 															borderLeftColor: SOURCE_COLORS[src.source] ?? 'grey.400',
 														}}
 													>
-														<Stack direction="row" justifyContent="space-between" alignItems="center">
-															<Typography variant="subtitle2" fontWeight={600}>
+														<Stack
+															direction="row"
+															sx={{
+																justifyContent: 'space-between',
+																alignItems: 'center',
+															}}
+														>
+															<Typography
+																variant="subtitle2"
+																sx={{
+																	fontWeight: 600,
+																}}
+															>
 																{src.source}
 															</Typography>
 															<Chip label={`${src.count} ${t.analytics.res}`} size="small" />
 														</Stack>
-														<Typography variant="h6" color="primary" mt={1}>
+														<Typography
+															variant="h6"
+															color="primary"
+															sx={{
+																mt: 1,
+															}}
+														>
 															{fmt(src.total)} MAD
 														</Typography>
 													</Box>
@@ -559,6 +676,3 @@ const ReservationDashboardClient: React.FC<SessionProps> = ({ session }) => {
 };
 
 export default ReservationDashboardClient;
-
-
-

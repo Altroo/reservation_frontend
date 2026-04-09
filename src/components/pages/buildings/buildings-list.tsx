@@ -24,11 +24,11 @@ import { extractApiErrorMessage, formatDate } from '@/utils/helpers';
 import { BUILDINGS_ADD, BUILDINGS_EDIT, BUILDINGS_VIEW } from '@/utils/routes';
 import { createDateRangeFilterOperator } from '@/components/shared/dateRangeFilter/dateRangeFilterOperator';
 import { createDropdownFilterOperators } from '@/components/shared/dropdownFilter/dropdownFilter';
-import { useToast, useLanguage } from '@/utils/hooks';
+import { useLanguage, useToast } from '@/utils/hooks';
 import {
-	useGetBuildingsQuery,
-	useDeleteBuildingMutation,
 	useBulkDeleteBuildingsMutation,
+	useDeleteBuildingMutation,
+	useGetBuildingsQuery,
 } from '@/store/services/reservation';
 import { useInitAccessToken } from '@/contexts/InitContext';
 
@@ -47,7 +47,10 @@ const BuildingsListClient: React.FC<SessionProps> = ({ session }) => {
 	const [customFilterParams, setCustomFilterParams] = useState<Record<string, string>>({});
 
 	const { data: buildingsRaw, isLoading } = useGetBuildingsQuery(undefined, { skip: !token });
-	const buildings = useMemo(() => (Array.isArray(buildingsRaw) ? buildingsRaw : []) as BuildingListType[], [buildingsRaw]);
+	const buildings = useMemo(
+		() => (Array.isArray(buildingsRaw) ? buildingsRaw : []) as BuildingListType[],
+		[buildingsRaw],
+	);
 
 	const [deleteBuilding] = useDeleteBuildingMutation();
 	const [bulkDeleteBuildings] = useBulkDeleteBuildingsMutation();
@@ -238,8 +241,11 @@ const BuildingsListClient: React.FC<SessionProps> = ({ session }) => {
 			direction="column"
 			spacing={2}
 			className={Styles.flexRootStack}
-			mt="48px"
-			sx={{ overflowX: 'auto', overflowY: 'hidden' }}
+			sx={{
+				mt: '48px',
+				overflowX: 'auto',
+				overflowY: 'hidden',
+			}}
 		>
 			<NavigationBar title={t.buildings.residencesList}>
 				<Protected permission="can_view">
@@ -268,17 +274,17 @@ const BuildingsListClient: React.FC<SessionProps> = ({ session }) => {
 									fontSize: { xs: '0.85rem', sm: '0.9rem', md: '1rem' },
 								}}
 							>
-							{t.buildings.newResidence}
-						</Button>
-						{selectedIds.length > 0 && (
-							<Button
-								variant="outlined"
-								color="error"
-								onClick={() => setShowBulkDeleteModal(true)}
-								startIcon={<DeleteIcon fontSize="small" />}
-								sx={{ whiteSpace: 'nowrap' }}
-							>
-								{t.buildings.bulkDeleteResidences} ({selectedIds.length})
+								{t.buildings.newResidence}
+							</Button>
+							{selectedIds.length > 0 && (
+								<Button
+									variant="outlined"
+									color="error"
+									onClick={() => setShowBulkDeleteModal(true)}
+									startIcon={<DeleteIcon fontSize="small" />}
+									sx={{ whiteSpace: 'nowrap' }}
+								>
+									{t.buildings.bulkDeleteResidences} ({selectedIds.length})
 								</Button>
 							)}
 						</Box>
@@ -301,16 +307,16 @@ const BuildingsListClient: React.FC<SessionProps> = ({ session }) => {
 
 						{showDeleteModal && (
 							<ActionModals
-							title={t.buildings.deleteResidence}
-							body={t.buildings.deleteResidenceConfirm}
+								title={t.buildings.deleteResidence}
+								body={t.buildings.deleteResidenceConfirm}
 								actions={deleteModalActions}
 							/>
 						)}
 
 						{showBulkDeleteModal && (
 							<ActionModals
-							title={t.buildings.bulkDeleteResidences}
-							body={t.buildings.bulkDeleteResidencesConfirm(selectedIds.length)}
+								title={t.buildings.bulkDeleteResidences}
+								body={t.buildings.bulkDeleteResidencesConfirm(selectedIds.length)}
 								actions={bulkDeleteModalActions}
 							/>
 						)}

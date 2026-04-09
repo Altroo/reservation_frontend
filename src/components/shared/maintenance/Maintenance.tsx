@@ -68,7 +68,14 @@ const Maintenance: React.FC = () => {
 						background: 'linear-gradient(180deg, #FFFFFF 0%, #FAFBFC 100%)',
 					}}
 				>
-					<Stack direction="row" justifyContent="center" sx={{ display: { xs: 'flex', md: 'none' }, mb: 4 }}>
+					<Stack
+						direction="row"
+						sx={{
+							justifyContent: 'center',
+							display: { xs: 'flex', md: 'none' },
+							mb: 4,
+						}}
+					>
 						<Image src={Logo} alt={t.common.appName} priority style={{ width: '88px', height: 'auto' }} />
 					</Stack>
 

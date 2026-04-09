@@ -39,11 +39,11 @@ import NavigationBar from '@/components/layouts/navigationBar/navigationBar';
 import { Protected } from '@/components/layouts/protected/protected';
 import ApiProgress from '@/components/formikElements/apiLoading/apiProgress/apiProgress';
 import { LOCAUX_VIEW } from '@/utils/routes';
-import { TYPE_LOCAL_CHIP_COLORS, LOCAL_TYPE_LABEL_KEYS } from '@/utils/rawData';
-import { useGetLocalDashboardQuery, useGetLocalYearsQuery, useGetBuildingsQuery } from '@/store/services/reservation';
+import type { ChipColor } from '@/utils/rawData';
+import { LOCAL_TYPE_LABEL_KEYS, TYPE_LOCAL_CHIP_COLORS } from '@/utils/rawData';
+import { useGetBuildingsQuery, useGetLocalDashboardQuery, useGetLocalYearsQuery } from '@/store/services/reservation';
 import { useInitAccessToken } from '@/contexts/InitContext';
 import { useLanguage } from '@/utils/hooks';
-import type { ChipColor } from '@/utils/rawData';
 import Styles from '@/styles/dashboard/dashboard.module.sass';
 
 interface KpiCardProps {
@@ -73,10 +73,30 @@ const KpiCard: React.FC<KpiCardProps> = ({ icon, label, value, color, tooltip })
 		}}
 	>
 		<CardContent sx={{ pl: 2.5 }}>
-			<Stack direction="row" justifyContent="space-between" alignItems="flex-start">
-				<Stack direction="row" spacing={1.5} alignItems="center" mb={0.5}>
+			<Stack
+				direction="row"
+				sx={{
+					justifyContent: 'space-between',
+					alignItems: 'flex-start',
+				}}
+			>
+				<Stack
+					direction="row"
+					spacing={1.5}
+					sx={{
+						alignItems: 'center',
+						mb: 0.5,
+					}}
+				>
 					<Box sx={{ color, display: 'flex' }}>{icon}</Box>
-					<Typography variant="caption" color="text.secondary" textTransform="uppercase" letterSpacing={0.8}>
+					<Typography
+						variant="caption"
+						sx={{
+							color: 'text.secondary',
+							textTransform: 'uppercase',
+							letterSpacing: 0.8,
+						}}
+					>
 						{label}
 					</Typography>
 				</Stack>
@@ -88,7 +108,14 @@ const KpiCard: React.FC<KpiCardProps> = ({ icon, label, value, color, tooltip })
 					</MuiTooltip>
 				)}
 			</Stack>
-			<Typography variant="h5" fontWeight={700}>{value}</Typography>
+			<Typography
+				variant="h5"
+				sx={{
+					fontWeight: 700,
+				}}
+			>
+				{value}
+			</Typography>
 		</CardContent>
 	</Card>
 );
@@ -114,7 +141,10 @@ const LocauxDashboardClient: React.FC<SessionProps> = ({ session }) => {
 	const { data: buildingsData } = useGetBuildingsQuery(undefined, { skip: !token });
 
 	const buildingItems: DropDownType[] = useMemo(
-		() => [{ code: t.locaux.allResidences, value: t.locaux.allResidences }, ...(buildingsData ?? []).map((b) => ({ code: b.nom, value: b.nom }))],
+		() => [
+			{ code: t.locaux.allResidences, value: t.locaux.allResidences },
+			...(buildingsData ?? []).map((b) => ({ code: b.nom, value: b.nom })),
+		],
 		[buildingsData, t],
 	);
 
@@ -123,50 +153,79 @@ const LocauxDashboardClient: React.FC<SessionProps> = ({ session }) => {
 		[availableYears],
 	);
 
-	const { data: dashboardData, isLoading } = useGetLocalDashboardQuery({ year, ...(buildingId ? { building: buildingId } : {}) }, { skip: !token });
+	const { data: dashboardData, isLoading } = useGetLocalDashboardQuery(
+		{ year, ...(buildingId ? { building: buildingId } : {}) },
+		{ skip: !token },
+	);
 	const locaux = useMemo(() => (dashboardData?.locaux ?? []) as LocalDashboardLocalType[], [dashboardData]);
 
 	return (
-		<Stack direction="column" spacing={2} className={Styles.flexRootStack} mt="48px" sx={{ overflowX: 'auto', overflowY: 'hidden' }}>
+		<Stack
+			direction="column"
+			spacing={2}
+			className={Styles.flexRootStack}
+			sx={{
+				mt: '48px',
+				overflowX: 'auto',
+				overflowY: 'hidden',
+			}}
+		>
 			<NavigationBar title={t.locaux.locauxDashboard}>
 				<Protected permission="can_view">
 					<Stack spacing={3} sx={{ p: { xs: 2, md: 3 } }}>
-						<Stack direction="row" justifyContent="space-between" alignItems="center" flexWrap="wrap" gap={1}>
-							<Typography variant="h5" fontWeight={600}>
-							{t.locaux.locauxDashboard}
+						<Stack
+							direction="row"
+							sx={{
+								justifyContent: 'space-between',
+								alignItems: 'center',
+								flexWrap: 'wrap',
+								gap: 1,
+							}}
+						>
+							<Typography
+								variant="h5"
+								sx={{
+									fontWeight: 600,
+								}}
+							>
+								{t.locaux.locauxDashboard}
 							</Typography>
 							<Stack direction="row" spacing={2}>
-							<Box sx={{ minWidth: 180 }}>
-								<CustomDropDownSelect
-									id="building-filter"
-									size="small"
-									label={t.locaux.residence}
-									items={buildingItems}
-								value={buildingId === '' ? t.locaux.allResidences : ((buildingsData ?? []).find((b) => b.id === buildingId)?.nom ?? t.locaux.allResidences)}
-									onChange={(e) => {
-										const name = e.target.value;
-										if (!name || name === t.locaux.allResidences) setBuildingId('');
-										else {
-											const b = (buildingsData ?? []).find((x) => x.nom === name);
-											setBuildingId(b ? b.id : '');
+								<Box sx={{ minWidth: 180 }}>
+									<CustomDropDownSelect
+										id="building-filter"
+										size="small"
+										label={t.locaux.residence}
+										items={buildingItems}
+										value={
+											buildingId === ''
+												? t.locaux.allResidences
+												: ((buildingsData ?? []).find((b) => b.id === buildingId)?.nom ?? t.locaux.allResidences)
 										}
-									}}
-									theme={customDropdownTheme()}
-									startIcon={<ApartmentIcon />}
-								/>
-							</Box>
-							<Box sx={{ minWidth: 150 }}>
-								<CustomDropDownSelect
-									id="year-filter"
-									size="small"
-									label={t.common.year}
-									items={yearItems}
-									value={String(year)}
-									onChange={(e) => setYear(Number(e.target.value))}
-									theme={customDropdownTheme()}
-									startIcon={<CalendarTodayIcon />}
-								/>
-							</Box>
+										onChange={(e) => {
+											const name = e.target.value;
+											if (!name || name === t.locaux.allResidences) setBuildingId('');
+											else {
+												const b = (buildingsData ?? []).find((x) => x.nom === name);
+												setBuildingId(b ? b.id : '');
+											}
+										}}
+										theme={customDropdownTheme()}
+										startIcon={<ApartmentIcon />}
+									/>
+								</Box>
+								<Box sx={{ minWidth: 150 }}>
+									<CustomDropDownSelect
+										id="year-filter"
+										size="small"
+										label={t.common.year}
+										items={yearItems}
+										value={String(year)}
+										onChange={(e) => setYear(Number(e.target.value))}
+										theme={customDropdownTheme()}
+										startIcon={<CalendarTodayIcon />}
+									/>
+								</Box>
 							</Stack>
 						</Stack>
 
@@ -204,15 +263,36 @@ const LocauxDashboardClient: React.FC<SessionProps> = ({ session }) => {
 									<Card elevation={2} sx={{ borderRadius: 2 }}>
 										<CardContent sx={{ py: 6, textAlign: 'center' }}>
 											<BusinessIcon sx={{ fontSize: 48, color: 'grey.400', mb: 2 }} />
-											<Typography color="text.secondary">{t.locaux.noLocauxRegistered}</Typography>
+											<Typography
+												sx={{
+													color: 'text.secondary',
+												}}
+											>
+												{t.locaux.noLocauxRegistered}
+											</Typography>
 										</CardContent>
 									</Card>
 								) : (
 									<Card elevation={2} sx={{ borderRadius: 2 }}>
 										<CardContent sx={{ p: { xs: 1, md: 2 } }}>
-											<Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 2, px: 1 }}>
+											<Stack
+												direction="row"
+												spacing={2}
+												sx={{
+													alignItems: 'center',
+													mb: 2,
+													px: 1,
+												}}
+											>
 												<TrendingUpIcon color="primary" />
-												<Typography variant="h6" fontWeight={700}>{t.locaux.profitabilityByLocal}</Typography>
+												<Typography
+													variant="h6"
+													sx={{
+														fontWeight: 700,
+													}}
+												>
+													{t.locaux.profitabilityByLocal}
+												</Typography>
 											</Stack>
 											{isMobile ? (
 												<Stack spacing={1.5}>
@@ -226,24 +306,90 @@ const LocauxDashboardClient: React.FC<SessionProps> = ({ session }) => {
 																onClick={() => router.push(LOCAUX_VIEW(local.id))}
 															>
 																<CardContent sx={{ py: 1.5, px: 2, '&:last-child': { pb: 1.5 } }}>
-																	<Stack direction="row" justifyContent="space-between" alignItems="center" mb={1}>
-																		<Typography variant="body2" fontWeight={600}>{local.nom}</Typography>
+																	<Stack
+																		direction="row"
+																		sx={{
+																			justifyContent: 'space-between',
+																			alignItems: 'center',
+																			mb: 1,
+																		}}
+																	>
+																		<Typography
+																			variant="body2"
+																			sx={{
+																				fontWeight: 600,
+																			}}
+																		>
+																			{local.nom}
+																		</Typography>
 																		<Stack direction="row" spacing={0.5}>
-																			<Chip label={t.rawData.localTypes[LOCAL_TYPE_LABEL_KEYS[local.type_local]]} size="small" color={typeColor} variant="outlined" />
-																			<Chip label={local.en_location ? t.locaux.inRental : t.common.free} size="small" color={local.en_location ? 'success' : 'default'} variant="outlined" />
+																			<Chip
+																				label={t.rawData.localTypes[LOCAL_TYPE_LABEL_KEYS[local.type_local]]}
+																				size="small"
+																				color={typeColor}
+																				variant="outlined"
+																			/>
+																			<Chip
+																				label={local.en_location ? t.locaux.inRental : t.common.free}
+																				size="small"
+																				color={local.en_location ? 'success' : 'default'}
+																				variant="outlined"
+																			/>
 																		</Stack>
 																	</Stack>
 																	<Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 0.5 }}>
-																		<Typography variant="caption" color="text.secondary">{t.locaux.paidRents}</Typography>
-																		<Typography variant="caption" color="success.main" fontWeight={600} textAlign="right">
+																		<Typography
+																			variant="caption"
+																			sx={{
+																				color: 'text.secondary',
+																			}}
+																		>
+																			{t.locaux.paidRents}
+																		</Typography>
+																		<Typography
+																			variant="caption"
+																			sx={{
+																				color: 'success.main',
+																				fontWeight: 600,
+																				textAlign: 'right',
+																			}}
+																		>
 																			{Number(local.loyers_payes).toLocaleString('fr-MA')} MAD
 																		</Typography>
-																		<Typography variant="caption" color="text.secondary">{t.locaux.unpaidRents}</Typography>
-																		<Typography variant="caption" color="error.main" fontWeight={600} textAlign="right">
+																		<Typography
+																			variant="caption"
+																			sx={{
+																				color: 'text.secondary',
+																			}}
+																		>
+																			{t.locaux.unpaidRents}
+																		</Typography>
+																		<Typography
+																			variant="caption"
+																			sx={{
+																				color: 'error.main',
+																				fontWeight: 600,
+																				textAlign: 'right',
+																			}}
+																		>
 																			{Number(local.loyers_impayes).toLocaleString('fr-MA')} MAD
 																		</Typography>
-																		<Typography variant="caption" color="text.secondary">{t.locaux.profitability}</Typography>
-																		<Typography variant="caption" fontWeight={700} color="primary" textAlign="right">
+																		<Typography
+																			variant="caption"
+																			sx={{
+																				color: 'text.secondary',
+																			}}
+																		>
+																			{t.locaux.profitability}
+																		</Typography>
+																		<Typography
+																			variant="caption"
+																			color="primary"
+																			sx={{
+																				fontWeight: 700,
+																				textAlign: 'right',
+																			}}
+																		>
 																			{local.rentabilite}%
 																		</Typography>
 																	</Box>
@@ -253,65 +399,108 @@ const LocauxDashboardClient: React.FC<SessionProps> = ({ session }) => {
 													})}
 												</Stack>
 											) : (
-											<TableContainer>
-												<Table size="small">
-													<TableHead>
-														<TableRow>
-															<TableCell sx={{ fontWeight: 700 }}>{t.common.name}</TableCell>
-															<TableCell sx={{ fontWeight: 700 }}>{t.common.type}</TableCell>
-															<TableCell sx={{ fontWeight: 700 }}>{t.common.status}</TableCell>
-															<TableCell sx={{ fontWeight: 700 }} align="right">{t.locaux.purchasePrice}</TableCell>
-															<TableCell sx={{ fontWeight: 700 }} align="right">{t.locaux.rentPerMonth}</TableCell>
-															<TableCell sx={{ fontWeight: 700 }} align="right">{t.locaux.paidRents}</TableCell>
-															<TableCell sx={{ fontWeight: 700 }} align="right">{t.locaux.unpaidRents}</TableCell>
-															<TableCell sx={{ fontWeight: 700 }} align="right">{t.locaux.profitability}</TableCell>
-														</TableRow>
-													</TableHead>
-													<TableBody>
-														{locaux.map((local) => {
-															const typeColor = (TYPE_LOCAL_CHIP_COLORS[local.type_local] ?? 'default') as ChipColor;
-															return (
-																<TableRow
-																	key={local.id}
-																	hover
-																	sx={{ cursor: 'pointer' }}
-																	onClick={() => router.push(LOCAUX_VIEW(local.id))}
-																>
-																	<TableCell>
-																		<Typography variant="body2" fontWeight={600}>{local.nom}</Typography>
-																	</TableCell>
-																	<TableCell>
-																		<Chip label={t.rawData.localTypes[LOCAL_TYPE_LABEL_KEYS[local.type_local]]} size="small" color={typeColor} variant="outlined" />
-																	</TableCell>
-																	<TableCell>
-																		<Chip
-																			label={local.en_location ? t.locaux.inRental : t.common.free}
-																			size="small"
-																			color={local.en_location ? 'success' : 'default'}
-																			variant="outlined"
-																		/>
-																	</TableCell>
-																	<TableCell align="right">{Number(local.prix_achat).toLocaleString('fr-MA')} MAD</TableCell>
-																	<TableCell align="right">{Number(local.prix_location_mensuel).toLocaleString('fr-MA')} MAD</TableCell>
-																	<TableCell align="right">
-																		<Typography color="success.main" fontWeight={600}>
-																			{Number(local.loyers_payes).toLocaleString('fr-MA')} MAD
-																		</Typography>
-																	</TableCell>
-																	<TableCell align="right">
-																		<Typography color="error.main" fontWeight={600}>
-																			{Number(local.loyers_impayes).toLocaleString('fr-MA')} MAD
-																		</Typography>
-																	</TableCell>
-																	<TableCell align="right">
-																		<Typography fontWeight={700} color="primary">{local.rentabilite}%</Typography>
-																	</TableCell>
-																</TableRow>
-															);
-														})}
-													</TableBody>
-												</Table>
-											</TableContainer>
+												<TableContainer>
+													<Table size="small">
+														<TableHead>
+															<TableRow>
+																<TableCell sx={{ fontWeight: 700 }}>{t.common.name}</TableCell>
+																<TableCell sx={{ fontWeight: 700 }}>{t.common.type}</TableCell>
+																<TableCell sx={{ fontWeight: 700 }}>{t.common.status}</TableCell>
+																<TableCell sx={{ fontWeight: 700 }} align="right">
+																	{t.locaux.purchasePrice}
+																</TableCell>
+																<TableCell sx={{ fontWeight: 700 }} align="right">
+																	{t.locaux.rentPerMonth}
+																</TableCell>
+																<TableCell sx={{ fontWeight: 700 }} align="right">
+																	{t.locaux.paidRents}
+																</TableCell>
+																<TableCell sx={{ fontWeight: 700 }} align="right">
+																	{t.locaux.unpaidRents}
+																</TableCell>
+																<TableCell sx={{ fontWeight: 700 }} align="right">
+																	{t.locaux.profitability}
+																</TableCell>
+															</TableRow>
+														</TableHead>
+														<TableBody>
+															{locaux.map((local) => {
+																const typeColor = (TYPE_LOCAL_CHIP_COLORS[local.type_local] ?? 'default') as ChipColor;
+																return (
+																	<TableRow
+																		key={local.id}
+																		hover
+																		sx={{ cursor: 'pointer' }}
+																		onClick={() => router.push(LOCAUX_VIEW(local.id))}
+																	>
+																		<TableCell>
+																			<Typography
+																				variant="body2"
+																				sx={{
+																					fontWeight: 600,
+																				}}
+																			>
+																				{local.nom}
+																			</Typography>
+																		</TableCell>
+																		<TableCell>
+																			<Chip
+																				label={t.rawData.localTypes[LOCAL_TYPE_LABEL_KEYS[local.type_local]]}
+																				size="small"
+																				color={typeColor}
+																				variant="outlined"
+																			/>
+																		</TableCell>
+																		<TableCell>
+																			<Chip
+																				label={local.en_location ? t.locaux.inRental : t.common.free}
+																				size="small"
+																				color={local.en_location ? 'success' : 'default'}
+																				variant="outlined"
+																			/>
+																		</TableCell>
+																		<TableCell align="right">
+																			{Number(local.prix_achat).toLocaleString('fr-MA')} MAD
+																		</TableCell>
+																		<TableCell align="right">
+																			{Number(local.prix_location_mensuel).toLocaleString('fr-MA')} MAD
+																		</TableCell>
+																		<TableCell align="right">
+																			<Typography
+																				sx={{
+																					color: 'success.main',
+																					fontWeight: 600,
+																				}}
+																			>
+																				{Number(local.loyers_payes).toLocaleString('fr-MA')} MAD
+																			</Typography>
+																		</TableCell>
+																		<TableCell align="right">
+																			<Typography
+																				sx={{
+																					color: 'error.main',
+																					fontWeight: 600,
+																				}}
+																			>
+																				{Number(local.loyers_impayes).toLocaleString('fr-MA')} MAD
+																			</Typography>
+																		</TableCell>
+																		<TableCell align="right">
+																			<Typography
+																				color="primary"
+																				sx={{
+																					fontWeight: 700,
+																				}}
+																			>
+																				{local.rentabilite}%
+																			</Typography>
+																		</TableCell>
+																	</TableRow>
+																);
+															})}
+														</TableBody>
+													</Table>
+												</TableContainer>
 											)}
 										</CardContent>
 									</Card>

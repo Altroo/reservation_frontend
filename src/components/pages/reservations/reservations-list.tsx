@@ -1,28 +1,17 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import {
-	Box,
-	Button,
-	Stack,
-	Typography,
-	Chip,
-} from '@mui/material';
+import { Box, Button, Chip, Stack, Typography } from '@mui/material';
 import {
 	Add as AddIcon,
-	Delete as DeleteIcon,
 	Close as CloseIcon,
-	Visibility as VisibilityIcon,
+	Delete as DeleteIcon,
 	Edit as EditIcon,
+	Visibility as VisibilityIcon,
 } from '@mui/icons-material';
-import {
-	GridColDef,
-	GridFilterModel,
-	GridLogicOperator,
-	GridRenderCellParams,
-} from '@mui/x-data-grid';
-import type { SessionProps, PaginationResponseType } from '@/types/_initTypes';
+import { GridColDef, GridFilterModel, GridLogicOperator, GridRenderCellParams } from '@mui/x-data-grid';
+import type { PaginationResponseType, SessionProps } from '@/types/_initTypes';
 import type { ReservationClass } from '@/models/classes';
 import Styles from '@/styles/dashboard/dashboard.module.sass';
 import NavigationBar from '@/components/layouts/navigationBar/navigationBar';
@@ -31,17 +20,17 @@ import ActionModals from '@/components/htmlElements/modals/actionModal/actionMod
 import { Protected } from '@/components/layouts/protected/protected';
 import MobileActionsMenu from '@/components/shared/mobileActionsMenu/mobileActionsMenu';
 import DarkTooltip from '@/components/htmlElements/tooltip/darkTooltip/darkTooltip';
-import ChipSelectFilterBar from '@/components/shared/chipSelectFilter/chipSelectFilterBar';
 import type { ChipFilterConfig } from '@/components/shared/chipSelectFilter/chipSelectFilterBar';
-import { formatDate, extractApiErrorMessage } from '@/utils/helpers';
+import ChipSelectFilterBar from '@/components/shared/chipSelectFilter/chipSelectFilterBar';
+import { extractApiErrorMessage, formatDate } from '@/utils/helpers';
 import { PAYMENT_SOURCE_CHIP_COLORS } from '@/utils/rawData';
-import { RESERVATIONS_ADD, RESERVATIONS_VIEW, RESERVATIONS_EDIT } from '@/utils/routes';
-import { useToast, useLanguage } from '@/utils/hooks';
+import { RESERVATIONS_ADD, RESERVATIONS_EDIT, RESERVATIONS_VIEW } from '@/utils/routes';
+import { useLanguage, useToast } from '@/utils/hooks';
 import {
-	useGetReservationsListQuery,
-	useDeleteReservationMutation,
 	useBulkDeleteReservationsMutation,
+	useDeleteReservationMutation,
 	useGetApartmentsQuery,
+	useGetReservationsListQuery,
 } from '@/store/services/reservation';
 import { useInitAccessToken } from '@/contexts/InitContext';
 import { createDateRangeFilterOperator } from '@/components/shared/dateRangeFilter/dateRangeFilterOperator';
@@ -127,7 +116,13 @@ const ReservationsListClient: React.FC<SessionProps> = ({ session }) => {
 	};
 
 	const deleteModalActions = [
-		{ text: t.common.cancel, active: false, onClick: () => setShowDeleteModal(false), icon: <CloseIcon />, color: '#6B6B6B' },
+		{
+			text: t.common.cancel,
+			active: false,
+			onClick: () => setShowDeleteModal(false),
+			icon: <CloseIcon />,
+			color: '#6B6B6B',
+		},
 		{ text: t.common.delete, active: true, onClick: deleteHandler, icon: <DeleteIcon />, color: '#D32F2F' },
 	];
 
@@ -168,7 +163,13 @@ const ReservationsListClient: React.FC<SessionProps> = ({ session }) => {
 				],
 			},
 		],
-		[apartments, t.reservations.apartment, t.reservations.columnSource, t.rawData.paymentSources.bankTransfer, t.rawData.paymentSources.cash],
+		[
+			apartments,
+			t.reservations.apartment,
+			t.reservations.columnSource,
+			t.rawData.paymentSources.bankTransfer,
+			t.rawData.paymentSources.cash,
+		],
 	);
 
 	const columns: GridColDef[] = [
@@ -189,7 +190,12 @@ const ReservationsListClient: React.FC<SessionProps> = ({ session }) => {
 			headerName: t.reservations.columnClient,
 			flex: 1.4,
 			minWidth: 130,
-			filterOperators: createDropdownFilterOperators(guestNameOptions, t.reservations.allClients, undefined, t.filters.is),
+			filterOperators: createDropdownFilterOperators(
+				guestNameOptions,
+				t.reservations.allClients,
+				undefined,
+				t.filters.is,
+			),
 			renderCell: (params: GridRenderCellParams<ReservationClass>) => (
 				<DarkTooltip title={params.value}>
 					<Typography variant="body2" noWrap>
@@ -263,7 +269,7 @@ const ReservationsListClient: React.FC<SessionProps> = ({ session }) => {
 						<Chip
 							label={source}
 							size="small"
-									color={PAYMENT_SOURCE_CHIP_COLORS[source] ?? 'default'}
+							color={PAYMENT_SOURCE_CHIP_COLORS[source] ?? 'default'}
 							variant="outlined"
 						/>
 					</DarkTooltip>
@@ -311,8 +317,11 @@ const ReservationsListClient: React.FC<SessionProps> = ({ session }) => {
 			direction="column"
 			spacing={2}
 			className={Styles.flexRootStack}
-			mt="48px"
-			sx={{ overflowX: 'auto', overflowY: 'hidden' }}
+			sx={{
+				mt: '48px',
+				overflowX: 'auto',
+				overflowY: 'hidden',
+			}}
 		>
 			<NavigationBar title={t.reservations.reservationsList}>
 				<Protected permission="can_view">
@@ -332,12 +341,12 @@ const ReservationsListClient: React.FC<SessionProps> = ({ session }) => {
 								variant="contained"
 								onClick={() => router.push(RESERVATIONS_ADD)}
 								startIcon={<AddIcon fontSize="small" />}
-							sx={{
-								whiteSpace: 'nowrap',
-								px: { xs: 1.5, sm: 2, md: 3 },
-								py: { xs: 0.8, sm: 1, md: 1 },
-								fontSize: { xs: '0.85rem', sm: '0.9rem', md: '1rem' },
-							}}
+								sx={{
+									whiteSpace: 'nowrap',
+									px: { xs: 1.5, sm: 2, md: 3 },
+									py: { xs: 0.8, sm: 1, md: 1 },
+									fontSize: { xs: '0.85rem', sm: '0.9rem', md: '1rem' },
+								}}
 							>
 								{t.reservations.newReservation}
 							</Button>
@@ -355,11 +364,32 @@ const ReservationsListClient: React.FC<SessionProps> = ({ session }) => {
 						</Box>
 
 						{isError ? (
-							<Box display="flex" flexDirection="column" alignItems="center" justifyContent="center" py={8} gap={2}>
-								<Typography color="text.secondary" variant="h6" textAlign="center">
+							<Box
+								sx={{
+									display: 'flex',
+									flexDirection: 'column',
+									alignItems: 'center',
+									justifyContent: 'center',
+									py: 8,
+									gap: 2,
+								}}
+							>
+								<Typography
+									variant="h6"
+									sx={{
+										color: 'text.secondary',
+										textAlign: 'center',
+									}}
+								>
 									{t.reservations.loadError}
 								</Typography>
-								<Typography color="error.main" variant="body2" textAlign="center">
+								<Typography
+									variant="body2"
+									sx={{
+										color: 'error.main',
+										textAlign: 'center',
+									}}
+								>
 									{(error as { data?: { message?: string } })?.data?.message ?? t.reservations.networkError}
 								</Typography>
 								<Button variant="outlined" onClick={() => refetch()}>
@@ -413,6 +443,3 @@ const ReservationsListClient: React.FC<SessionProps> = ({ session }) => {
 };
 
 export default ReservationsListClient;
-
-
-

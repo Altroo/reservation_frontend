@@ -25,16 +25,16 @@ import ChipSelectFilterBar from '@/components/shared/chipSelectFilter/chipSelect
 import { createNumericFilterOperators } from '@/components/shared/numericFilter/numericFilterOperator';
 import { extractApiErrorMessage } from '@/utils/helpers';
 import { LOCAUX_ADD, LOCAUX_EDIT, LOCAUX_VIEW } from '@/utils/routes';
-import { useToast, useLanguage } from '@/utils/hooks';
+import { useLanguage, useToast } from '@/utils/hooks';
 import {
-	useGetLocauxListQuery,
-	useDeleteLocalMutation,
 	useBulkDeleteLocauxMutation,
+	useDeleteLocalMutation,
 	useGetBuildingsQuery,
+	useGetLocauxListQuery,
 } from '@/store/services/reservation';
 import { useInitAccessToken } from '@/contexts/InitContext';
-import { TYPE_LOCAL_CHIP_COLORS, LOCAL_TYPE_LABEL_KEYS } from '@/utils/rawData';
 import type { ChipColor } from '@/utils/rawData';
+import { LOCAL_TYPE_LABEL_KEYS, TYPE_LOCAL_CHIP_COLORS } from '@/utils/rawData';
 
 const LocauxListClient: React.FC<SessionProps> = ({ session }) => {
 	const router = useRouter();
@@ -206,7 +206,16 @@ const LocauxListClient: React.FC<SessionProps> = ({ session }) => {
 				options: (buildingsData ?? []).map((b) => ({ id: String(b.id), nom: b.nom })),
 			},
 		],
-		[buildingsData, t.common.status, t.common.type, t.locaux.residence, t.common.rented, t.common.free, t.rawData.localTypes.office, t.rawData.localTypes.shop],
+		[
+			buildingsData,
+			t.common.status,
+			t.common.type,
+			t.locaux.residence,
+			t.common.rented,
+			t.common.free,
+			t.rawData.localTypes.office,
+			t.rawData.localTypes.shop,
+		],
 	);
 
 	const columns: GridColDef[] = [
@@ -368,8 +377,11 @@ const LocauxListClient: React.FC<SessionProps> = ({ session }) => {
 			direction="column"
 			spacing={2}
 			className={Styles.flexRootStack}
-			mt="48px"
-			sx={{ overflowX: 'auto', overflowY: 'hidden' }}
+			sx={{
+				mt: '48px',
+				overflowX: 'auto',
+				overflowY: 'hidden',
+			}}
 		>
 			<NavigationBar title={t.locaux.localsList}>
 				<Protected permission="can_view">
@@ -433,16 +445,16 @@ const LocauxListClient: React.FC<SessionProps> = ({ session }) => {
 
 						{showDeleteModal && (
 							<ActionModals
-							title={t.locaux.deleteLocal}
-							body={t.locaux.deleteLocalConfirm}
+								title={t.locaux.deleteLocal}
+								body={t.locaux.deleteLocalConfirm}
 								actions={deleteModalActions}
 							/>
 						)}
 
 						{showBulkDeleteModal && (
 							<ActionModals
-							title={t.locaux.bulkDeleteLocaux}
-							body={t.locaux.bulkDeleteLocauxConfirm(selectedIds.length)}
+								title={t.locaux.bulkDeleteLocaux}
+								body={t.locaux.bulkDeleteLocauxConfirm(selectedIds.length)}
 								actions={bulkDeleteModalActions}
 							/>
 						)}

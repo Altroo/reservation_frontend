@@ -1,9 +1,9 @@
 import {
 	genderItemsList,
-	typeLocalItemsList,
-	TYPE_LOCAL_CHIP_COLORS,
 	LOCAL_FIELD_LABELS,
 	LOYER_FIELD_LABELS,
+	TYPE_LOCAL_CHIP_COLORS,
+	typeLocalItemsList,
 } from './rawData';
 
 describe('items lists', () => {

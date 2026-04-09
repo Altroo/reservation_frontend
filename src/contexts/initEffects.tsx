@@ -3,7 +3,7 @@
 import React, { useEffect, useRef } from 'react';
 import { useAppDispatch, useAppSelector } from '@/utils/hooks';
 import { useSession } from 'next-auth/react';
-import { useRouter, usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { initAppAction, initAppSessionTokensAction } from '@/store/actions/_initActions';
 import { getAccessToken } from '@/store/selectors';
 import { useGetProfilQuery } from '@/store/services/account';
@@ -33,8 +33,7 @@ export const InitEffects: React.FC = () => {
 
 	// Sync Redux tokens whenever the access token changes (covers initial login + every refresh)
 	useEffect(() => {
-		if (status === 'authenticated' && session?.accessToken &&
-			lastAccessTokenRef.current !== session.accessToken) {
+		if (status === 'authenticated' && session?.accessToken && lastAccessTokenRef.current !== session.accessToken) {
 			lastAccessTokenRef.current = session.accessToken;
 			dispatch(initAppSessionTokensAction(session));
 		}

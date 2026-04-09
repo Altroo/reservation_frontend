@@ -6,14 +6,14 @@ import { Box, Stack, useMediaQuery, useTheme } from '@mui/material';
 import { useFormik } from 'formik';
 import { profilSchema } from '@/utils/formValidationSchemas';
 import CustomTextInput from '@/components/formikElements/customTextInput/customTextInput';
-import { textInputTheme, customDropdownTheme } from '@/utils/themes';
+import { customDropdownTheme, textInputTheme } from '@/utils/themes';
 import CustomDropDownSelect from '@/components/formikElements/customDropDownSelect/customDropDownSelect';
-import { useAppDispatch, useToast, useLanguage } from '@/utils/hooks';
+import { useAppDispatch, useLanguage, useToast } from '@/utils/hooks';
 import { toFormikValidationSchema } from 'zod-formik-adapter';
 import { setFormikAutoErrors } from '@/utils/helpers';
 import PrimaryLoadingButton from '@/components/htmlElements/buttons/primaryLoadingButton/primaryLoadingButton';
 import type { SessionProps } from '@/types/_initTypes';
-import { useGetProfilQuery, useEditProfilMutation } from '@/store/services/account';
+import { useEditProfilMutation, useGetProfilQuery } from '@/store/services/account';
 import { useInitAccessToken } from '@/contexts/InitContext';
 import ApiProgress from '@/components/formikElements/apiLoading/apiProgress/apiProgress';
 import NavigationBar from '@/components/layouts/navigationBar/navigationBar';
@@ -68,13 +68,28 @@ const FormikContent: React.FC<formikContentType> = (props: formikContentType) =>
 	});
 
 	return (
-		<Stack direction="column" alignItems="center" spacing={2} className={`${Styles.flexRootStack}`} mt="32px">
+		<Stack
+			direction="column"
+			spacing={2}
+			className={`${Styles.flexRootStack}`}
+			sx={{
+				alignItems: 'center',
+				mt: '32px',
+			}}
+		>
 			{(isEditLoading || isPending || isProfilLoading) && (
 				<ApiProgress backdropColor="#FFFFFF" circularColor="#0D070B" />
 			)}
 			<h2 className={Styles.pageTitle}>{t.settings.profile}</h2>
 			<form className={Styles.form} onSubmit={(e) => e.preventDefault()}>
-				<Stack direction="column" spacing={2} justifyContent="center" alignItems="center">
+				<Stack
+					direction="column"
+					spacing={2}
+					sx={{
+						justifyContent: 'center',
+						alignItems: 'center',
+					}}
+				>
 					<CustomSquareImageUploading
 						cssClasse={Styles.centerAvatar}
 						image={formik.values.avatar}
@@ -132,7 +147,10 @@ const FormikContent: React.FC<formikContentType> = (props: formikContentType) =>
 						size="small"
 						id="gender"
 						label={t.settings.genre}
-						items={[{ code: 'H', value: t.rawData.genders.male }, { code: 'F', value: t.rawData.genders.female }]}
+						items={[
+							{ code: 'H', value: t.rawData.genders.male },
+							{ code: 'F', value: t.rawData.genders.female },
+						]}
 						theme={customDropdownTheme()}
 						onChange={(e) => formik.setFieldValue('gender', e.target.value)}
 						value={formik.values.gender}
@@ -184,6 +202,3 @@ const EditProfilClient: React.FC<SessionProps> = (props: SessionProps) => {
 };
 
 export default EditProfilClient;
-
-
-

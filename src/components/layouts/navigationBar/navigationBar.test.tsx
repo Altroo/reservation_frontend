@@ -12,8 +12,10 @@ jest.mock('@/utils/clientHelpers', () => ({
 }));
 
 let mockPathname = '/dashboard';
+const mockPush = jest.fn();
 jest.mock('next/navigation', () => ({
 	usePathname: () => mockPathname,
+	useRouter: () => ({ push: mockPush }),
 }));
 
 let mockIsMobile = false;
@@ -40,6 +42,8 @@ jest.mock('next-auth/react', () => ({
 const mockUseIsClient = jest.fn(() => true);
 const mockUseAppSelector = jest.fn();
 const mockDispatch = jest.fn();
+const mockNotificationsPage = { results: [], next: null };
+const mockUnreadNotifications = { count: 0 };
 jest.mock('@/utils/hooks', () => ({
 	// eslint-disable-next-line @typescript-eslint/no-require-imports
 	useLanguage: () => ({ language: 'fr', setLanguage: jest.fn(), t: require('@/translations').translations.fr }),
@@ -52,8 +56,8 @@ jest.mock('@/store/services/reservation', () => {
 	const actual = jest.requireActual('@/store/services/reservation');
 	return {
 		...actual,
-		useGetNotificationsQuery: () => ({ data: [], isLoading: false }),
-		useGetUnreadNotificationCountQuery: () => ({ data: { count: 0 }, isLoading: false }),
+		useGetNotificationsQuery: () => ({ data: mockNotificationsPage, isLoading: false }),
+		useGetUnreadNotificationCountQuery: () => ({ data: mockUnreadNotifications, isLoading: false }),
 		useMarkNotificationsReadMutation: () => [jest.fn(), { isLoading: false }],
 	};
 });
@@ -74,6 +78,7 @@ describe('NavigationBar', () => {
 	beforeEach(() => {
 		jest.clearAllMocks();
 		mockPathname = '/dashboard';
+		mockPush.mockReset();
 		mockProfileData.avatar_cropped = undefined;
 		mockProfileData.first_name = 'John';
 		mockProfileData.last_name = 'Doe';

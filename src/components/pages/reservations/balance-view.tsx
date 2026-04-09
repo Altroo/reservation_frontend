@@ -22,7 +22,7 @@ import {
 } from '@mui/material';
 import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
 import HomeWorkIcon from '@mui/icons-material/HomeWork';
-import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
+import CheckCircleOutlinedIcon from '@mui/icons-material/CheckCircleOutlined';
 import HighlightOffIcon from '@mui/icons-material/HighlightOff';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import ApartmentIcon from '@mui/icons-material/Apartment';
@@ -37,9 +37,9 @@ import NavigationBar from '@/components/layouts/navigationBar/navigationBar';
 import { Protected } from '@/components/layouts/protected/protected';
 import {
 	useGetBalanceQuery,
+	useGetBuildingsQuery,
 	useGetReservationYearsQuery,
 	useToggleAmountReturnedMutation,
-	useGetBuildingsQuery,
 } from '@/store/services/reservation';
 import { useInitAccessToken } from '@/contexts/InitContext';
 import { formatNumberMA as fmt } from '@/utils/helpers';
@@ -72,18 +72,38 @@ function KpiCard({ color, icon, label, value, tooltip }: KpiCardProps) {
 			}}
 		>
 			<CardContent sx={{ py: 1.5, px: 2, '&:last-child': { pb: 1.5 } }}>
-				<Stack direction="row" alignItems="center" justifyContent="space-between">
-					<Stack direction="row" alignItems="center" spacing={1.5}>
+				<Stack
+					direction="row"
+					sx={{
+						alignItems: 'center',
+						justifyContent: 'space-between',
+					}}
+				>
+					<Stack
+						direction="row"
+						spacing={1.5}
+						sx={{
+							alignItems: 'center',
+						}}
+					>
 						<Box sx={{ color }}>{icon}</Box>
 						<Box>
 							<Typography
 								variant="caption"
-								color="text.secondary"
-								sx={{ textTransform: 'uppercase', letterSpacing: 0.5 }}
+								sx={{
+									color: 'text.secondary',
+									textTransform: 'uppercase',
+									letterSpacing: 0.5,
+								}}
 							>
 								{label}
 							</Typography>
-							<Typography variant="h6" fontWeight={700}>
+							<Typography
+								variant="h6"
+								sx={{
+									fontWeight: 700,
+								}}
+							>
 								{value}
 							</Typography>
 						</Box>
@@ -108,13 +128,19 @@ const BalanceClient: React.FC<SessionProps> = ({ session }) => {
 	const [year, setYear] = useState(currentYear);
 	const [buildingId, setBuildingId] = useState<number | ''>('');
 
-	const { data, isLoading } = useGetBalanceQuery({ year, ...(buildingId ? { building: buildingId } : {}) }, { skip: !token });
+	const { data, isLoading } = useGetBalanceQuery(
+		{ year, ...(buildingId ? { building: buildingId } : {}) },
+		{ skip: !token },
+	);
 	const { data: yearsData } = useGetReservationYearsQuery(undefined, { skip: !token });
 	const [toggleAmountReturned] = useToggleAmountReturnedMutation();
 	const { data: buildingsData } = useGetBuildingsQuery(undefined, { skip: !token });
 
 	const buildingItems: DropDownType[] = useMemo(
-		() => [{ code: t.locaux.allResidences, value: t.locaux.allResidences }, ...(buildingsData ?? []).map((b) => ({ code: b.nom, value: b.nom }))],
+		() => [
+			{ code: t.locaux.allResidences, value: t.locaux.allResidences },
+			...(buildingsData ?? []).map((b) => ({ code: b.nom, value: b.nom })),
+		],
 		[buildingsData, t],
 	);
 
@@ -142,51 +168,80 @@ const BalanceClient: React.FC<SessionProps> = ({ session }) => {
 	};
 
 	return (
-		<Stack direction="column" spacing={2} className={Styles.flexRootStack} mt="48px">
+		<Stack
+			direction="column"
+			spacing={2}
+			className={Styles.flexRootStack}
+			sx={{
+				mt: '48px',
+			}}
+		>
 			<NavigationBar title={t.reservations.balance}>
 				<Protected permission="can_view">
 					<Box sx={{ px: { xs: 1, sm: 2, md: 3 }, pb: 4 }}>
-						<Stack direction="row" justifyContent="space-between" alignItems="center" py={2}>
-							<Typography variant="h5" fontWeight={600}>
+						<Stack
+							direction="row"
+							sx={{
+								justifyContent: 'space-between',
+								alignItems: 'center',
+								py: 2,
+							}}
+						>
+							<Typography
+								variant="h5"
+								sx={{
+									fontWeight: 600,
+								}}
+							>
 								{t.reservations.balanceYear(year)}
 							</Typography>
 							<Stack direction="row" spacing={1}>
-							<Box sx={{ minWidth: 180 }}>
-								<CustomDropDownSelect
-									id="building-filter"
-									size="small"
-									label={t.common.residence}
-									items={buildingItems}
-									value={buildingId === '' ? t.locaux.allResidences : ((buildingsData ?? []).find((b) => b.id === buildingId)?.nom ?? t.locaux.allResidences)}
-									onChange={(e) => {
-										const name = e.target.value;
-										if (!name || name === t.locaux.allResidences) setBuildingId('');
-										else {
-											const b = (buildingsData ?? []).find((x) => x.nom === name);
-											setBuildingId(b ? b.id : '');
+								<Box sx={{ minWidth: 180 }}>
+									<CustomDropDownSelect
+										id="building-filter"
+										size="small"
+										label={t.common.residence}
+										items={buildingItems}
+										value={
+											buildingId === ''
+												? t.locaux.allResidences
+												: ((buildingsData ?? []).find((b) => b.id === buildingId)?.nom ?? t.locaux.allResidences)
 										}
-									}}
-									theme={customDropdownTheme()}
-									startIcon={<ApartmentIcon />}
-								/>
-							</Box>
-							<Box sx={{ minWidth: 150 }}>
-								<CustomDropDownSelect
-									id="year-filter"
-									size="small"
-									label={t.common.year}
-									items={yearItems}
-									value={String(year)}
-									onChange={(e) => setYear(Number(e.target.value))}
-									theme={customDropdownTheme()}
-									startIcon={<CalendarTodayIcon />}
-								/>
-							</Box>
+										onChange={(e) => {
+											const name = e.target.value;
+											if (!name || name === t.locaux.allResidences) setBuildingId('');
+											else {
+												const b = (buildingsData ?? []).find((x) => x.nom === name);
+												setBuildingId(b ? b.id : '');
+											}
+										}}
+										theme={customDropdownTheme()}
+										startIcon={<ApartmentIcon />}
+									/>
+								</Box>
+								<Box sx={{ minWidth: 150 }}>
+									<CustomDropDownSelect
+										id="year-filter"
+										size="small"
+										label={t.common.year}
+										items={yearItems}
+										value={String(year)}
+										onChange={(e) => setYear(Number(e.target.value))}
+										theme={customDropdownTheme()}
+										startIcon={<CalendarTodayIcon />}
+									/>
+								</Box>
 							</Stack>
 						</Stack>
 
 						{isLoading ? (
-							<Box display="flex" justifyContent="center" py={8}>
+							<Box
+								sx={{
+									display: 'flex',
+									justifyContent: 'center',
+									py: 8,
+								}}
+							>
 								<CircularProgress />
 							</Box>
 						) : (
@@ -208,7 +263,7 @@ const BalanceClient: React.FC<SessionProps> = ({ session }) => {
 									/>
 									<KpiCard
 										color="#2e7d32"
-										icon={<CheckCircleOutlineIcon />}
+										icon={<CheckCircleOutlinedIcon />}
 										label={t.reservations.amountReturned}
 										value={`${fmt(totalReturned)} MAD`}
 										tooltip={t.reservations.amountReturnedTooltip}
@@ -235,10 +290,7 @@ const BalanceClient: React.FC<SessionProps> = ({ session }) => {
 										title={t.reservations.reservationDetail}
 										subheader={t.reservations.reservationDetailSubheader(year)}
 										action={
-											<MuiTooltip
-												title={t.reservations.toggleReturnedTooltip}
-												arrow
-											>
+											<MuiTooltip title={t.reservations.toggleReturnedTooltip} arrow>
 												<IconButton size="small">
 													<InfoOutlinedIcon fontSize="small" sx={{ color: 'text.disabled' }} />
 												</IconButton>
@@ -250,14 +302,29 @@ const BalanceClient: React.FC<SessionProps> = ({ session }) => {
 											<Table size="small" sx={{ minWidth: 700 }}>
 												<TableHead>
 													<TableRow sx={{ bgcolor: 'primary.main' }}>
-														<TableCell sx={{ color: 'white', fontWeight: 700, position: 'sticky', left: 0, zIndex: 3, bgcolor: 'primary.main' }}>{t.reservations.apartment}</TableCell>
-														<TableCell sx={{ color: 'white', fontWeight: 700 }}>{t.reservations.columnClient}</TableCell>
+														<TableCell
+															sx={{
+																color: 'white',
+																fontWeight: 700,
+																position: 'sticky',
+																left: 0,
+																zIndex: 3,
+																bgcolor: 'primary.main',
+															}}
+														>
+															{t.reservations.apartment}
+														</TableCell>
+														<TableCell sx={{ color: 'white', fontWeight: 700 }}>
+															{t.reservations.columnClient}
+														</TableCell>
 														<TableCell sx={{ color: 'white', fontWeight: 600 }}>{t.reservations.arrival}</TableCell>
 														<TableCell sx={{ color: 'white', fontWeight: 600 }}>{t.reservations.departure}</TableCell>
 														<TableCell align="right" sx={{ color: 'white', fontWeight: 700 }}>
 															{t.reservations.amountLabel}
 														</TableCell>
-														<TableCell sx={{ color: 'white', fontWeight: 600 }}>{t.reservations.columnSource}</TableCell>
+														<TableCell sx={{ color: 'white', fontWeight: 600 }}>
+															{t.reservations.columnSource}
+														</TableCell>
 														<TableCell align="center" sx={{ color: 'white', fontWeight: 700 }}>
 															{t.reservations.returned}
 														</TableCell>
@@ -276,7 +343,11 @@ const BalanceClient: React.FC<SessionProps> = ({ session }) => {
 																key={r.id}
 																sx={{ bgcolor: idx % 2 === 0 ? 'background.default' : 'action.hover' }}
 															>
-																<TableCell sx={{ fontWeight: 600, position: 'sticky', left: 0, zIndex: 1, bgcolor: 'inherit' }}>{r.apartment_nom}</TableCell>
+																<TableCell
+																	sx={{ fontWeight: 600, position: 'sticky', left: 0, zIndex: 1, bgcolor: 'inherit' }}
+																>
+																	{r.apartment_nom}
+																</TableCell>
 																<TableCell>{r.guest_name}</TableCell>
 																<TableCell>{r.check_in}</TableCell>
 																<TableCell>{r.check_out}</TableCell>
@@ -286,7 +357,7 @@ const BalanceClient: React.FC<SessionProps> = ({ session }) => {
 																<TableCell>{r.payment_source}</TableCell>
 																<TableCell align="center">
 																	<Chip
-																		icon={r.amount_returned ? <CheckCircleOutlineIcon /> : <HighlightOffIcon />}
+																		icon={r.amount_returned ? <CheckCircleOutlinedIcon /> : <HighlightOffIcon />}
 																		label={r.amount_returned ? t.common.yes : t.common.no}
 																		color={r.amount_returned ? 'success' : 'error'}
 																		size="small"
@@ -322,7 +393,19 @@ const BalanceClient: React.FC<SessionProps> = ({ session }) => {
 											<Table size="small" sx={{ minWidth: 900 }}>
 												<TableHead>
 													<TableRow sx={{ bgcolor: 'primary.main' }}>
-														<TableCell sx={{ color: 'white', fontWeight: 700, width: 100, position: 'sticky', left: 0, zIndex: 3, bgcolor: 'primary.main' }}>{t.reservations.apartment}</TableCell>
+														<TableCell
+															sx={{
+																color: 'white',
+																fontWeight: 700,
+																width: 100,
+																position: 'sticky',
+																left: 0,
+																zIndex: 3,
+																bgcolor: 'primary.main',
+															}}
+														>
+															{t.reservations.apartment}
+														</TableCell>
 														{t.rawData.monthLabels.map((m) => (
 															<TableCell
 																key={m}
@@ -350,7 +433,11 @@ const BalanceClient: React.FC<SessionProps> = ({ session }) => {
 																	bgcolor: rowIdx % 2 === 0 ? 'background.default' : 'action.hover',
 																}}
 															>
-																<TableCell sx={{ fontWeight: 600, position: 'sticky', left: 0, zIndex: 1, bgcolor: 'inherit' }}>{nom}</TableCell>
+																<TableCell
+																	sx={{ fontWeight: 600, position: 'sticky', left: 0, zIndex: 1, bgcolor: 'inherit' }}
+																>
+																	{nom}
+																</TableCell>
 																{Array.from({ length: 12 }, (_, i) => {
 																	const monthData = apt.monthly[i + 1];
 																	const total = monthData?.total ?? 0;
@@ -384,7 +471,11 @@ const BalanceClient: React.FC<SessionProps> = ({ session }) => {
 
 													{/* Total row */}
 													<TableRow sx={{ bgcolor: 'primary.light' }}>
-														<TableCell sx={{ fontWeight: 700, position: 'sticky', left: 0, zIndex: 1, bgcolor: 'primary.light' }}>{t.common.total}</TableCell>
+														<TableCell
+															sx={{ fontWeight: 700, position: 'sticky', left: 0, zIndex: 1, bgcolor: 'primary.light' }}
+														>
+															{t.common.total}
+														</TableCell>
 														{totalByMonth.map((total, i) => (
 															<TableCell
 																key={i}

@@ -184,9 +184,10 @@ export const fr: TranslationDictionary = {
 		apartmentEditedSuccess: "L'appartement a été modifié avec succès.",
 		apartmentEditError: "Échec du renommage de l'appartement.",
 		deleteApartment: "Supprimer l'appartement",
-		deleteApartmentConfirm: (name: string) => `Êtes-vous sûr de vouloir supprimer l'appartement "${name}" ? Cette action est irréversible.`,
+		deleteApartmentConfirm: (name: string) =>
+			`Êtes-vous sûr de vouloir supprimer l'appartement "${name}" ? Cette action est irréversible.`,
 		apartmentDeletedSuccess: "L'appartement a été supprimé avec succès.",
-		apartmentDeleteError: "Impossible de supprimer cet appartement.",
+		apartmentDeleteError: 'Impossible de supprimer cet appartement.',
 		noResidence: 'Aucune',
 		// calendar
 		calendar: 'Calendrier',
@@ -227,7 +228,8 @@ export const fr: TranslationDictionary = {
 		bestMonth: 'Meilleur mois',
 		gainsByApartment: 'Gains par appartement',
 		gainsByApartmentSub: 'Vue empilée — contribution de chaque appartement par mois',
-		gainsByApartmentTooltip: 'Revenus mensuels empilés par appartement, permettant de visualiser la contribution de chaque unité',
+		gainsByApartmentTooltip:
+			'Revenus mensuels empilés par appartement, permettant de visualiser la contribution de chaque unité',
 		monthlyDetailByApartment: 'Détail mensuel par appartement',
 		monthlyDetailByApartmentSub: (year: number) => `Revenus en MAD — ${year}`,
 		monthlyDetailTooltip: 'Tableau détaillé des revenus mensuels par appartement avec totaux',
@@ -470,7 +472,7 @@ export const fr: TranslationDictionary = {
 		adminAccount: 'Compte Administrateur',
 		userNotFound: 'Utilisateur introuvable',
 		userDeletedSuccess: 'Utilisateur supprimé avec succès',
-		userDeleteError: "Erreur lors de la suppression de l\u2019utilisateur",
+		userDeleteError: 'Erreur lors de la suppression de l\u2019utilisateur',
 		bulkDeleteUsers: (n: number) => `Supprimer ${n} utilisateur(s) ?`,
 		bulkDeleteUsersConfirm: (n: number) =>
 			`Êtes-vous sûr de vouloir supprimer les ${n} utilisateur(s) sélectionné(s) ?`,
@@ -496,8 +498,7 @@ export const fr: TranslationDictionary = {
 		oldPassword: 'Ancien mot de passe',
 		newPassword: 'Nouveau mot de passe',
 		confirmNewPassword: 'Confirmation du nouveau mot de passe',
-		defaultPasswordWarning:
-			'Il est recommandé de changer votre mot de passe par défaut pour des raisons de sécurité.',
+		defaultPasswordWarning: 'Il est recommandé de changer votre mot de passe par défaut pour des raisons de sécurité.',
 		modify: 'Modifier',
 		updateSuccess: 'Le mot de passe a été modifié avec succès.',
 		updateError: 'Échec de la modification du mot de passe.',
@@ -541,7 +542,7 @@ export const fr: TranslationDictionary = {
 		enterCode: 'Rentrez le code',
 		codeSentTo: (email: string) => `Un code a été envoyé à ${email}`,
 		codeSent: 'code envoyé.',
-		codeSendFailed: "Échec de l\u2019envoi du code.",
+		codeSendFailed: 'Échec de l\u2019envoi du code.',
 		confirmCode: 'Confirmer le code',
 		newPassword: 'Nouveau mot de passe',
 		confirmPassword: 'Confirmez mot de passe',
@@ -587,9 +588,16 @@ export const fr: TranslationDictionary = {
 		cannotConnectServer: 'Impossible de se connecter au serveur',
 		unexpectedError: "Une erreur inattendue s'est produite.",
 		serverError: 'Erreur serveur.',
-		connectionCheckMessage: 'Il semble que nous ne puissions pas nous connecter. Veuillez vérifier votre connexion réseau et réessayer.',
+		connectionCheckMessage:
+			'Il semble que nous ne puissions pas nous connecter. Veuillez vérifier votre connexion réseau et réessayer.',
 		unauthorized: 'Non autorisé',
 		authenticationRequired: 'Authentification requise',
+	},
+	notFound: {
+		title: 'Page introuvable',
+		message: "Désolé, la page que vous recherchez n'existe pas ou a été déplacée.",
+		backBtn: 'Retour',
+		homeBtn: 'Accueil',
 	},
 	filters: {
 		contains: 'contient',

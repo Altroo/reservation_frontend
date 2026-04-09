@@ -38,11 +38,11 @@ import ActionModals from '@/components/htmlElements/modals/actionModal/actionMod
 import { extractApiErrorMessage, formatDate } from '@/utils/helpers';
 import { LOCAL_TYPE_LABEL_KEYS } from '@/utils/rawData';
 import { BUILDINGS_EDIT, BUILDINGS_LIST, LOCAUX_VIEW } from '@/utils/routes';
-import { useToast, useLanguage } from '@/utils/hooks';
+import { useLanguage, useToast } from '@/utils/hooks';
 import {
-	useGetBuildingQuery,
 	useDeleteBuildingMutation,
 	useGetApartmentsQuery,
+	useGetBuildingQuery,
 	useGetLocauxListQuery,
 } from '@/store/services/reservation';
 import { useInitAccessToken } from '@/contexts/InitContext';
@@ -58,24 +58,44 @@ const InfoRow: React.FC<InfoRowProps> = ({ icon, label, value }) => {
 	const theme = useTheme();
 	const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 	const displayValue =
-		isValidElement(value) || (value !== null && value !== undefined && value.toString().length > 0)
-			? value
-			: '-';
+		isValidElement(value) || (value !== null && value !== undefined && value.toString().length > 0) ? value : '-';
 
 	return (
-		<Stack direction="row" alignItems="flex-start" spacing={2} sx={{ py: 1.5, flexWrap: 'wrap' }}>
+		<Stack
+			direction="row"
+			spacing={2}
+			sx={{
+				alignItems: 'flex-start',
+				py: 1.5,
+				flexWrap: 'wrap',
+			}}
+		>
 			<Box sx={{ color: 'primary.main', display: 'flex', alignItems: 'center', minWidth: 40 }}>{icon}</Box>
 			<Stack
 				direction="row"
-				alignItems="center"
 				spacing={isMobile ? 0 : 2}
-				sx={{ flex: 1, flexWrap: 'wrap' }}
+				sx={{
+					alignItems: 'center',
+					flex: 1,
+					flexWrap: 'wrap',
+				}}
 			>
-				<Typography fontWeight={600} color="text.secondary" sx={{ minWidth: { xs: '100%', sm: 200 }, wordBreak: 'break-word' }}>
+				<Typography
+					sx={{
+						fontWeight: 600,
+						color: 'text.secondary',
+						minWidth: { xs: '100%', sm: 200 },
+						wordBreak: 'break-word',
+					}}
+				>
 					{label}
 				</Typography>
 				<Box sx={{ flex: 1 }}>
-					{isValidElement(displayValue) ? displayValue : <Typography sx={{ color: 'text.primary' }}>{displayValue}</Typography>}
+					{isValidElement(displayValue) ? (
+						displayValue
+					) : (
+						<Typography sx={{ color: 'text.primary' }}>{displayValue}</Typography>
+					)}
 				</Box>
 			</Stack>
 		</Stack>
@@ -134,11 +154,26 @@ const BuildingViewClient: React.FC<SessionProps & { id: number }> = ({ session, 
 	];
 
 	return (
-		<Stack direction="column" spacing={2} className={Styles.flexRootStack} mt="48px">
+		<Stack
+			direction="column"
+			spacing={2}
+			className={Styles.flexRootStack}
+			sx={{
+				mt: '48px',
+			}}
+		>
 			<NavigationBar title={t.buildings.residenceDetail}>
 				<Protected permission="can_view">
 					<Stack spacing={3} sx={{ p: { xs: 2, md: 3 } }}>
-						<Stack direction="row" justifyContent="space-between" alignItems="center" flexWrap="wrap" gap={2}>
+						<Stack
+							direction="row"
+							sx={{
+								justifyContent: 'space-between',
+								alignItems: 'center',
+								flexWrap: 'wrap',
+								gap: 2,
+							}}
+						>
 							<Button
 								variant="outlined"
 								startIcon={<ArrowBackIcon />}
@@ -179,9 +214,21 @@ const BuildingViewClient: React.FC<SessionProps & { id: number }> = ({ session, 
 							<>
 								<Card elevation={2} sx={{ borderRadius: 2 }}>
 									<CardContent sx={{ p: 3 }}>
-										<Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 2 }}>
+										<Stack
+											direction="row"
+											spacing={2}
+											sx={{
+												alignItems: 'center',
+												mb: 2,
+											}}
+										>
 											<ApartmentIcon color="primary" />
-											<Typography variant="h6" fontWeight={700}>
+											<Typography
+												variant="h6"
+												sx={{
+													fontWeight: 700,
+												}}
+											>
 												{t.common.identification}
 											</Typography>
 										</Stack>
@@ -192,32 +239,70 @@ const BuildingViewClient: React.FC<SessionProps & { id: number }> = ({ session, 
 
 								<Card elevation={2} sx={{ borderRadius: 2 }}>
 									<CardContent sx={{ p: 3 }}>
-										<Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 2 }}>
+										<Stack
+											direction="row"
+											spacing={2}
+											sx={{
+												alignItems: 'center',
+												mb: 2,
+											}}
+										>
 											<CalendarTodayIcon color="primary" />
-											<Typography variant="h6" fontWeight={700}>
+											<Typography
+												variant="h6"
+												sx={{
+													fontWeight: 700,
+												}}
+											>
 												{t.common.metadata}
 											</Typography>
 										</Stack>
 										<Divider sx={{ mb: 1 }} />
-								<InfoRow icon={<PersonIcon />} label={t.common.createdBy} value={building.created_by_user_name} />
-								<InfoRow icon={<CalendarTodayIcon />} label={t.common.creationDate} value={formatDate(building.date_created)} />
-								<InfoRow icon={<CalendarTodayIcon />} label={t.common.lastUpdate} value={formatDate(building.date_updated)} />
+										<InfoRow icon={<PersonIcon />} label={t.common.createdBy} value={building.created_by_user_name} />
+										<InfoRow
+											icon={<CalendarTodayIcon />}
+											label={t.common.creationDate}
+											value={formatDate(building.date_created)}
+										/>
+										<InfoRow
+											icon={<CalendarTodayIcon />}
+											label={t.common.lastUpdate}
+											value={formatDate(building.date_updated)}
+										/>
 									</CardContent>
 								</Card>
 
 								{/* Apartments */}
 								<Card elevation={2} sx={{ borderRadius: 2 }}>
 									<CardContent sx={{ p: 3 }}>
-										<Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 2 }}>
+										<Stack
+											direction="row"
+											spacing={2}
+											sx={{
+												alignItems: 'center',
+												mb: 2,
+											}}
+										>
 											<HotelIcon color="primary" />
-											<Typography variant="h6" fontWeight={700}>
+											<Typography
+												variant="h6"
+												sx={{
+													fontWeight: 700,
+												}}
+											>
 												{t.buildings.apartments}
 											</Typography>
 											<Chip label={buildingApartments.length} size="small" color="primary" />
 										</Stack>
 										<Divider sx={{ mb: 1 }} />
 										{buildingApartments.length === 0 ? (
-											<Typography color="text.secondary" sx={{ py: 2, textAlign: 'center' }}>
+											<Typography
+												sx={{
+													color: 'text.secondary',
+													py: 2,
+													textAlign: 'center',
+												}}
+											>
 												{t.buildings.noApartments}
 											</Typography>
 										) : (
@@ -238,16 +323,34 @@ const BuildingViewClient: React.FC<SessionProps & { id: number }> = ({ session, 
 								{/* Locaux */}
 								<Card elevation={2} sx={{ borderRadius: 2 }}>
 									<CardContent sx={{ p: 3 }}>
-										<Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 2 }}>
+										<Stack
+											direction="row"
+											spacing={2}
+											sx={{
+												alignItems: 'center',
+												mb: 2,
+											}}
+										>
 											<BusinessIcon color="primary" />
-											<Typography variant="h6" fontWeight={700}>
+											<Typography
+												variant="h6"
+												sx={{
+													fontWeight: 700,
+												}}
+											>
 												{t.navigation.locaux}
 											</Typography>
 											<Chip label={buildingLocaux.length} size="small" color="primary" />
 										</Stack>
 										<Divider sx={{ mb: 1 }} />
 										{buildingLocaux.length === 0 ? (
-											<Typography color="text.secondary" sx={{ py: 2, textAlign: 'center' }}>
+											<Typography
+												sx={{
+													color: 'text.secondary',
+													py: 2,
+													textAlign: 'center',
+												}}
+											>
 												{t.buildings.noLocaux}
 											</Typography>
 										) : (
@@ -264,7 +367,10 @@ const BuildingViewClient: React.FC<SessionProps & { id: number }> = ({ session, 
 														</ListItemIcon>
 														<ListItemText
 															primary={loc.nom}
-															secondary={t.rawData.localTypes[LOCAL_TYPE_LABEL_KEYS[loc.type_local as 'Bureau' | 'Magasin']] ?? loc.type_local}
+															secondary={
+																t.rawData.localTypes[LOCAL_TYPE_LABEL_KEYS[loc.type_local as 'Bureau' | 'Magasin']] ??
+																loc.type_local
+															}
 														/>
 													</ListItem>
 												))}
@@ -277,8 +383,8 @@ const BuildingViewClient: React.FC<SessionProps & { id: number }> = ({ session, 
 
 						{showDeleteModal && (
 							<ActionModals
-							title={t.buildings.deleteResidence}
-							body={t.buildings.deleteResidenceConfirm}
+								title={t.buildings.deleteResidence}
+								body={t.buildings.deleteResidenceConfirm}
 								actions={deleteModalActions}
 							/>
 						)}

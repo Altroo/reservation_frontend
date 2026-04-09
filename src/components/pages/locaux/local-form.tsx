@@ -56,7 +56,7 @@ import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { fr } from 'date-fns/locale';
 import { format, parseISO } from 'date-fns';
 import type { SessionProps } from '@/types/_initTypes';
-import type { LocalFormValues, LoyerListType, LoyerFormValues } from '@/types/localTypes';
+import type { LocalFormValues, LoyerFormValues, LoyerListType } from '@/types/localTypes';
 import NavigationBar from '@/components/layouts/navigationBar/navigationBar';
 import { Protected } from '@/components/layouts/protected/protected';
 import CustomTextInput from '@/components/formikElements/customTextInput/customTextInput';
@@ -69,22 +69,22 @@ import { textInputTheme } from '@/utils/themes';
 import type { DropDownType } from '@/types/accountTypes';
 import { localSchema, loyerSchema } from '@/utils/formValidationSchemas';
 import { extractApiErrorMessage, formatDate, getLabelForKey, setFormikAutoErrors } from '@/utils/helpers';
-import { LOCAUX_LIST, LOCAUX_EDIT } from '@/utils/routes';
-import { useToast, useLanguage } from '@/utils/hooks';
+import { LOCAUX_EDIT, LOCAUX_LIST } from '@/utils/routes';
+import { useLanguage, useToast } from '@/utils/hooks';
 import {
-	useCreateLocalMutation,
-	useUpdateLocalMutation,
-	useGetLocalQuery,
-	useGetLoyersListQuery,
-	useGetLocalYearsQuery,
-	useCreateLoyerMutation,
-	useUpdateLoyerMutation,
-	useDeleteLoyerMutation,
-	useToggleLoyerPaidMutation,
-	useGetBuildingsQuery,
 	useCreateBuildingMutation,
-	useUpdateBuildingMutation,
+	useCreateLocalMutation,
+	useCreateLoyerMutation,
 	useDeleteBuildingMutation,
+	useDeleteLoyerMutation,
+	useGetBuildingsQuery,
+	useGetLocalQuery,
+	useGetLocalYearsQuery,
+	useGetLoyersListQuery,
+	useToggleLoyerPaidMutation,
+	useUpdateBuildingMutation,
+	useUpdateLocalMutation,
+	useUpdateLoyerMutation,
 } from '@/store/services/reservation';
 import { useInitAccessToken } from '@/contexts/InitContext';
 import Styles from '@/styles/dashboard/dashboard.module.sass';
@@ -104,10 +104,7 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 	const topRef = useRef<HTMLDivElement | null>(null);
 	const loyerSectionRef = useRef<HTMLDivElement | null>(null);
 
-	const { data: rawData } = useGetLocalQuery(
-		{ id: id! },
-		{ skip: !token || !isEditMode },
-	);
+	const { data: rawData } = useGetLocalQuery({ id: id! }, { skip: !token || !isEditMode });
 
 	const [createLocal, { isLoading: isCreateLoading }] = useCreateLocalMutation();
 	const [updateLocal, { isLoading: isUpdateLoading }] = useUpdateLocalMutation();
@@ -135,10 +132,7 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 		if (!yrs.includes(currentYear)) return [...yrs, currentYear].sort((a, b) => b - a);
 		return [...yrs].sort((a, b) => b - a);
 	}, [yearsData, currentYear]);
-	const { data: loyersRaw } = useGetLoyersListQuery(
-		{ local: id!, annee: loyerYear },
-		{ skip: !token || !isEditMode },
-	);
+	const { data: loyersRaw } = useGetLoyersListQuery({ local: id!, annee: loyerYear }, { skip: !token || !isEditMode });
 	const loyers = useMemo(() => (Array.isArray(loyersRaw) ? loyersRaw : []) as LoyerListType[], [loyersRaw]);
 
 	const [toggleLoyerPaid] = useToggleLoyerPaidMutation();
@@ -182,7 +176,7 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 					onSuccess(t.locaux.localUpdatedSuccess);
 					router.push(LOCAUX_LIST);
 				} else {
-					const result = await createLocal(payload as typeof fields).unwrap() as { id: number };
+					const result = (await createLocal(payload as typeof fields).unwrap()) as { id: number };
 					onSuccess(t.locaux.localAddedSuccess);
 					router.push(LOCAUX_EDIT(result.id));
 				}
@@ -252,7 +246,6 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 	const showValidationAlert = hasValidationErrors && formik.submitCount > 0;
 
 	// Loyer handlers
-	
 
 	const handleTogglePaid = async (loyer: LoyerListType) => {
 		try {
@@ -287,7 +280,13 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 	};
 
 	const deleteLoyerModalActions = [
-		{ text: t.common.cancel, active: false, onClick: () => setShowDeleteLoyerModal(false), icon: <CloseIcon />, color: '#6B6B6B' },
+		{
+			text: t.common.cancel,
+			active: false,
+			onClick: () => setShowDeleteLoyerModal(false),
+			icon: <CloseIcon />,
+			color: '#6B6B6B',
+		},
 		{ text: t.common.delete, active: true, onClick: handleDeleteLoyer, icon: <DeleteIcon />, color: '#D32F2F' },
 	];
 
@@ -303,7 +302,12 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 	return (
 		<LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={fr}>
 			<Stack ref={topRef} spacing={3} sx={{ p: { xs: 2, md: 3 } }}>
-				<Stack direction="row" justifyContent="space-between">
+				<Stack
+					direction="row"
+					sx={{
+						justifyContent: 'space-between',
+					}}
+				>
 					<Button
 						variant="outlined"
 						startIcon={<ArrowBackIcon />}
@@ -316,7 +320,12 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 
 				{showValidationAlert && (
 					<Alert severity="error" icon={<WarningIcon />}>
-						<Typography variant="subtitle2" fontWeight={600}>
+						<Typography
+							variant="subtitle2"
+							sx={{
+								fontWeight: 600,
+							}}
+						>
 							{t.common.validationErrorsDetected}
 						</Typography>
 						<ul style={{ margin: '8px 0', paddingLeft: '20px' }}>
@@ -337,10 +346,22 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 					<Stack spacing={3}>
 						<Card elevation={2} sx={{ borderRadius: 2 }}>
 							<CardContent sx={{ p: 3 }}>
-								<Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 2 }}>
+								<Stack
+									direction="row"
+									spacing={2}
+									sx={{
+										alignItems: 'center',
+										mb: 2,
+									}}
+								>
 									<BusinessIcon color="primary" />
-									<Typography variant="h6" fontWeight={700}>
-									{t.locaux.localInfo}
+									<Typography
+										variant="h6"
+										sx={{
+											fontWeight: 700,
+										}}
+									>
+										{t.locaux.localInfo}
 									</Typography>
 								</Stack>
 								<Divider sx={{ mb: 3 }} />
@@ -351,7 +372,7 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 											id="nom"
 											type="text"
 											size="small"
-										label={`${t.common.name} *`}
+											label={`${t.common.name} *`}
 											value={formik.values.nom}
 											onChange={formik.handleChange('nom')}
 											onBlur={formik.handleBlur('nom')}
@@ -364,7 +385,7 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 											id="type_local"
 											size="small"
 											noOptionsText={t.locaux.noTypeFound}
-										label={`${t.common.type} *`}
+											label={`${t.common.type} *`}
 											items={typeItems}
 											theme={inputTheme}
 											value={selectedType}
@@ -393,19 +414,30 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 										onBlur={formik.handleBlur('building')}
 										startIcon={<ApartmentIcon fontSize="small" />}
 										endIcon={
-											<Stack direction="row" spacing={0.5} alignItems="center" sx={{ ml: 1 }}>
+											<Stack
+												direction="row"
+												spacing={0.5}
+												sx={{
+													alignItems: 'center',
+													ml: 1,
+												}}
+											>
 												{selectedBuilding && (
 													<>
 														<IconButton
 															size="small"
-															onClick={() => handleEditBuildingOpen(Number(selectedBuilding.value), selectedBuilding.code)}
+															onClick={() =>
+																handleEditBuildingOpen(Number(selectedBuilding.value), selectedBuilding.code)
+															}
 															title={t.common.rename}
 														>
 															<EditIcon fontSize="small" />
 														</IconButton>
 														<IconButton
 															size="small"
-															onClick={() => handleDeleteBuildingOpen(Number(selectedBuilding.value), selectedBuilding.code)}
+															onClick={() =>
+																handleDeleteBuildingOpen(Number(selectedBuilding.value), selectedBuilding.code)
+															}
 															title={t.common.delete}
 															color="error"
 														>
@@ -413,11 +445,7 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 														</IconButton>
 													</>
 												)}
-												<Button
-													size="small"
-													variant="outlined"
-													onClick={() => setOpenBuildingModal(true)}
-												>
+												<Button size="small" variant="outlined" onClick={() => setOpenBuildingModal(true)}>
 													{t.common.add}
 												</Button>
 											</Stack>
@@ -460,9 +488,21 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 
 						<Card elevation={2} sx={{ borderRadius: 2 }}>
 							<CardContent sx={{ p: 3 }}>
-								<Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 2 }}>
+								<Stack
+									direction="row"
+									spacing={2}
+									sx={{
+										alignItems: 'center',
+										mb: 2,
+									}}
+								>
 									<AttachMoneyIcon color="primary" />
-									<Typography variant="h6" fontWeight={700}>
+									<Typography
+										variant="h6"
+										sx={{
+											fontWeight: 700,
+										}}
+									>
 										Financier
 									</Typography>
 								</Stack>
@@ -512,9 +552,21 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 
 						<Card elevation={2} sx={{ borderRadius: 2 }}>
 							<CardContent sx={{ p: 3 }}>
-								<Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 2 }}>
+								<Stack
+									direction="row"
+									spacing={2}
+									sx={{
+										alignItems: 'center',
+										mb: 2,
+									}}
+								>
 									<PersonIcon color="primary" />
-									<Typography variant="h6" fontWeight={700}>
+									<Typography
+										variant="h6"
+										sx={{
+											fontWeight: 700,
+										}}
+									>
 										{t.locaux.rental}
 									</Typography>
 								</Stack>
@@ -560,12 +612,14 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 														onBlur: formik.handleBlur('date_debut_location'),
 														error: formik.submitCount > 0 && Boolean(formik.errors.date_debut_location),
 														helperText: formik.submitCount > 0 ? (formik.errors.date_debut_location ?? '') : '',
-														InputProps: {
-															startAdornment: (
-																<InputAdornment position="start">
-																	<CalendarMonthIcon fontSize="small" />
-																</InputAdornment>
-															),
+														slotProps: {
+															input: {
+																startAdornment: (
+																	<InputAdornment position="start">
+																		<CalendarMonthIcon fontSize="small" />
+																	</InputAdornment>
+																),
+															},
 														},
 													},
 												}}
@@ -578,9 +632,21 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 
 						<Card elevation={2} sx={{ borderRadius: 2 }}>
 							<CardContent sx={{ p: 3 }}>
-								<Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 2 }}>
+								<Stack
+									direction="row"
+									spacing={2}
+									sx={{
+										alignItems: 'center',
+										mb: 2,
+									}}
+								>
 									<NotesIcon color="primary" />
-									<Typography variant="h6" fontWeight={700}>
+									<Typography
+										variant="h6"
+										sx={{
+											fontWeight: 700,
+										}}
+									>
 										Notes
 									</Typography>
 								</Stack>
@@ -608,15 +674,46 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 						{isEditMode && (
 							<Card ref={loyerSectionRef} elevation={2} sx={{ borderRadius: 2 }}>
 								<CardContent sx={{ p: 3 }}>
-									<Stack direction="row" spacing={2} alignItems="center" justifyContent="space-between" sx={{ mb: 2 }}>
-										<Stack direction="row" spacing={2} alignItems="center">
+									<Stack
+										direction="row"
+										spacing={2}
+										sx={{
+											alignItems: 'center',
+											justifyContent: 'space-between',
+											mb: 2,
+										}}
+									>
+										<Stack
+											direction="row"
+											spacing={2}
+											sx={{
+												alignItems: 'center',
+											}}
+										>
 											<PaidIcon color="primary" />
-											<Typography variant="h6" fontWeight={700}>{t.locaux.rents}</Typography>
+											<Typography
+												variant="h6"
+												sx={{
+													fontWeight: 700,
+												}}
+											>
+												{t.locaux.rents}
+											</Typography>
 										</Stack>
-										<Stack direction="row" spacing={1} alignItems="center">
+										<Stack
+											direction="row"
+											spacing={1}
+											sx={{
+												alignItems: 'center',
+											}}
+										>
 											<FormControl size="small" sx={{ minWidth: 100 }}>
 												<InputLabel>{t.common.year}</InputLabel>
-												<Select value={loyerYear} label={t.common.year} onChange={(e) => setLoyerYear(Number(e.target.value))}>
+												<Select
+													value={loyerYear}
+													label={t.common.year}
+													onChange={(e) => setLoyerYear(Number(e.target.value))}
+												>
 													{loyerYearOptions.map((y) => (
 														<MenuItem key={y} value={y}>
 															{y}
@@ -632,7 +729,13 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 									<Divider sx={{ mb: 2 }} />
 
 									{loyers.length === 0 ? (
-										<Typography color="text.secondary" sx={{ py: 2, textAlign: 'center' }}>
+										<Typography
+											sx={{
+												color: 'text.secondary',
+												py: 2,
+												textAlign: 'center',
+											}}
+										>
 											{t.locaux.noRentsForYear(loyerYear)}
 										</Typography>
 									) : (
@@ -667,7 +770,13 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 																</TableCell>
 																<TableCell>{loyer.date_paiement ? formatDate(loyer.date_paiement) : '—'}</TableCell>
 																<TableCell align="right">
-																	<Stack direction="row" spacing={0.5} justifyContent="flex-end">
+																	<Stack
+																		direction="row"
+																		spacing={0.5}
+																		sx={{
+																			justifyContent: 'flex-end',
+																		}}
+																	>
 																		<IconButton size="small" onClick={() => openEditLoyer(loyer)}>
 																			<EditIcon fontSize="small" />
 																		</IconButton>
@@ -718,12 +827,7 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 				)}
 
 				{isEditMode && showLoyerDialog && (
-					<LoyerDialog
-						localId={id!}
-						year={loyerYear}
-						loyer={editingLoyer}
-						onClose={() => setShowLoyerDialog(false)}
-					/>
+					<LoyerDialog localId={id!} year={loyerYear} loyer={editingLoyer} onClose={() => setShowLoyerDialog(false)} />
 				)}
 
 				{/* Building (résidence) modals */}
@@ -761,7 +865,11 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 					</DialogContent>
 					<DialogActions>
 						<Button onClick={() => setEditBuildingId(null)}>{t.common.cancel}</Button>
-						<Button onClick={handleEditBuildingSubmit} variant="contained" disabled={buildingActionLoading || !editBuildingName.trim()}>
+						<Button
+							onClick={handleEditBuildingSubmit}
+							variant="contained"
+							disabled={buildingActionLoading || !editBuildingName.trim()}
+						>
 							{t.common.save}
 						</Button>
 					</DialogActions>
@@ -772,8 +880,21 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 						title={t.locaux.deleteResidence}
 						body={t.locaux.deleteResidenceConfirm(deleteBuildingName)}
 						actions={[
-							{ text: t.common.cancel, active: false, onClick: () => setDeleteBuildingId(null), icon: <CloseIcon />, color: '#6B6B6B' },
-							{ text: t.common.delete, active: true, onClick: handleDeleteBuildingConfirm, icon: <DeleteIcon />, color: '#D32F2F', disabled: buildingActionLoading },
+							{
+								text: t.common.cancel,
+								active: false,
+								onClick: () => setDeleteBuildingId(null),
+								icon: <CloseIcon />,
+								color: '#6B6B6B',
+							},
+							{
+								text: t.common.delete,
+								active: true,
+								onClick: handleDeleteBuildingConfirm,
+								icon: <DeleteIcon />,
+								color: '#D32F2F',
+								disabled: buildingActionLoading,
+							},
 						]}
 						onClose={() => setDeleteBuildingId(null)}
 					/>
@@ -836,8 +957,19 @@ const LoyerDialog: React.FC<LoyerDialogProps> = ({ localId, year, loyer, onClose
 		<Dialog open onClose={onClose} maxWidth="sm" fullWidth>
 			<form onSubmit={loyerFormik.handleSubmit}>
 				<DialogTitle>
-					<Stack direction="row" justifyContent="space-between" alignItems="center">
-						<Typography variant="h6" fontWeight={700}>
+					<Stack
+						direction="row"
+						sx={{
+							justifyContent: 'space-between',
+							alignItems: 'center',
+						}}
+					>
+						<Typography
+							variant="h6"
+							sx={{
+								fontWeight: 700,
+							}}
+						>
 							{isEdit ? t.locaux.editRent : t.locaux.addRent}
 						</Typography>
 						<IconButton onClick={onClose} size="small">
@@ -854,7 +986,9 @@ const LoyerDialog: React.FC<LoyerDialogProps> = ({ localId, year, loyer, onClose
 							size="small"
 							label={`${t.locaux.monthRequired}`}
 							value={String(loyerFormik.values.mois)}
-							onChange={(e: React.ChangeEvent<HTMLInputElement>) => loyerFormik.setFieldValue('mois', e.target.value ? Number(e.target.value) : '')}
+							onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+								loyerFormik.setFieldValue('mois', e.target.value ? Number(e.target.value) : '')
+							}
 							onBlur={loyerFormik.handleBlur('mois')}
 							error={loyerFormik.submitCount > 0 && Boolean(loyerFormik.errors.mois)}
 							helperText={loyerFormik.submitCount > 0 ? (loyerFormik.errors.mois ?? '') : ''}
@@ -869,7 +1003,9 @@ const LoyerDialog: React.FC<LoyerDialogProps> = ({ localId, year, loyer, onClose
 							size="small"
 							label={`${t.locaux.yearRequired}`}
 							value={String(loyerFormik.values.annee)}
-							onChange={(e: React.ChangeEvent<HTMLInputElement>) => loyerFormik.setFieldValue('annee', e.target.value ? Number(e.target.value) : '')}
+							onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+								loyerFormik.setFieldValue('annee', e.target.value ? Number(e.target.value) : '')
+							}
 							onBlur={loyerFormik.handleBlur('annee')}
 							error={loyerFormik.submitCount > 0 && Boolean(loyerFormik.errors.annee)}
 							helperText={loyerFormik.submitCount > 0 ? (loyerFormik.errors.annee ?? '') : ''}
@@ -917,12 +1053,14 @@ const LoyerDialog: React.FC<LoyerDialogProps> = ({ localId, year, loyer, onClose
 										onBlur: loyerFormik.handleBlur('date_paiement'),
 										error: loyerFormik.submitCount > 0 && Boolean(loyerFormik.errors.date_paiement),
 										helperText: loyerFormik.submitCount > 0 ? (loyerFormik.errors.date_paiement ?? '') : '',
-										InputProps: {
-											startAdornment: (
-												<InputAdornment position="start">
-													<CalendarMonthIcon fontSize="small" />
-												</InputAdornment>
-											),
+										slotProps: {
+											input: {
+												startAdornment: (
+													<InputAdornment position="start">
+														<CalendarMonthIcon fontSize="small" />
+													</InputAdornment>
+												),
+											},
 										},
 									},
 								}}
@@ -964,7 +1102,14 @@ const LocalFormClient: React.FC<SessionProps & { id?: number }> = ({ session, id
 	const title = id !== undefined ? t.locaux.editLocal : t.locaux.newLocal;
 
 	return (
-		<Stack direction="column" spacing={2} className={Styles.flexRootStack} mt="48px">
+		<Stack
+			direction="column"
+			spacing={2}
+			className={Styles.flexRootStack}
+			sx={{
+				mt: '48px',
+			}}
+		>
 			<NavigationBar title={title}>
 				<Protected permission={id !== undefined ? 'can_edit' : 'can_create'}>
 					<FormikContent token={token} id={id} />

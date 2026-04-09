@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useRef, useCallback, useState } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import Styles from './customSquareImageUploading.module.sass';
 import { Box, Stack } from '@mui/material';
 import Image from 'next/image';
@@ -82,7 +82,13 @@ const CustomSquareImageUploading: React.FC<Props> = ({ image, croppedImage, onCh
 	const displayImage = showCropper ? image : croppedImage;
 
 	return (
-		<Stack className={`${Styles.rootStackWrapper} ${cssClasse}`} direction="row" alignItems="center">
+		<Stack
+			className={`${Styles.rootStackWrapper} ${cssClasse}`}
+			direction="row"
+			sx={{
+				alignItems: 'center',
+			}}
+		>
 			<input
 				type="file"
 				accept="image/jpeg,image/png"
@@ -91,7 +97,14 @@ const CustomSquareImageUploading: React.FC<Props> = ({ image, croppedImage, onCh
 				onChange={handleFileChange}
 			/>
 			{displayImage ? (
-				<Stack className={Styles.addImagesWrapper} direction="row" justifyContent="center" alignItems="center">
+				<Stack
+					className={Styles.addImagesWrapper}
+					direction="row"
+					sx={{
+						justifyContent: 'center',
+						alignItems: 'center',
+					}}
+				>
 					{showCropper ? (
 						<>
 							<Cropper
@@ -127,7 +140,7 @@ const CustomSquareImageUploading: React.FC<Props> = ({ image, croppedImage, onCh
 									width={360}
 									height={250}
 									src={typeof croppedImage === 'string' ? croppedImage : ''}
-								alt={t.common.croppedPreview}
+									alt={t.common.croppedPreview}
 									style={{ width: '100%', height: '100%', objectFit: 'cover' }}
 								/>
 								<Box

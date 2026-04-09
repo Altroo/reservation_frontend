@@ -34,7 +34,7 @@ import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { fr } from 'date-fns/locale';
-import { format, parseISO, isWithinInterval, subDays } from 'date-fns';
+import { format, isWithinInterval, parseISO, subDays } from 'date-fns';
 import type { ApiErrorResponseType, ResponseDataInterface } from '@/types/_initTypes';
 import type { DropDownType } from '@/types/accountTypes';
 import type { ReservationFormValues } from '@/types/reservationTypes';
@@ -46,15 +46,15 @@ import ApiAlert from '@/components/formikElements/apiLoading/apiAlert/apiAlert';
 import { reservationSchema } from '@/utils/formValidationSchemas';
 import { getLabelForKey, setFormikAutoErrors } from '@/utils/helpers';
 import { textInputTheme } from '@/utils/themes';
-import { useToast, useLanguage } from '@/utils/hooks';
+import { useLanguage, useToast } from '@/utils/hooks';
 import {
 	useAddApartmentMutation,
 	useCreateReservationMutation,
 	useGetApartmentsQuery,
+	useGetBuildingsQuery,
 	useGetOccupiedDatesQuery,
 	useGetReservationQuery,
 	useUpdateReservationMutation,
-	useGetBuildingsQuery,
 } from '@/store/services/reservation';
 
 const inputTheme = textInputTheme();
@@ -108,7 +108,11 @@ const ReservationDialog: React.FC<ReservationDialogProps> = ({
 	);
 
 	const apartmentItems: DropDownType[] = useMemo(
-		() => (apartments ?? []).map((a) => ({ code: a.building_nom ? `${a.nom} - ${a.building_nom}` : a.nom, value: String(a.id) })),
+		() =>
+			(apartments ?? []).map((a) => ({
+				code: a.building_nom ? `${a.nom} - ${a.building_nom}` : a.nom,
+				value: String(a.id),
+			})),
 		[apartments],
 	);
 
@@ -197,7 +201,8 @@ const ReservationDialog: React.FC<ReservationDialogProps> = ({
 	const hasValidationErrors = validationEntries.length > 0;
 	const showValidationAlert = hasValidationErrors && formik.submitCount > 0;
 
-	const isLoading = isCreateLoading || isUpdateLoading || isPending || (isEditMode && isDataLoading) || isApartmentsLoading;
+	const isLoading =
+		isCreateLoading || isUpdateLoading || isPending || (isEditMode && isDataLoading) || isApartmentsLoading;
 	const shouldShowError = (axiosError?.status ?? 0) > 400 && !isLoading;
 
 	// Reset form when dialog closes
@@ -212,8 +217,19 @@ const ReservationDialog: React.FC<ReservationDialogProps> = ({
 		<LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={fr}>
 			<Dialog open={open} onClose={onClose} fullScreen={isMobile} maxWidth="md" fullWidth scroll="paper">
 				<DialogTitle>
-					<Stack direction="row" justifyContent="space-between" alignItems="center">
-						<Typography variant="h6" fontWeight={700}>
+					<Stack
+						direction="row"
+						sx={{
+							justifyContent: 'space-between',
+							alignItems: 'center',
+						}}
+					>
+						<Typography
+							variant="h6"
+							sx={{
+								fontWeight: 700,
+							}}
+						>
 							{isEditMode ? t.reservations.editReservation : t.reservations.newReservation}
 						</Typography>
 						<IconButton onClick={onClose} size="small">
@@ -226,7 +242,12 @@ const ReservationDialog: React.FC<ReservationDialogProps> = ({
 					<Stack ref={topRef} spacing={2.5}>
 						{showValidationAlert && (
 							<Alert severity="error" icon={<WarningIcon />}>
-								<Typography variant="subtitle2" fontWeight={600}>
+								<Typography
+									variant="subtitle2"
+									sx={{
+										fontWeight: 600,
+									}}
+								>
 									{t.reservations.validationErrorsDetected}
 								</Typography>
 								<ul style={{ margin: '8px 0', paddingLeft: '20px' }}>
@@ -247,9 +268,21 @@ const ReservationDialog: React.FC<ReservationDialogProps> = ({
 
 						{/* Appartement & Client */}
 						<Box>
-							<Stack direction="row" spacing={1} alignItems="center" mb={1.5}>
+							<Stack
+								direction="row"
+								spacing={1}
+								sx={{
+									alignItems: 'center',
+									mb: 1.5,
+								}}
+							>
 								<HotelIcon color="primary" fontSize="small" />
-								<Typography variant="subtitle1" fontWeight={700}>
+								<Typography
+									variant="subtitle1"
+									sx={{
+										fontWeight: 700,
+									}}
+								>
 									{t.reservations.reservationDetailsSection}
 								</Typography>
 							</Stack>
@@ -302,9 +335,21 @@ const ReservationDialog: React.FC<ReservationDialogProps> = ({
 
 						{/* Dates */}
 						<Box>
-							<Stack direction="row" spacing={1} alignItems="center" mb={1.5}>
+							<Stack
+								direction="row"
+								spacing={1}
+								sx={{
+									alignItems: 'center',
+									mb: 1.5,
+								}}
+							>
 								<CalendarMonthIcon color="primary" fontSize="small" />
-								<Typography variant="subtitle1" fontWeight={700}>
+								<Typography
+									variant="subtitle1"
+									sx={{
+										fontWeight: 700,
+									}}
+								>
 									{t.reservations.stayDates}
 								</Typography>
 							</Stack>
@@ -324,12 +369,14 @@ const ReservationDialog: React.FC<ReservationDialogProps> = ({
 											onBlur: formik.handleBlur('check_in'),
 											error: formik.submitCount > 0 && Boolean(formik.errors.check_in),
 											helperText: formik.submitCount > 0 ? (formik.errors.check_in ?? '') : '',
-											InputProps: {
-												startAdornment: (
-													<InputAdornment position="start">
-														<CalendarMonthIcon fontSize="small" />
-													</InputAdornment>
-												),
+											slotProps: {
+												input: {
+													startAdornment: (
+														<InputAdornment position="start">
+															<CalendarMonthIcon fontSize="small" />
+														</InputAdornment>
+													),
+												},
 											},
 										},
 									}}
@@ -348,12 +395,14 @@ const ReservationDialog: React.FC<ReservationDialogProps> = ({
 											onBlur: formik.handleBlur('check_out'),
 											error: formik.submitCount > 0 && Boolean(formik.errors.check_out),
 											helperText: formik.submitCount > 0 ? (formik.errors.check_out ?? '') : '',
-											InputProps: {
-												startAdornment: (
-													<InputAdornment position="start">
-														<CalendarMonthIcon fontSize="small" />
-													</InputAdornment>
-												),
+											slotProps: {
+												input: {
+													startAdornment: (
+														<InputAdornment position="start">
+															<CalendarMonthIcon fontSize="small" />
+														</InputAdornment>
+													),
+												},
 											},
 										},
 									}}
@@ -363,9 +412,21 @@ const ReservationDialog: React.FC<ReservationDialogProps> = ({
 
 						{/* Paiement */}
 						<Box>
-							<Stack direction="row" spacing={1} alignItems="center" mb={1.5}>
+							<Stack
+								direction="row"
+								spacing={1}
+								sx={{
+									alignItems: 'center',
+									mb: 1.5,
+								}}
+							>
 								<CreditCardIcon color="primary" fontSize="small" />
-								<Typography variant="subtitle1" fontWeight={700}>
+								<Typography
+									variant="subtitle1"
+									sx={{
+										fontWeight: 700,
+									}}
+								>
 									{t.common.payment}
 								</Typography>
 							</Stack>
@@ -413,9 +474,21 @@ const ReservationDialog: React.FC<ReservationDialogProps> = ({
 
 						{/* Notes */}
 						<Box>
-							<Stack direction="row" spacing={1} alignItems="center" mb={1.5}>
+							<Stack
+								direction="row"
+								spacing={1}
+								sx={{
+									alignItems: 'center',
+									mb: 1.5,
+								}}
+							>
 								<NotesIcon color="primary" fontSize="small" />
-								<Typography variant="subtitle1" fontWeight={700}>
+								<Typography
+									variant="subtitle1"
+									sx={{
+										fontWeight: 700,
+									}}
+								>
 									{t.reservations.notes}
 								</Typography>
 							</Stack>
@@ -449,7 +522,6 @@ const ReservationDialog: React.FC<ReservationDialogProps> = ({
 					</Stack>
 				</DialogContent>
 			</Dialog>
-
 			<AddEntityModal
 				open={openApartmentModal}
 				setOpen={setOpenApartmentModal}

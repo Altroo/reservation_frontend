@@ -28,14 +28,14 @@ import {
 	ArrowBack as ArrowBackIcon,
 	AttachMoney as AttachMoneyIcon,
 	CalendarMonth as CalendarMonthIcon,
-	CreditCard as CreditCardIcon,
 	Close as CloseIcon,
+	CreditCard as CreditCardIcon,
+	Delete as DeleteIcon,
 	Edit as EditIcon,
 	Hotel as HotelIcon,
 	Notes as NotesIcon,
 	Person as PersonIcon,
 	Warning as WarningIcon,
-	Delete as DeleteIcon,
 } from '@mui/icons-material';
 import { useFormik } from 'formik';
 import { toFormikValidationSchema } from 'zod-formik-adapter';
@@ -43,7 +43,7 @@ import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { fr } from 'date-fns/locale';
-import { format, parseISO, isWithinInterval, subDays } from 'date-fns';
+import { format, isWithinInterval, parseISO, subDays } from 'date-fns';
 import CustomTextInput from '@/components/formikElements/customTextInput/customTextInput';
 import CustomAutoCompleteSelect from '@/components/formikElements/customAutoCompleteSelect/customAutoCompleteSelect';
 import CustomDropDownSelect from '@/components/formikElements/customDropDownSelect/customDropDownSelect';
@@ -54,21 +54,21 @@ import PrimaryLoadingButton from '@/components/htmlElements/buttons/primaryLoadi
 import ApiProgress from '@/components/formikElements/apiLoading/apiProgress/apiProgress';
 import ApiAlert from '@/components/formikElements/apiLoading/apiAlert/apiAlert';
 import { reservationSchema } from '@/utils/formValidationSchemas';
-import { getLabelForKey, setFormikAutoErrors, extractApiErrorMessage } from '@/utils/helpers';
+import { extractApiErrorMessage, getLabelForKey, setFormikAutoErrors } from '@/utils/helpers';
 import { customDropdownTheme, textInputTheme } from '@/utils/themes';
 import { RESERVATIONS_LIST, RESERVATIONS_VIEW } from '@/utils/routes';
 import { useRouter } from 'next/navigation';
-import { useToast, useLanguage } from '@/utils/hooks';
+import { useLanguage, useToast } from '@/utils/hooks';
 import {
 	useAddApartmentMutation,
 	useCreateReservationMutation,
+	useDeleteApartmentMutation,
 	useGetApartmentsQuery,
+	useGetBuildingsQuery,
 	useGetOccupiedDatesQuery,
 	useGetReservationQuery,
-	useUpdateReservationMutation,
 	useUpdateApartmentMutation,
-	useDeleteApartmentMutation,
-	useGetBuildingsQuery,
+	useUpdateReservationMutation,
 } from '@/store/services/reservation';
 import { useInitAccessToken } from '@/contexts/InitContext';
 import { Protected } from '@/components/layouts/protected/protected';
@@ -123,7 +123,11 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 	const [openApartmentModal, setOpenApartmentModal] = useState(false);
 
 	const apartmentItems: DropDownType[] = useMemo(
-		() => (apartments ?? []).map((a) => ({ code: a.building_nom ? `${a.nom} - ${a.building_nom}` : a.nom, value: String(a.id) })),
+		() =>
+			(apartments ?? []).map((a) => ({
+				code: a.building_nom ? `${a.nom} - ${a.building_nom}` : a.nom,
+				value: String(a.id),
+			})),
 		[apartments],
 	);
 
@@ -199,7 +203,10 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 		if (!editAptId || !editAptName.trim()) return;
 		setAptActionLoading(true);
 		try {
-			await updateApartment({ id: editAptId, data: { nom: editAptName.trim(), building: editAptBuilding === '' ? null : editAptBuilding } }).unwrap();
+			await updateApartment({
+				id: editAptId,
+				data: { nom: editAptName.trim(), building: editAptBuilding === '' ? null : editAptBuilding },
+			}).unwrap();
 			onSuccess(t.reservations.apartmentEditedSuccess);
 			setEditAptId(null);
 		} catch (e) {
@@ -284,7 +291,13 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 		<LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={fr}>
 			<Stack ref={topRef} spacing={3} sx={{ p: { xs: 2, md: 3 } }}>
 				{/* Header */}
-				<Stack direction={isMobile ? 'column' : 'row'} justifyContent="space-between" spacing={2}>
+				<Stack
+					direction={isMobile ? 'column' : 'row'}
+					spacing={2}
+					sx={{
+						justifyContent: 'space-between',
+					}}
+				>
 					<Button
 						variant="outlined"
 						startIcon={<ArrowBackIcon />}
@@ -302,7 +315,12 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 
 				{showValidationAlert && (
 					<Alert severity="error" icon={<WarningIcon />}>
-						<Typography variant="subtitle2" fontWeight={600}>
+						<Typography
+							variant="subtitle2"
+							sx={{
+								fontWeight: 600,
+							}}
+						>
 							{t.reservations.validationErrorsDetected}
 						</Typography>
 						<ul style={{ margin: '8px 0', paddingLeft: '20px' }}>
@@ -329,9 +347,21 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 							{/* Détails de la réservation */}
 							<Card elevation={2} sx={{ borderRadius: 2 }}>
 								<CardContent sx={{ p: 3 }}>
-									<Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 2 }}>
+									<Stack
+										direction="row"
+										spacing={2}
+										sx={{
+											alignItems: 'center',
+											mb: 2,
+										}}
+									>
 										<HotelIcon color="primary" />
-										<Typography variant="h6" fontWeight={700}>
+										<Typography
+											variant="h6"
+											sx={{
+												fontWeight: 700,
+											}}
+										>
 											{t.reservations.reservationDetailsSection}
 										</Typography>
 									</Stack>
@@ -355,19 +385,30 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 											disabled={isLoading}
 											startIcon={<HotelIcon fontSize="small" />}
 											endIcon={
-												<Stack direction="row" spacing={0.5} alignItems="center" sx={{ ml: 1 }}>
+												<Stack
+													direction="row"
+													spacing={0.5}
+													sx={{
+														alignItems: 'center',
+														ml: 1,
+													}}
+												>
 													{selectedApartment && (
 														<>
 															<IconButton
 																size="small"
-																onClick={() => handleEditAptOpen(Number(selectedApartment.value), selectedApartment.code)}
+																onClick={() =>
+																	handleEditAptOpen(Number(selectedApartment.value), selectedApartment.code)
+																}
 																title={t.common.rename}
 															>
 																<EditIcon fontSize="small" />
 															</IconButton>
 															<IconButton
 																size="small"
-																onClick={() => handleDeleteAptOpen(Number(selectedApartment.value), selectedApartment.code)}
+																onClick={() =>
+																	handleDeleteAptOpen(Number(selectedApartment.value), selectedApartment.code)
+																}
 																title={t.common.delete}
 																color="error"
 															>
@@ -375,12 +416,8 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 															</IconButton>
 														</>
 													)}
-													<Button
-														size="small"
-														variant="outlined"
-														onClick={() => setOpenApartmentModal(true)}
-													>
-													{t.common.add}
+													<Button size="small" variant="outlined" onClick={() => setOpenApartmentModal(true)}>
+														{t.common.add}
 													</Button>
 												</Stack>
 											}
@@ -406,9 +443,21 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 							{/* Dates du séjour */}
 							<Card elevation={2} sx={{ borderRadius: 2 }}>
 								<CardContent sx={{ p: 3 }}>
-									<Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 2 }}>
+									<Stack
+										direction="row"
+										spacing={2}
+										sx={{
+											alignItems: 'center',
+											mb: 2,
+										}}
+									>
 										<CalendarMonthIcon color="primary" />
-										<Typography variant="h6" fontWeight={700}>
+										<Typography
+											variant="h6"
+											sx={{
+												fontWeight: 700,
+											}}
+										>
 											{t.reservations.stayDates}
 										</Typography>
 									</Stack>
@@ -429,12 +478,14 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 														onBlur: formik.handleBlur('check_in'),
 														error: formik.submitCount > 0 && Boolean(formik.errors.check_in),
 														helperText: formik.submitCount > 0 ? (formik.errors.check_in ?? '') : '',
-														InputProps: {
-															startAdornment: (
-																<InputAdornment position="start">
-																	<CalendarMonthIcon fontSize="small" />
-																</InputAdornment>
-															),
+														slotProps: {
+															input: {
+																startAdornment: (
+																	<InputAdornment position="start">
+																		<CalendarMonthIcon fontSize="small" />
+																	</InputAdornment>
+																),
+															},
 														},
 													},
 												}}
@@ -453,12 +504,14 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 														onBlur: formik.handleBlur('check_out'),
 														error: formik.submitCount > 0 && Boolean(formik.errors.check_out),
 														helperText: formik.submitCount > 0 ? (formik.errors.check_out ?? '') : '',
-														InputProps: {
-															startAdornment: (
-																<InputAdornment position="start">
-																	<CalendarMonthIcon fontSize="small" />
-																</InputAdornment>
-															),
+														slotProps: {
+															input: {
+																startAdornment: (
+																	<InputAdornment position="start">
+																		<CalendarMonthIcon fontSize="small" />
+																	</InputAdornment>
+																),
+															},
 														},
 													},
 												}}
@@ -471,9 +524,21 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 							{/* Paiement */}
 							<Card elevation={2} sx={{ borderRadius: 2 }}>
 								<CardContent sx={{ p: 3 }}>
-									<Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 2 }}>
+									<Stack
+										direction="row"
+										spacing={2}
+										sx={{
+											alignItems: 'center',
+											mb: 2,
+										}}
+									>
 										<CreditCardIcon color="primary" />
-										<Typography variant="h6" fontWeight={700}>
+										<Typography
+											variant="h6"
+											sx={{
+												fontWeight: 700,
+											}}
+										>
 											{t.common.payment}
 										</Typography>
 									</Stack>
@@ -525,9 +590,21 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 							{/* Notes */}
 							<Card elevation={2} sx={{ borderRadius: 2 }}>
 								<CardContent sx={{ p: 3 }}>
-									<Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 2 }}>
+									<Stack
+										direction="row"
+										spacing={2}
+										sx={{
+											alignItems: 'center',
+											mb: 2,
+										}}
+									>
 										<NotesIcon color="primary" />
-										<Typography variant="h6" fontWeight={700}>
+										<Typography
+											variant="h6"
+											sx={{
+												fontWeight: 700,
+											}}
+										>
 											{t.reservations.notes}
 										</Typography>
 									</Stack>
@@ -574,7 +651,6 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 					</form>
 				)}
 			</Stack>
-
 			<AddEntityModal
 				open={openApartmentModal}
 				setOpen={setOpenApartmentModal}
@@ -587,7 +663,6 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 				}}
 				buildings={buildings}
 			/>
-
 			{/* Edit apartment dialog */}
 			<Dialog open={editAptId !== null} onClose={() => setEditAptId(null)}>
 				<DialogTitle>{t.reservations.editApartment}</DialogTitle>
@@ -640,15 +715,27 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 					</Button>
 				</DialogActions>
 			</Dialog>
-
 			{/* Delete apartment confirmation dialog */}
 			{deleteAptId !== null && (
 				<ActionModals
 					title={t.reservations.deleteApartment}
 					body={t.reservations.deleteApartmentConfirm(deleteAptName)}
 					actions={[
-						{ text: t.common.cancel, active: false, onClick: () => setDeleteAptId(null), icon: <CloseIcon />, color: '#6B6B6B' },
-						{ text: t.common.delete, active: true, onClick: handleDeleteAptConfirm, icon: <DeleteIcon />, color: '#D32F2F', disabled: aptActionLoading },
+						{
+							text: t.common.cancel,
+							active: false,
+							onClick: () => setDeleteAptId(null),
+							icon: <CloseIcon />,
+							color: '#6B6B6B',
+						},
+						{
+							text: t.common.delete,
+							active: true,
+							onClick: handleDeleteAptConfirm,
+							icon: <DeleteIcon />,
+							color: '#D32F2F',
+							disabled: aptActionLoading,
+						},
 					]}
 					onClose={() => setDeleteAptId(null)}
 				/>
@@ -663,7 +750,14 @@ const ReservationFormClient: React.FC<SessionProps & { id?: number }> = ({ sessi
 	const title = id !== undefined ? t.reservations.editReservation : t.reservations.newReservation;
 
 	return (
-		<Stack direction="column" spacing={2} className={Styles.flexRootStack} mt="48px">
+		<Stack
+			direction="column"
+			spacing={2}
+			className={Styles.flexRootStack}
+			sx={{
+				mt: '48px',
+			}}
+		>
 			<NavigationBar title={title}>
 				<Protected permission={id !== undefined ? 'can_edit' : 'can_create'}>
 					<FormikContent token={token} id={id} />
@@ -674,6 +768,3 @@ const ReservationFormClient: React.FC<SessionProps & { id?: number }> = ({ sessi
 };
 
 export default ReservationFormClient;
-
-
-

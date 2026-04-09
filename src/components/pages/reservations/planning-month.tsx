@@ -16,12 +16,12 @@ import {
 } from '@mui/material';
 import {
 	Apartment as ApartmentIcon,
+	AttachMoney as MoneyIcon,
+	CalendarMonth as CalendarIcon,
 	ChevronLeft as ChevronLeftIcon,
 	ChevronRight as ChevronRightIcon,
-	AttachMoney as MoneyIcon,
 	Hotel as HotelIcon,
 	PieChart as PieIcon,
-	CalendarMonth as CalendarIcon,
 } from '@mui/icons-material';
 import CustomDropDownSelect from '@/components/formikElements/customDropDownSelect/customDropDownSelect';
 import { customDropdownTheme } from '@/utils/themes';
@@ -32,10 +32,10 @@ import { useLanguage } from '@/utils/hooks';
 import Styles from '@/styles/dashboard/dashboard.module.sass';
 import NavigationBar from '@/components/layouts/navigationBar/navigationBar';
 import { Protected } from '@/components/layouts/protected/protected';
-import { useGetPlanningQuery, useGetBuildingsQuery } from '@/store/services/reservation';
+import { useGetBuildingsQuery, useGetPlanningQuery } from '@/store/services/reservation';
 import { useInitAccessToken } from '@/contexts/InitContext';
 import { formatDate, weekdayIndex } from '@/utils/helpers';
-import { PAYMENT_SOURCE_BG, MONTH_NAMES, DAY_ABBREVIATIONS } from '@/utils/rawData';
+import { DAY_ABBREVIATIONS, MONTH_NAMES, PAYMENT_SOURCE_BG } from '@/utils/rawData';
 
 interface CellReservation {
 	reservation: ReservationListType;
@@ -93,7 +93,10 @@ const PlanningMonthClient: React.FC<SessionProps> = ({ session }) => {
 	const { data: buildingsData } = useGetBuildingsQuery(undefined, { skip: !token });
 
 	const buildingItems: DropDownType[] = useMemo(
-		() => [{ code: t.locaux.allResidences, value: t.locaux.allResidences }, ...(buildingsData ?? []).map((b) => ({ code: b.nom, value: b.nom }))],
+		() => [
+			{ code: t.locaux.allResidences, value: t.locaux.allResidences },
+			...(buildingsData ?? []).map((b) => ({ code: b.nom, value: b.nom })),
+		],
 		[buildingsData, t],
 	);
 
@@ -115,7 +118,10 @@ const PlanningMonthClient: React.FC<SessionProps> = ({ session }) => {
 		}
 	};
 
-	const { data, isLoading } = useGetPlanningQuery({ year, month, ...(buildingId ? { building: buildingId } : {}) }, { skip: !token });
+	const { data, isLoading } = useGetPlanningQuery(
+		{ year, month, ...(buildingId ? { building: buildingId } : {}) },
+		{ skip: !token },
+	);
 
 	const lastDay = data?.last_day ?? new Date(year, month, 0).getDate();
 	const dayNumbers = Array.from({ length: lastDay }, (_, i) => i + 1);
@@ -143,35 +149,63 @@ const PlanningMonthClient: React.FC<SessionProps> = ({ session }) => {
 	const LABEL_WIDTH = isMobile ? 90 : 140;
 
 	return (
-		<Stack direction="column" spacing={2} className={Styles.flexRootStack} mt="48px">
+		<Stack
+			direction="column"
+			spacing={2}
+			className={Styles.flexRootStack}
+			sx={{
+				mt: '48px',
+			}}
+		>
 			<NavigationBar title={t.reservations.monthlyPlanning}>
 				<Protected permission="can_view">
 					<Box sx={{ px: { xs: 1, sm: 2, md: 3 }, pb: 4 }}>
 						{/* Month navigation */}
-						<Stack direction="row" alignItems="center" justifyContent="center" spacing={2} py={2} flexWrap="wrap" gap={1}>
-						<Box sx={{ minWidth: 180 }}>
-							<CustomDropDownSelect
-								id="building-filter"
-								size="small"
-								label={t.common.residence}
-								items={buildingItems}
-								value={buildingId === '' ? t.locaux.allResidences : ((buildingsData ?? []).find((b) => b.id === buildingId)?.nom ?? t.locaux.allResidences)}
-								onChange={(e) => {
-									const name = e.target.value;
-									if (!name || name === t.locaux.allResidences) setBuildingId('');
-									else {
-										const b = (buildingsData ?? []).find((x) => x.nom === name);
-										setBuildingId(b ? b.id : '');
+						<Stack
+							direction="row"
+							spacing={2}
+							sx={{
+								alignItems: 'center',
+								justifyContent: 'center',
+								py: 2,
+								flexWrap: 'wrap',
+								gap: 1,
+							}}
+						>
+							<Box sx={{ minWidth: 180 }}>
+								<CustomDropDownSelect
+									id="building-filter"
+									size="small"
+									label={t.common.residence}
+									items={buildingItems}
+									value={
+										buildingId === ''
+											? t.locaux.allResidences
+											: ((buildingsData ?? []).find((b) => b.id === buildingId)?.nom ?? t.locaux.allResidences)
 									}
-								}}
-								theme={customDropdownTheme()}
-								startIcon={<ApartmentIcon />}
-							/>
-						</Box>
+									onChange={(e) => {
+										const name = e.target.value;
+										if (!name || name === t.locaux.allResidences) setBuildingId('');
+										else {
+											const b = (buildingsData ?? []).find((x) => x.nom === name);
+											setBuildingId(b ? b.id : '');
+										}
+									}}
+									theme={customDropdownTheme()}
+									startIcon={<ApartmentIcon />}
+								/>
+							</Box>
 							<IconButton onClick={prevMonth} size="small">
 								<ChevronLeftIcon />
 							</IconButton>
-							<Typography variant="h5" fontWeight={600} minWidth={200} textAlign="center">
+							<Typography
+								variant="h5"
+								sx={{
+									fontWeight: 600,
+									minWidth: 200,
+									textAlign: 'center',
+								}}
+							>
 								{MONTH_NAMES[month - 1]} {year}
 							</Typography>
 							<IconButton onClick={nextMonth} size="small">
@@ -180,7 +214,15 @@ const PlanningMonthClient: React.FC<SessionProps> = ({ session }) => {
 						</Stack>
 
 						{/* Legend */}
-						<Stack direction="row" spacing={1} flexWrap="wrap" justifyContent="center" mb={2}>
+						<Stack
+							direction="row"
+							spacing={1}
+							sx={{
+								flexWrap: 'wrap',
+								justifyContent: 'center',
+								mb: 2,
+							}}
+						>
 							{Object.entries(PAYMENT_SOURCE_BG).map(([source, color]) => (
 								<Chip
 									key={source}
@@ -192,7 +234,13 @@ const PlanningMonthClient: React.FC<SessionProps> = ({ session }) => {
 						</Stack>
 
 						{isLoading ? (
-							<Box display="flex" justifyContent="center" py={8}>
+							<Box
+								sx={{
+									display: 'flex',
+									justifyContent: 'center',
+									py: 8,
+								}}
+							>
 								<CircularProgress />
 							</Box>
 						) : (
@@ -250,18 +298,32 @@ const PlanningMonthClient: React.FC<SessionProps> = ({ session }) => {
 											}}
 										>
 											<CardContent sx={{ py: 1.5, pl: 2.5, '&:last-child': { pb: 1.5 } }}>
-												<Stack direction="row" spacing={1} alignItems="center" mb={0.5}>
+												<Stack
+													direction="row"
+													spacing={1}
+													sx={{
+														alignItems: 'center',
+														mb: 0.5,
+													}}
+												>
 													<Box sx={{ color, display: 'flex' }}>{icon}</Box>
 													<Typography
 														variant="caption"
-														color="text.secondary"
-														textTransform="uppercase"
-														letterSpacing={0.8}
+														sx={{
+															color: 'text.secondary',
+															textTransform: 'uppercase',
+															letterSpacing: 0.8,
+														}}
 													>
 														{label}
 													</Typography>
 												</Stack>
-												<Typography variant="h6" fontWeight={700}>
+												<Typography
+													variant="h6"
+													sx={{
+														fontWeight: 700,
+													}}
+												>
 													{value}
 												</Typography>
 											</CardContent>
@@ -272,7 +334,14 @@ const PlanningMonthClient: React.FC<SessionProps> = ({ session }) => {
 									<CardContent sx={{ p: { xs: 1, sm: 2 } }}>
 										<Box sx={{ minWidth: LABEL_WIDTH + COL_WIDTH * lastDay }}>
 											{/* Header row — day numbers */}
-											<Box display="flex" sx={{ borderBottom: '2px solid', borderColor: 'divider', mb: 0.5 }}>
+											<Box
+												sx={{
+													display: 'flex',
+													borderBottom: '2px solid',
+													borderColor: 'divider',
+													mb: 0.5,
+												}}
+											>
 												<Box
 													sx={{
 														width: LABEL_WIDTH,
@@ -317,8 +386,8 @@ const PlanningMonthClient: React.FC<SessionProps> = ({ session }) => {
 											{rows.map((aptRow, rowIdx) => (
 												<Box
 													key={aptRow.nom}
-													display="flex"
 													sx={{
+														display: 'flex',
 														borderBottom: '1px solid',
 														borderColor: 'divider',
 														bgcolor: rowIdx % 2 === 0 ? 'background.default' : 'action.hover',
@@ -343,7 +412,13 @@ const PlanningMonthClient: React.FC<SessionProps> = ({ session }) => {
 																bgcolor: rowIdx % 2 === 0 ? 'background.default' : 'action.hover',
 															}}
 														>
-															<Typography variant="caption" fontWeight={700} noWrap>
+															<Typography
+																variant="caption"
+																noWrap
+																sx={{
+																	fontWeight: 700,
+																}}
+															>
 																{aptRow.nom}
 															</Typography>
 														</Box>
@@ -353,8 +428,8 @@ const PlanningMonthClient: React.FC<SessionProps> = ({ session }) => {
 													{aptRow.cells.map((cell, dayIdx) => {
 														const day = dayIdx + 1;
 														const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-													const dow = weekdayIndex(dateStr);
-																											const isWeekend = dow >= 5;
+														const dow = weekdayIndex(dateStr);
+														const isWeekend = dow >= 5;
 														return (
 															<Box
 																key={dayIdx}
@@ -374,17 +449,38 @@ const PlanningMonthClient: React.FC<SessionProps> = ({ session }) => {
 																	<Tooltip
 																		title={
 																			<Box>
-																				<Typography variant="caption" display="block" fontWeight={600}>
+																				<Typography
+																					variant="caption"
+																					sx={{
+																						display: 'block',
+																						fontWeight: 600,
+																					}}
+																				>
 																					{cell.reservation.guest_name}
 																				</Typography>
-																				<Typography variant="caption" display="block">
+																				<Typography
+																					variant="caption"
+																					sx={{
+																						display: 'block',
+																					}}
+																				>
 																					{formatDate(cell.reservation.check_in)} →{' '}
 																					{formatDate(cell.reservation.check_out)}
 																				</Typography>
-																				<Typography variant="caption" display="block">
+																				<Typography
+																					variant="caption"
+																					sx={{
+																						display: 'block',
+																					}}
+																				>
 																					{Number(cell.reservation.amount).toLocaleString('fr-MA')} MAD
 																				</Typography>
-																				<Typography variant="caption" display="block">
+																				<Typography
+																					variant="caption"
+																					sx={{
+																						display: 'block',
+																					}}
+																				>
 																					{t.reservations.nightsTooltip(cell.reservation.nights ?? 0)}
 																				</Typography>
 																			</Box>
@@ -429,8 +525,17 @@ const PlanningMonthClient: React.FC<SessionProps> = ({ session }) => {
 											))}
 
 											{rows.length === 0 && !isLoading && (
-												<Box py={4} textAlign="center">
-													<Typography color="text.secondary">
+												<Box
+													sx={{
+														py: 4,
+														textAlign: 'center',
+													}}
+												>
+													<Typography
+														sx={{
+															color: 'text.secondary',
+														}}
+													>
 														{t.reservations.noReservationForMonth(MONTH_NAMES[month - 1], year)}
 													</Typography>
 												</Box>
@@ -448,6 +553,3 @@ const PlanningMonthClient: React.FC<SessionProps> = ({ session }) => {
 };
 
 export default PlanningMonthClient;
-
-
-

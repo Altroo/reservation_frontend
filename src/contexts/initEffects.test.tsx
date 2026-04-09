@@ -5,6 +5,7 @@ import { useSession } from 'next-auth/react';
 import { useGetProfilQuery } from '@/store/services/account';
 import { useAppDispatch, useAppSelector } from '@/utils/hooks';
 import { getAccessToken } from '@/store/selectors';
+import { usePathname, useRouter } from 'next/navigation';
 
 jest.mock('next-auth/react');
 jest.mock('@/store/services/account');
@@ -15,8 +16,6 @@ jest.mock('next/navigation', () => ({
 	useRouter: jest.fn(),
 	usePathname: jest.fn(),
 }));
-
-import { useRouter, usePathname } from 'next/navigation';
 
 const mockDispatch = jest.fn();
 

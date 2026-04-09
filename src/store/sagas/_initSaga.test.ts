@@ -1,6 +1,12 @@
 import { runSaga } from 'redux-saga';
 import * as Types from '../actions';
-import { initAppSaga, initAppSessionTokensSaga, initMaintenanceSaga, refreshAppTokenStatesSaga, watchInit } from './_initSaga';
+import {
+	initAppSaga,
+	initAppSessionTokensSaga,
+	initMaintenanceSaga,
+	refreshAppTokenStatesSaga,
+	watchInit,
+} from './_initSaga';
 import { setInitState } from '../slices/_initSlice';
 import type { Session } from 'next-auth';
 import type { InitStateInterface, InitStateToken } from '@/types/_initTypes';

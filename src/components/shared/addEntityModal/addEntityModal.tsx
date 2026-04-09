@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { Modal, Box, Typography, Button } from '@mui/material';
+import { Box, Button, Modal, Typography } from '@mui/material';
 import ApartmentIcon from '@mui/icons-material/Apartment';
 import CustomTextInput from '@/components/formikElements/customTextInput/customTextInput';
 import CustomDropDownSelect from '@/components/formikElements/customDropDownSelect/customDropDownSelect';
@@ -20,7 +20,16 @@ type AddEntityModalProps = {
 	buildings?: { id: number; nom: string }[];
 };
 
-const AddEntityModal: React.FC<AddEntityModalProps> = ({ open, setOpen, label, icon, inputTheme, mutationFn, onSuccess, buildings }) => {
+const AddEntityModal: React.FC<AddEntityModalProps> = ({
+	open,
+	setOpen,
+	label,
+	icon,
+	inputTheme,
+	mutationFn,
+	onSuccess,
+	buildings,
+}) => {
 	const { t } = useLanguage();
 	const [newName, setNewName] = useState('');
 	const [selectedBuilding, setSelectedBuilding] = useState<number | ''>('');
@@ -45,8 +54,8 @@ const AddEntityModal: React.FC<AddEntityModalProps> = ({ open, setOpen, label, i
 	}
 
 	return (
-		<Modal 
-			open={open} 
+		<Modal
+			open={open}
 			onClose={() => setOpen(false)}
 			disableScrollLock={false}
 			disableRestoreFocus={true}
@@ -64,7 +73,12 @@ const AddEntityModal: React.FC<AddEntityModalProps> = ({ open, setOpen, label, i
 					boxShadow: 24,
 				}}
 			>
-				<Typography variant="h6" mb={2}>
+				<Typography
+					variant="h6"
+					sx={{
+						mb: 2,
+					}}
+				>
 					{t.addEntityModal.addEntity(label)}
 				</Typography>
 
@@ -92,7 +106,11 @@ const AddEntityModal: React.FC<AddEntityModalProps> = ({ open, setOpen, label, i
 							size="small"
 							label={t.common.residence}
 							items={buildingItems}
-							value={selectedBuilding === '' ? t.common.none : (buildings.find((b) => b.id === selectedBuilding)?.nom ?? t.common.none)}
+							value={
+								selectedBuilding === ''
+									? t.common.none
+									: (buildings.find((b) => b.id === selectedBuilding)?.nom ?? t.common.none)
+							}
 							onChange={(e) => {
 								const val = e.target.value;
 								if (!val || val === t.common.none) setSelectedBuilding('');
@@ -116,18 +134,20 @@ const AddEntityModal: React.FC<AddEntityModalProps> = ({ open, setOpen, label, i
 								setError(t.addEntityModal.entityNameRequired(label));
 								return;
 							}
-							
+
 							try {
 								const buildingValue = selectedBuilding === '' ? null : selectedBuilding;
-								const result = await mutationFn({ data: { nom: newName.trim(), ...(buildings ? { building: buildingValue } : {}) } });
-								
+								const result = await mutationFn({
+									data: { nom: newName.trim(), ...(buildings ? { building: buildingValue } : {}) },
+								});
+
 								// Check if result contains an error (RTK Query pattern)
 								if (result && typeof result === 'object' && 'error' in result) {
 									// Handle RTK Query error response
 									// RTK Query wraps the error in { error: { status: ..., data: { ... } } }
 									const errorWrapper = result.error as { status?: number; data?: ApiErrorResponseType };
 									const payload = errorWrapper?.data || (errorWrapper as ApiErrorResponseType);
-									
+
 									// Extract error message from any field in details object
 									if (payload?.details && typeof payload.details === 'object') {
 										const detailsValues = Object.values(payload.details);
@@ -144,13 +164,13 @@ const AddEntityModal: React.FC<AddEntityModalProps> = ({ open, setOpen, label, i
 									// Don't close modal on error
 									return;
 								}
-								
+
 								// Success - close modal and update field
 								setOpen(false);
 								setNewName('');
 								setSelectedBuilding('');
 								setError(null);
-								
+
 								// Extract the ID from the result and call onSuccess if provided
 								if (onSuccess && result && typeof result === 'object' && 'data' in result) {
 									const responseData = result.data as { id?: number };

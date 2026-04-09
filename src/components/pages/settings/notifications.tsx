@@ -24,14 +24,17 @@ import {
 } from '@/store/services/reservation';
 import ApiProgress from '@/components/formikElements/apiLoading/apiProgress/apiProgress';
 import NavigationBar from '@/components/layouts/navigationBar/navigationBar';
-import { useToast, useLanguage } from '@/utils/hooks';
+import { useLanguage, useToast } from '@/utils/hooks';
 import { Edit as EditIcon } from '@mui/icons-material';
 import type { NotificationPreferenceFormValues, ReminderMinutesValue } from '@/types/reservationTypes';
 
 const FormikContent: React.FC = () => {
 	const { onSuccess, onError } = useToast();
 	const { t } = useLanguage();
-	const reminderOptions: { value: ReminderMinutesValue; label: string }[] = t.settings.reminderOptions as { value: ReminderMinutesValue; label: string }[];
+	const reminderOptions: { value: ReminderMinutesValue; label: string }[] = t.settings.reminderOptions as {
+		value: ReminderMinutesValue;
+		label: string;
+	}[];
 	const { data: preferences, isLoading: isPreferencesLoading } = useGetNotificationPreferencesQuery();
 	const [updatePreferences, { isLoading: isUpdateLoading }] = useUpdateNotificationPreferencesMutation();
 	const [isPending, setIsPending] = useState(false);
@@ -52,7 +55,7 @@ const FormikContent: React.FC = () => {
 					notify_check_out: values.notify_check_out,
 					reminder_minutes: values.reminder_minutes,
 				}).unwrap();
-					onSuccess(t.settings.notificationUpdateSuccess);
+				onSuccess(t.settings.notificationUpdateSuccess);
 			} catch (e) {
 				onError(t.settings.notificationUpdateError);
 				setFormikAutoErrors({ e, setFieldError });
@@ -70,14 +73,28 @@ const FormikContent: React.FC = () => {
 	}, []);
 
 	return (
-		<Stack direction="column" alignItems="center" spacing={2} className={`${Styles.flexRootStack}`} mt="32px">
+		<Stack
+			direction="column"
+			spacing={2}
+			className={`${Styles.flexRootStack}`}
+			sx={{
+				alignItems: 'center',
+				mt: '32px',
+			}}
+		>
 			{(isPreferencesLoading || isUpdateLoading || isPending) && (
 				<ApiProgress backdropColor="#FFFFFF" circularColor="#0D070B" />
 			)}
 			<h2 className={Styles.pageTitle}>{t.settings.notificationPreferences}</h2>
-
 			<form className={Styles.form} onSubmit={(e) => e.preventDefault()}>
-				<Stack direction="column" justifyContent="center" alignItems="center" spacing={3}>
+				<Stack
+					direction="column"
+					spacing={3}
+					sx={{
+						justifyContent: 'center',
+						alignItems: 'center',
+					}}
+				>
 					<Box sx={{ maxWidth: 365, width: '100%' }}>
 						<Stack spacing={2}>
 							<FormControlLabel
@@ -99,11 +116,11 @@ const FormikContent: React.FC = () => {
 								label={t.settings.checkOutNotifications}
 							/>
 							<FormControl size="small" fullWidth>
-							<InputLabel id="reminder-minutes-label">{t.settings.reminderDelay}</InputLabel>
-							<Select
-								labelId="reminder-minutes-label"
-								value={String(formik.values.reminder_minutes)}
-								label={t.settings.reminderDelay}
+								<InputLabel id="reminder-minutes-label">{t.settings.reminderDelay}</InputLabel>
+								<Select
+									labelId="reminder-minutes-label"
+									value={String(formik.values.reminder_minutes)}
+									label={t.settings.reminderDelay}
 									onChange={(e: SelectChangeEvent) => formik.setFieldValue('reminder_minutes', Number(e.target.value))}
 								>
 									{reminderOptions.map((opt) => (

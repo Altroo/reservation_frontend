@@ -36,9 +36,9 @@ import ApiAlert from '@/components/formikElements/apiLoading/apiAlert/apiAlert';
 import ActionModals from '@/components/htmlElements/modals/actionModal/actionModals';
 import { Protected } from '@/components/layouts/protected/protected';
 import { extractApiErrorMessage, formatDate } from '@/utils/helpers';
-import { useToast, useLanguage } from '@/utils/hooks';
-import { COST_CATEGORY_CHIP_COLORS } from '@/utils/rawData';
+import { useLanguage, useToast } from '@/utils/hooks';
 import type { CostCategoryChipColor } from '@/utils/rawData';
+import { COST_CATEGORY_CHIP_COLORS } from '@/utils/rawData';
 
 interface InfoRowProps {
 	icon: React.ReactNode;
@@ -50,16 +50,14 @@ const InfoRow: React.FC<InfoRowProps> = ({ icon, label, value }) => {
 	const theme = useTheme();
 	const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 	const displayValue =
-		isValidElement(value) || (value !== null && value !== undefined && value.toString().length > 0)
-			? value
-			: '-';
+		isValidElement(value) || (value !== null && value !== undefined && value.toString().length > 0) ? value : '-';
 
 	return (
 		<Stack
 			direction="row"
-			alignItems="flex-start"
 			spacing={2}
 			sx={{
+				alignItems: 'flex-start',
 				py: 1.5,
 				flexWrap: 'wrap',
 			}}
@@ -75,20 +73,19 @@ const InfoRow: React.FC<InfoRowProps> = ({ icon, label, value }) => {
 			>
 				{icon}
 			</Box>
-
 			<Stack
 				direction="row"
-				alignItems="center"
 				spacing={isMobile ? 0 : 2}
 				sx={{
+					alignItems: 'center',
 					flex: 1,
 					flexWrap: 'wrap',
 				}}
 			>
 				<Typography
-					fontWeight={600}
-					color="text.secondary"
 					sx={{
+						fontWeight: 600,
+						color: 'text.secondary',
 						minWidth: { xs: '100%', sm: 200 },
 						wordBreak: 'break-word',
 					}}
@@ -161,15 +158,24 @@ const CostViewClient: React.FC<Props> = ({ session, id }) => {
 	const categoryColor = (COST_CATEGORY_CHIP_COLORS[cost?.category as string] ?? 'default') as CostCategoryChipColor;
 
 	return (
-		<Stack direction="column" spacing={2} className={Styles.flexRootStack} mt="32px">
+		<Stack
+			direction="column"
+			spacing={2}
+			className={Styles.flexRootStack}
+			sx={{
+				mt: '32px',
+			}}
+		>
 			<NavigationBar title={t.costs.costDetails}>
 				<Protected permission="can_view">
 					<Stack spacing={3} sx={{ p: { xs: 2, md: 3 }, mt: 2 }}>
 						<Stack
 							direction={isMobile ? 'column' : 'row'}
-							justifyContent="space-between"
-							alignItems={isMobile ? 'stretch' : 'center'}
 							spacing={2}
+							sx={{
+								justifyContent: 'space-between',
+								alignItems: isMobile ? 'stretch' : 'center',
+							}}
 						>
 							<Button
 								variant="outlined"
@@ -180,7 +186,13 @@ const CostViewClient: React.FC<Props> = ({ session, id }) => {
 								{t.costs.costsList}
 							</Button>
 							{!isLoading && !error && cost && (
-								<Stack direction="row" gap={1} flexWrap="wrap">
+								<Stack
+									direction="row"
+									sx={{
+										gap: 1,
+										flexWrap: 'wrap',
+									}}
+								>
 									<Protected permission="can_edit">
 										<Button
 											variant="outlined"
@@ -188,18 +200,18 @@ const CostViewClient: React.FC<Props> = ({ session, id }) => {
 											startIcon={<EditIcon />}
 											onClick={() => router.push(COSTS_EDIT(id))}
 										>
-										{t.common.edit}
-									</Button>
-								</Protected>
-								<Protected permission="can_delete">
-									<Button
-										variant="outlined"
-										color="error"
-										size="small"
-										startIcon={<DeleteIcon />}
-										onClick={() => setShowDeleteModal(true)}
-									>
-										{t.common.delete}
+											{t.common.edit}
+										</Button>
+									</Protected>
+									<Protected permission="can_delete">
+										<Button
+											variant="outlined"
+											color="error"
+											size="small"
+											startIcon={<DeleteIcon />}
+											onClick={() => setShowDeleteModal(true)}
+										>
+											{t.common.delete}
 										</Button>
 									</Protected>
 								</Stack>
@@ -225,10 +237,22 @@ const CostViewClient: React.FC<Props> = ({ session, id }) => {
 								{/* Identification */}
 								<Card elevation={2} sx={{ borderRadius: 2 }}>
 									<CardContent sx={{ p: 3 }}>
-										<Stack direction="row" spacing={3} alignItems="center">
+										<Stack
+											direction="row"
+											spacing={3}
+											sx={{
+												alignItems: 'center',
+											}}
+										>
 											<AttachMoneyIcon color="primary" />
-											<Typography variant="h6" fontWeight={700}>
-												{t.costs.costNumber}{cost.id}
+											<Typography
+												variant="h6"
+												sx={{
+													fontWeight: 700,
+												}}
+											>
+												{t.costs.costNumber}
+												{cost.id}
 											</Typography>
 										</Stack>
 										<Divider sx={{ mb: { xs: 1.5, md: 2 } }} />
@@ -237,12 +261,7 @@ const CostViewClient: React.FC<Props> = ({ session, id }) => {
 												icon={<CategoryIcon />}
 												label={t.common.category}
 												value={
-													<Chip
-														label={cost.category as string}
-														size="small"
-														color={categoryColor}
-														variant="outlined"
-													/>
+													<Chip label={cost.category as string} size="small" color={categoryColor} variant="outlined" />
 												}
 											/>
 											<Divider />
@@ -250,17 +269,18 @@ const CostViewClient: React.FC<Props> = ({ session, id }) => {
 												icon={<AttachMoneyIcon />}
 												label={t.common.amount}
 												value={
-													<Typography fontWeight={600} color="primary">
+													<Typography
+														color="primary"
+														sx={{
+															fontWeight: 600,
+														}}
+													>
 														{Number(cost.amount).toLocaleString('fr-MA')} MAD
 													</Typography>
 												}
 											/>
 											<Divider />
-											<InfoRow
-												icon={<CalendarTodayIcon />}
-												label={t.common.date}
-												value={formatDate(cost.date)}
-											/>
+											<InfoRow icon={<CalendarTodayIcon />} label={t.common.date} value={formatDate(cost.date)} />
 										</Stack>
 									</CardContent>
 								</Card>
@@ -268,19 +288,27 @@ const CostViewClient: React.FC<Props> = ({ session, id }) => {
 								{/* Détails du coût */}
 								<Card elevation={2} sx={{ borderRadius: 2 }}>
 									<CardContent sx={{ p: 3 }}>
-										<Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 2 }}>
+										<Stack
+											direction="row"
+											spacing={2}
+											sx={{
+												alignItems: 'center',
+												mb: 2,
+											}}
+										>
 											<NotesIcon color="primary" />
-											<Typography variant="h6" fontWeight={700}>
-											{t.costs.costDetails}
+											<Typography
+												variant="h6"
+												sx={{
+													fontWeight: 700,
+												}}
+											>
+												{t.costs.costDetails}
 											</Typography>
 										</Stack>
 										<Divider sx={{ mb: { xs: 1.5, md: 2 } }} />
 										<Stack spacing={0}>
-											<InfoRow
-												icon={<NotesIcon />}
-												label={t.common.description}
-												value={cost.description}
-											/>
+											<InfoRow icon={<NotesIcon />} label={t.common.description} value={cost.description} />
 											<Divider />
 											<InfoRow
 												icon={<PersonIcon />}
@@ -295,7 +323,6 @@ const CostViewClient: React.FC<Props> = ({ session, id }) => {
 					</Stack>
 				</Protected>
 			</NavigationBar>
-
 			{showDeleteModal && (
 				<ActionModals
 					title={t.costs.deleteCost}

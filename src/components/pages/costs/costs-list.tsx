@@ -5,12 +5,12 @@ import { useRouter } from 'next/navigation';
 import { Box, Button, Chip, Stack, Typography } from '@mui/material';
 import {
 	Add as AddIcon,
+	CalendarMonth as CalendarMonthIcon,
+	CalendarToday as CalendarTodayIcon,
 	Close as CloseIcon,
 	Delete as DeleteIcon,
 	Edit as EditIcon,
 	Visibility as VisibilityIcon,
-	CalendarToday as CalendarTodayIcon,
-	CalendarMonth as CalendarMonthIcon,
 } from '@mui/icons-material';
 import { GridColDef, GridFilterModel, GridLogicOperator, GridRenderCellParams } from '@mui/x-data-grid';
 import type { SessionProps } from '@/types/_initTypes';
@@ -32,8 +32,13 @@ import { COSTS_ADD, COSTS_EDIT, COSTS_VIEW } from '@/utils/routes';
 import CustomDropDownSelect from '@/components/formikElements/customDropDownSelect/customDropDownSelect';
 import { customDropdownTheme } from '@/utils/themes';
 import type { DropDownType } from '@/types/accountTypes';
-import { useToast, useLanguage } from '@/utils/hooks';
-import { useDeleteCostMutation, useBulkDeleteCostsMutation, useGetCostsQuery, useGetCostYearsQuery } from '@/store/services/reservation';
+import { useLanguage, useToast } from '@/utils/hooks';
+import {
+	useBulkDeleteCostsMutation,
+	useDeleteCostMutation,
+	useGetCostsQuery,
+	useGetCostYearsQuery,
+} from '@/store/services/reservation';
 import { useInitAccessToken } from '@/contexts/InitContext';
 import type { CostCategoryChipColor } from '@/utils/rawData';
 import { COST_CATEGORY_CHIP_COLORS, costCategoryItemsList } from '@/utils/rawData';
@@ -348,8 +353,11 @@ const CostsListClient: React.FC<SessionProps> = ({ session }) => {
 			direction="column"
 			spacing={2}
 			className={Styles.flexRootStack}
-			mt="48px"
-			sx={{ overflowX: 'auto', overflowY: 'hidden' }}
+			sx={{
+				mt: '48px',
+				overflowX: 'auto',
+				overflowY: 'hidden',
+			}}
 		>
 			<NavigationBar title={t.costs.costsList}>
 				<Protected permission="can_view">
@@ -416,20 +424,29 @@ const CostsListClient: React.FC<SessionProps> = ({ session }) => {
 								/>
 							</Box>
 							{filteredCosts.length > 0 && (
-								<Typography variant="subtitle1" fontWeight={700} color="error.main" sx={{ ml: 'auto' }}>
+								<Typography
+									variant="subtitle1"
+									sx={{
+										fontWeight: 700,
+										color: 'error.main',
+										ml: 'auto',
+									}}
+								>
 									Total : {totalAmount.toLocaleString('fr-MA')} MAD
 								</Typography>
-							)}						{selectedIds.length > 0 && (
-							<Button
-								variant="outlined"
-								color="error"
-								onClick={() => setShowBulkDeleteModal(true)}
-								startIcon={<DeleteIcon fontSize="small" />}
-								sx={{ whiteSpace: 'nowrap' }}
-							>
-							{t.common.delete} ({selectedIds.length})
-							</Button>
-						)}						</Box>
+							)}{' '}
+							{selectedIds.length > 0 && (
+								<Button
+									variant="outlined"
+									color="error"
+									onClick={() => setShowBulkDeleteModal(true)}
+									startIcon={<DeleteIcon fontSize="small" />}
+									sx={{ whiteSpace: 'nowrap' }}
+								>
+									{t.common.delete} ({selectedIds.length})
+								</Button>
+							)}{' '}
+						</Box>
 
 						<ChipSelectFilterBar filters={chipFilters} onFilterChange={setChipFilterParams} columns={1} />
 
@@ -450,17 +467,13 @@ const CostsListClient: React.FC<SessionProps> = ({ session }) => {
 						/>
 
 						{showDeleteModal && (
-							<ActionModals
-							title={t.costs.deleteCost}
-							body={t.costs.deleteCostConfirm}
-							actions={deleteModalActions}
-						/>
-					)}
+							<ActionModals title={t.costs.deleteCost} body={t.costs.deleteCostConfirm} actions={deleteModalActions} />
+						)}
 
-					{showBulkDeleteModal && (
-						<ActionModals
-							title={t.costs.bulkDeleteCosts(selectedIds.length)}
-							body={t.costs.bulkDeleteCostsConfirm}
+						{showBulkDeleteModal && (
+							<ActionModals
+								title={t.costs.bulkDeleteCosts(selectedIds.length)}
+								body={t.costs.bulkDeleteCostsConfirm}
 								actions={bulkDeleteModalActions}
 								onClose={() => setShowBulkDeleteModal(false)}
 							/>

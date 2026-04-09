@@ -30,7 +30,7 @@ import type { ReservationListType } from '@/types/reservationTypes';
 import NavigationBar from '@/components/layouts/navigationBar/navigationBar';
 import ApiProgress from '@/components/formikElements/apiLoading/apiProgress/apiProgress';
 import { Protected } from '@/components/layouts/protected/protected';
-import { useGetPlanningQuery, useGetBuildingsQuery } from '@/store/services/reservation';
+import { useGetBuildingsQuery, useGetPlanningQuery } from '@/store/services/reservation';
 import { useInitAccessToken } from '@/contexts/InitContext';
 import { RESERVATIONS_VIEW } from '@/utils/routes';
 import { weekdayIndex } from '@/utils/helpers';
@@ -107,11 +107,18 @@ const CalendarContent: React.FC<CalendarContentProps> = ({ token }) => {
 	const [menuAnchor, setMenuAnchor] = useState<null | HTMLElement>(null);
 	const [menuReservation, setMenuReservation] = useState<ReservationListType | null>(null);
 
-	const { data: planning, isLoading, refetch } = useGetPlanningQuery({ year, month, ...(buildingId ? { building: buildingId } : {}) }, { skip: !token });
+	const {
+		data: planning,
+		isLoading,
+		refetch,
+	} = useGetPlanningQuery({ year, month, ...(buildingId ? { building: buildingId } : {}) }, { skip: !token });
 	const { data: buildingsData } = useGetBuildingsQuery(undefined, { skip: !token });
 
 	const buildingItems: DropDownType[] = useMemo(
-		() => [{ code: t.locaux.allResidences, value: t.locaux.allResidences }, ...(buildingsData ?? []).map((b) => ({ code: b.nom, value: b.nom }))],
+		() => [
+			{ code: t.locaux.allResidences, value: t.locaux.allResidences },
+			...(buildingsData ?? []).map((b) => ({ code: b.nom, value: b.nom })),
+		],
 		[buildingsData, t],
 	);
 
@@ -199,36 +206,63 @@ const CalendarContent: React.FC<CalendarContentProps> = ({ token }) => {
 				{/* Month navigator */}
 				<Card elevation={2} sx={{ borderRadius: 2 }}>
 					<CardContent sx={{ p: 2, '&:last-child': { pb: 2 } }}>
-						<Stack direction="row" alignItems="center" justifyContent="space-between">
+						<Stack
+							direction="row"
+							sx={{
+								alignItems: 'center',
+								justifyContent: 'space-between',
+							}}
+						>
 							<IconButton onClick={prevMonth} size="small">
 								<ChevronLeftIcon />
 							</IconButton>
-							<Stack direction="row" spacing={1} alignItems="center">
+							<Stack
+								direction="row"
+								spacing={1}
+								sx={{
+									alignItems: 'center',
+								}}
+							>
 								<CalendarMonthIcon color="primary" />
-								<Typography variant="h6" fontWeight={700}>
+								<Typography
+									variant="h6"
+									sx={{
+										fontWeight: 700,
+									}}
+								>
 									{t.rawData.monthNames[month - 1]} {year}
 								</Typography>
 							</Stack>
-							<Stack direction="row" spacing={1} alignItems="center">
-							<Box sx={{ minWidth: 180 }}>
-								<CustomDropDownSelect
-									id="building-filter"
-									size="small"
-									label={t.common.residence}
-									items={buildingItems}
-									value={buildingId === '' ? t.locaux.allResidences : ((buildingsData ?? []).find((b) => b.id === buildingId)?.nom ?? t.locaux.allResidences)}
-									onChange={(e) => {
-										const name = e.target.value;
-										if (!name || name === t.locaux.allResidences) setBuildingId('');
-										else {
-											const b = (buildingsData ?? []).find((x) => x.nom === name);
-											setBuildingId(b ? b.id : '');
+							<Stack
+								direction="row"
+								spacing={1}
+								sx={{
+									alignItems: 'center',
+								}}
+							>
+								<Box sx={{ minWidth: 180 }}>
+									<CustomDropDownSelect
+										id="building-filter"
+										size="small"
+										label={t.common.residence}
+										items={buildingItems}
+										value={
+											buildingId === ''
+												? t.locaux.allResidences
+												: ((buildingsData ?? []).find((b) => b.id === buildingId)?.nom ?? t.locaux.allResidences)
 										}
-									}}
-									theme={customDropdownTheme()}
-									startIcon={<ApartmentIcon />}
-								/>
-							</Box>
+										onChange={(e) => {
+											const name = e.target.value;
+											if (!name || name === t.locaux.allResidences) setBuildingId('');
+											else {
+												const b = (buildingsData ?? []).find((x) => x.nom === name);
+												setBuildingId(b ? b.id : '');
+											}
+										}}
+										theme={customDropdownTheme()}
+										startIcon={<ApartmentIcon />}
+									/>
+								</Box>
 								<Button
 									size="small"
 									variant="contained"
@@ -276,7 +310,13 @@ const CalendarContent: React.FC<CalendarContentProps> = ({ token }) => {
 												borderColor: 'divider',
 											}}
 										>
-											<Typography variant="caption" fontWeight={700} color="text.secondary">
+											<Typography
+												variant="caption"
+												sx={{
+													fontWeight: 700,
+													color: 'text.secondary',
+												}}
+											>
 												{day}
 											</Typography>
 										</Box>
@@ -317,11 +357,17 @@ const CalendarContent: React.FC<CalendarContentProps> = ({ token }) => {
 													>
 														{day !== null && (
 															<>
-																<Stack direction="row" justifyContent="space-between" alignItems="center">
+																<Stack
+																	direction="row"
+																	sx={{
+																		justifyContent: 'space-between',
+																		alignItems: 'center',
+																	}}
+																>
 																	<Typography
 																		variant="caption"
-																		fontWeight={isToday(day) ? 900 : 400}
 																		sx={{
+																			fontWeight: isToday(day) ? 900 : 400,
 																			display: 'inline-flex',
 																			alignItems: 'center',
 																			justifyContent: 'center',
@@ -384,8 +430,21 @@ const CalendarContent: React.FC<CalendarContentProps> = ({ token }) => {
 				{planning?.apartments && Object.values(planning.apartments).length > 0 && (
 					<Card elevation={1} sx={{ borderRadius: 2 }}>
 						<CardContent sx={{ p: 2, '&:last-child': { pb: 2 } }}>
-							<Stack direction="row" spacing={1} flexWrap="wrap" gap={1}>
-								<Typography variant="caption" color="text.secondary" sx={{ alignSelf: 'center' }}>
+							<Stack
+								direction="row"
+								spacing={1}
+								sx={{
+									flexWrap: 'wrap',
+									gap: 1,
+								}}
+							>
+								<Typography
+									variant="caption"
+									sx={{
+										color: 'text.secondary',
+										alignSelf: 'center',
+									}}
+								>
 									{t.reservations.apartments}
 								</Typography>
 								{Object.entries(planning.apartments).map(([nom]) => {
@@ -406,23 +465,33 @@ const CalendarContent: React.FC<CalendarContentProps> = ({ token }) => {
 					</Card>
 				)}
 			</Stack>
-
 			{/* Reservation context menu (view / edit) */}
 			<Menu anchorEl={menuAnchor} open={Boolean(menuAnchor)} onClose={handleMenuClose}>
 				<MenuItem onClick={handleView}>
-					<Stack direction="row" spacing={1} alignItems="center">
+					<Stack
+						direction="row"
+						spacing={1}
+						sx={{
+							alignItems: 'center',
+						}}
+					>
 						<VisibilityIcon fontSize="small" />
 						<Typography variant="body2">{t.reservations.viewReservation}</Typography>
 					</Stack>
 				</MenuItem>
 				<MenuItem onClick={handleEdit}>
-					<Stack direction="row" spacing={1} alignItems="center">
+					<Stack
+						direction="row"
+						spacing={1}
+						sx={{
+							alignItems: 'center',
+						}}
+					>
 						<EditIcon fontSize="small" />
 						<Typography variant="body2">{t.reservations.editReservationMenu}</Typography>
 					</Stack>
 				</MenuItem>
 			</Menu>
-
 			{/* Create / Edit dialog */}
 			<ReservationDialog
 				open={dialogOpen}
@@ -442,7 +511,14 @@ const CalendarClient: React.FC<SessionProps> = ({ session }) => {
 	const token = useInitAccessToken(session);
 
 	return (
-		<Stack direction="column" spacing={2} className={Styles.flexRootStack} mt="48px">
+		<Stack
+			direction="column"
+			spacing={2}
+			className={Styles.flexRootStack}
+			sx={{
+				mt: '48px',
+			}}
+		>
 			<NavigationBar title={t.reservations.calendar}>
 				<Protected permission="can_view">
 					<CalendarContent token={token} />

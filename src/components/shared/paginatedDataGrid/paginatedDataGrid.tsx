@@ -1,17 +1,17 @@
 'use client';
 
-import React, { Dispatch, SetStateAction, useState, useEffect, useCallback, useRef, useMemo } from 'react';
+import React, { Dispatch, SetStateAction, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Badge, Box, Button, CircularProgress, Stack, ThemeProvider, Typography } from '@mui/material';
-import { ViewColumn as ViewColumnIcon, FilterList as FilterListIcon } from '@mui/icons-material';
-import type { GridColDef, GridFilterModel, GridRowSelectionModel, GridRowId } from '@mui/x-data-grid';
-import { DataGrid, GridSlotProps, ColumnsPanelTrigger, ToolbarButton, GridLogicOperator } from '@mui/x-data-grid';
+import { FilterList as FilterListIcon, ViewColumn as ViewColumnIcon } from '@mui/icons-material';
+import type { GridColDef, GridFilterModel, GridRowId, GridRowSelectionModel } from '@mui/x-data-grid';
+import { ColumnsPanelTrigger, DataGrid, GridLogicOperator, GridSlotProps, ToolbarButton } from '@mui/x-data-grid';
 import { frFR } from '@mui/x-data-grid/locales';
 import { getDefaultTheme } from '@/utils/themes';
 import { useLanguage } from '@/utils/hooks';
 import ApiProgress from '@/components/formikElements/apiLoading/apiProgress/apiProgress';
 import CustomFilterPanel, {
-	CustomFilterModel,
 	CustomFilterItem,
+	CustomFilterModel,
 	CustomFilterValue,
 	DateRangeFilterValue,
 	filterHasValue,
@@ -253,11 +253,7 @@ const PaginatedDataGrid = <T,>({
 		);
 		return {
 			type: 'include',
-			ids: new Set(
-				selectedIds
-					.filter((id) => pageIdSet.has(id as GridRowId))
-					.map((id) => id as GridRowId),
-			),
+			ids: new Set(selectedIds.filter((id) => pageIdSet.has(id as GridRowId)).map((id) => id as GridRowId)),
 		};
 	}, [checkboxSelection, selectedIds, rows]);
 
@@ -292,9 +288,7 @@ const PaginatedDataGrid = <T,>({
 		}
 		// Merge: preserve selections from other pages, apply the new page selection
 		const pageIdSet = new Set(
-			(rows as Array<{ id?: unknown }>)
-				.map((r) => r.id)
-				.filter((id): id is number => typeof id === 'number'),
+			(rows as Array<{ id?: unknown }>).map((r) => r.id).filter((id): id is number => typeof id === 'number'),
 		);
 		const prevOutsidePage = (selectedIds ?? []).filter((id) => !pageIdSet.has(id));
 		onSelectionChange([...prevOutsidePage, ...pageSelectedIds.map((id) => Number(id))]);
@@ -357,7 +351,15 @@ const PaginatedDataGrid = <T,>({
 
 	return (
 		<ThemeProvider theme={getDefaultTheme()}>
-			<Stack direction="column" spacing={2} mt="32px" sx={{ overflowX: 'auto', overflowY: 'hidden' }}>
+			<Stack
+				direction="column"
+				spacing={2}
+				sx={{
+					mt: '32px',
+					overflowX: 'auto',
+					overflowY: 'hidden',
+				}}
+			>
 				<Box sx={{ width: '100%', position: 'relative' }}>
 					{isLoading && <ApiProgress backdropColor="#FFFFFF" circularColor="#0D070B" />}
 					<Box
@@ -397,9 +399,7 @@ const PaginatedDataGrid = <T,>({
 								>
 									{isAllMatchingSelected ? (
 										<>
-											<Typography variant="body2">
-												{t.dataGrid.allMatchingSelected(totalMatchingCount ?? 0)}
-											</Typography>
+											<Typography variant="body2">{t.dataGrid.allMatchingSelected(totalMatchingCount ?? 0)}</Typography>
 											<Button
 												size="small"
 												onClick={onClearAllMatchingSelected}
@@ -410,9 +410,7 @@ const PaginatedDataGrid = <T,>({
 										</>
 									) : (
 										<>
-											<Typography variant="body2">
-												{t.dataGrid.pageItemsSelected(rows.length)}
-											</Typography>
+											<Typography variant="body2">{t.dataGrid.pageItemsSelected(rows.length)}</Typography>
 											<Button
 												size="small"
 												onClick={onSelectAllMatchingClick}
@@ -434,11 +432,7 @@ const PaginatedDataGrid = <T,>({
 							)}
 							{showCustomFilterPanel && (
 								<Box sx={{ mb: 2 }}>
-									<CustomFilterPanel
-										columns={columns}
-										filterModel={customFilters}
-										onChange={setCustomFilters}
-									/>
+									<CustomFilterPanel columns={columns} filterModel={customFilters} onChange={setCustomFilters} />
 								</Box>
 							)}
 
@@ -456,7 +450,9 @@ const PaginatedDataGrid = <T,>({
 								keepNonExistentRowsSelected
 								checkboxSelection={checkboxSelection && rows.length > 0}
 								rowSelectionModel={computedRowSelectionModel}
-								onRowSelectionModelChange={checkboxSelection && rows.length > 0 ? handleRowSelectionModelChange : undefined}
+								onRowSelectionModelChange={
+									checkboxSelection && rows.length > 0 ? handleRowSelectionModelChange : undefined
+								}
 								showToolbar
 								slotProps={{
 									toolbar: {

@@ -2,19 +2,11 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import {
-	Alert,
-	Box,
-	Card,
-	CardContent,
-	Divider,
-	Stack,
-	Typography,
-} from '@mui/material';
+import { Alert, Box, Card, CardContent, Divider, Stack, Typography } from '@mui/material';
 import {
 	Add as AddIcon,
-	ArrowBack as ArrowBackIcon,
 	Apartment as ApartmentIcon,
+	ArrowBack as ArrowBackIcon,
 	Edit as EditIcon,
 	Warning as WarningIcon,
 } from '@mui/icons-material';
@@ -31,8 +23,12 @@ import { textInputTheme } from '@/utils/themes';
 import { buildingSchema } from '@/utils/formValidationSchemas';
 import { getLabelForKey, setFormikAutoErrors } from '@/utils/helpers';
 import { BUILDINGS_LIST } from '@/utils/routes';
-import { useToast, useLanguage } from '@/utils/hooks';
-import { useCreateBuildingMutation, useUpdateBuildingMutation, useGetBuildingQuery } from '@/store/services/reservation';
+import { useLanguage, useToast } from '@/utils/hooks';
+import {
+	useCreateBuildingMutation,
+	useGetBuildingQuery,
+	useUpdateBuildingMutation,
+} from '@/store/services/reservation';
 import { useInitAccessToken } from '@/contexts/InitContext';
 import Styles from '@/styles/dashboard/dashboard.module.sass';
 import Button from '@mui/material/Button';
@@ -51,10 +47,7 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 	const router = useRouter();
 	const topRef = useRef<HTMLDivElement | null>(null);
 
-	const { data: rawData } = useGetBuildingQuery(
-		{ id: id! },
-		{ skip: !token || !isEditMode },
-	);
+	const { data: rawData } = useGetBuildingQuery({ id: id! }, { skip: !token || !isEditMode });
 
 	const [createBuilding, { isLoading: isCreateLoading }] = useCreateBuildingMutation();
 	const [updateBuilding, { isLoading: isUpdateLoading }] = useUpdateBuildingMutation();
@@ -105,7 +98,12 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 
 	return (
 		<Stack ref={topRef} spacing={3} sx={{ p: { xs: 2, md: 3 } }}>
-			<Stack direction="row" justifyContent="space-between">
+			<Stack
+				direction="row"
+				sx={{
+					justifyContent: 'space-between',
+				}}
+			>
 				<Button
 					variant="outlined"
 					startIcon={<ArrowBackIcon />}
@@ -115,10 +113,14 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 					{t.buildings.residencesList}
 				</Button>
 			</Stack>
-
 			{showValidationAlert && (
 				<Alert severity="error" icon={<WarningIcon />}>
-					<Typography variant="subtitle2" fontWeight={600}>
+					<Typography
+						variant="subtitle2"
+						sx={{
+							fontWeight: 600,
+						}}
+					>
 						{t.common.validationErrorsDetected}
 					</Typography>
 					<ul style={{ margin: '8px 0', paddingLeft: '20px' }}>
@@ -132,16 +134,26 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 					</ul>
 				</Alert>
 			)}
-
 			{isLoading && <ApiProgress backdropColor="#FFFFFF" circularColor="#0D070B" />}
-
 			<form onSubmit={formik.handleSubmit}>
 				<Stack spacing={3}>
 					<Card elevation={2} sx={{ borderRadius: 2 }}>
 						<CardContent sx={{ p: 3 }}>
-							<Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 2 }}>
+							<Stack
+								direction="row"
+								spacing={2}
+								sx={{
+									alignItems: 'center',
+									mb: 2,
+								}}
+							>
 								<ApartmentIcon color="primary" />
-								<Typography variant="h6" fontWeight={700}>
+								<Typography
+									variant="h6"
+									sx={{
+										fontWeight: 700,
+									}}
+								>
 									{t.buildings.residenceInfo}
 								</Typography>
 							</Stack>
@@ -187,7 +199,14 @@ const BuildingFormClient: React.FC<SessionProps & { id?: number }> = ({ session,
 	const title = id !== undefined ? t.buildings.editResidence : t.buildings.newResidence;
 
 	return (
-		<Stack direction="column" spacing={2} className={Styles.flexRootStack} mt="48px">
+		<Stack
+			direction="column"
+			spacing={2}
+			className={Styles.flexRootStack}
+			sx={{
+				mt: '48px',
+			}}
+		>
 			<NavigationBar title={title}>
 				<Protected permission={id !== undefined ? 'can_edit' : 'can_create'}>
 					<FormikContent token={token} id={id} />

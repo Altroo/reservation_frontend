@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
 	Box,
 	Card,
@@ -14,7 +14,7 @@ import {
 	Tooltip as MuiTooltip,
 	Typography,
 } from '@mui/material';
-import PieChartOutlineIcon from '@mui/icons-material/PieChartOutline';
+import PieChartOutlinedIcon from '@mui/icons-material/PieChartOutlined';
 import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
 import NightsStayIcon from '@mui/icons-material/NightsStay';
 import EventAvailableIcon from '@mui/icons-material/EventAvailable';
@@ -26,15 +26,7 @@ import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
 import CustomDropDownSelect from '@/components/formikElements/customDropDownSelect/customDropDownSelect';
 import { customDropdownTheme } from '@/utils/themes';
 import type { DropDownType } from '@/types/accountTypes';
-import {
-	Chart as ChartJS,
-	CategoryScale,
-	LinearScale,
-	BarElement,
-	Title,
-	Tooltip,
-	Legend,
-} from 'chart.js';
+import { BarElement, CategoryScale, Chart as ChartJS, Legend, LinearScale, Title, Tooltip } from 'chart.js';
 import { Bar } from 'react-chartjs-2';
 import type { SessionProps } from '@/types/_initTypes';
 import type { ReservationListType } from '@/types/reservationTypes';
@@ -42,11 +34,15 @@ import { useLanguage } from '@/utils/hooks';
 import Styles from '@/styles/dashboard/dashboard.module.sass';
 import NavigationBar from '@/components/layouts/navigationBar/navigationBar';
 import { Protected } from '@/components/layouts/protected/protected';
-import { useGetDashboardStatsQuery, useGetPlanningQuery, useGetReservationYearsQuery, useGetBuildingsQuery } from '@/store/services/reservation';
+import {
+	useGetBuildingsQuery,
+	useGetDashboardStatsQuery,
+	useGetPlanningQuery,
+	useGetReservationYearsQuery,
+} from '@/store/services/reservation';
 import { useInitAccessToken } from '@/contexts/InitContext';
-import { formatDate } from '@/utils/helpers';
-import { APARTMENT_COLORS, PAYMENT_SOURCE_BG, CHART_OPTS } from '@/utils/rawData';
-import { formatNumberMA as fmt } from '@/utils/helpers';
+import { formatDate, formatNumberMA as fmt } from '@/utils/helpers';
+import { APARTMENT_COLORS, CHART_OPTS, PAYMENT_SOURCE_BG } from '@/utils/rawData';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
@@ -78,18 +74,38 @@ function KpiCard({ color, icon, label, value, tooltip }: KpiCardProps) {
 			}}
 		>
 			<CardContent sx={{ py: 1.5, px: 2, '&:last-child': { pb: 1.5 } }}>
-				<Stack direction="row" alignItems="center" justifyContent="space-between">
-					<Stack direction="row" alignItems="center" spacing={1.5}>
+				<Stack
+					direction="row"
+					sx={{
+						alignItems: 'center',
+						justifyContent: 'space-between',
+					}}
+				>
+					<Stack
+						direction="row"
+						spacing={1.5}
+						sx={{
+							alignItems: 'center',
+						}}
+					>
 						<Box sx={{ color }}>{icon}</Box>
 						<Box>
 							<Typography
 								variant="caption"
-								color="text.secondary"
-								sx={{ textTransform: 'uppercase', letterSpacing: 0.5 }}
+								sx={{
+									color: 'text.secondary',
+									textTransform: 'uppercase',
+									letterSpacing: 0.5,
+								}}
 							>
 								{label}
 							</Typography>
-							<Typography variant="h6" fontWeight={700}>
+							<Typography
+								variant="h6"
+								sx={{
+									fontWeight: 700,
+								}}
+							>
 								{value}
 							</Typography>
 						</Box>
@@ -115,7 +131,10 @@ const OccupancyClient: React.FC<SessionProps> = ({ session }) => {
 	const [heatmapMonth, setHeatmapMonth] = useState(new Date().getMonth() + 1);
 	const [buildingId, setBuildingId] = useState<number | ''>('');
 
-	const { data, isLoading } = useGetDashboardStatsQuery({ year, ...(buildingId ? { building: buildingId } : {}) }, { skip: !token });
+	const { data, isLoading } = useGetDashboardStatsQuery(
+		{ year, ...(buildingId ? { building: buildingId } : {}) },
+		{ skip: !token },
+	);
 	const { data: planningData, isFetching: planningLoading } = useGetPlanningQuery(
 		{ year, month: heatmapMonth, ...(buildingId ? { building: buildingId } : {}) },
 		{ skip: !token },
@@ -124,7 +143,10 @@ const OccupancyClient: React.FC<SessionProps> = ({ session }) => {
 	const { data: buildingsData } = useGetBuildingsQuery(undefined, { skip: !token });
 
 	const buildingItems: DropDownType[] = useMemo(
-		() => [{ code: t.locaux.allResidences, value: t.locaux.allResidences }, ...(buildingsData ?? []).map((b) => ({ code: b.nom, value: b.nom }))],
+		() => [
+			{ code: t.locaux.allResidences, value: t.locaux.allResidences },
+			...(buildingsData ?? []).map((b) => ({ code: b.nom, value: b.nom })),
+		],
 		[buildingsData, t],
 	);
 
@@ -211,51 +233,80 @@ const OccupancyClient: React.FC<SessionProps> = ({ session }) => {
 	};
 
 	return (
-		<Stack direction="column" spacing={2} className={Styles.flexRootStack} mt="48px">
+		<Stack
+			direction="column"
+			spacing={2}
+			className={Styles.flexRootStack}
+			sx={{
+				mt: '48px',
+			}}
+		>
 			<NavigationBar title={t.reservations.occupancyRate}>
 				<Protected permission="can_view">
 					<Box sx={{ px: { xs: 1, sm: 2, md: 3 }, pb: 4 }}>
-						<Stack direction="row" justifyContent="space-between" alignItems="center" py={2}>
-							<Typography variant="h5" fontWeight={600}>
+						<Stack
+							direction="row"
+							sx={{
+								justifyContent: 'space-between',
+								alignItems: 'center',
+								py: 2,
+							}}
+						>
+							<Typography
+								variant="h5"
+								sx={{
+									fontWeight: 600,
+								}}
+							>
 								{t.reservations.occupancyRateYear(year)}
 							</Typography>
 							<Stack direction="row" spacing={1}>
-							<Box sx={{ minWidth: 180 }}>
-								<CustomDropDownSelect
-									id="building-filter"
-									size="small"
-									label={t.reservations.residence}
-									items={buildingItems}
-									value={buildingId === '' ? t.locaux.allResidences : ((buildingsData ?? []).find((b) => b.id === buildingId)?.nom ?? t.locaux.allResidences)}
-									onChange={(e) => {
-										const name = e.target.value;
-										if (!name || name === t.locaux.allResidences) setBuildingId('');
-										else {
-											const b = (buildingsData ?? []).find((x) => x.nom === name);
-											setBuildingId(b ? b.id : '');
+								<Box sx={{ minWidth: 180 }}>
+									<CustomDropDownSelect
+										id="building-filter"
+										size="small"
+										label={t.reservations.residence}
+										items={buildingItems}
+										value={
+											buildingId === ''
+												? t.locaux.allResidences
+												: ((buildingsData ?? []).find((b) => b.id === buildingId)?.nom ?? t.locaux.allResidences)
 										}
-									}}
-									theme={customDropdownTheme()}
-									startIcon={<ApartmentIcon />}
-								/>
-							</Box>
-							<Box sx={{ minWidth: 150 }}>
-								<CustomDropDownSelect
-									id="year-filter"
-									size="small"
-									label={t.common.year}
-									items={yearItems}
-									value={String(year)}
-									onChange={(e) => setYear(Number(e.target.value))}
-									theme={customDropdownTheme()}
-									startIcon={<CalendarTodayIcon />}
-								/>
-							</Box>
+										onChange={(e) => {
+											const name = e.target.value;
+											if (!name || name === t.locaux.allResidences) setBuildingId('');
+											else {
+												const b = (buildingsData ?? []).find((x) => x.nom === name);
+												setBuildingId(b ? b.id : '');
+											}
+										}}
+										theme={customDropdownTheme()}
+										startIcon={<ApartmentIcon />}
+									/>
+								</Box>
+								<Box sx={{ minWidth: 150 }}>
+									<CustomDropDownSelect
+										id="year-filter"
+										size="small"
+										label={t.common.year}
+										items={yearItems}
+										value={String(year)}
+										onChange={(e) => setYear(Number(e.target.value))}
+										theme={customDropdownTheme()}
+										startIcon={<CalendarTodayIcon />}
+									/>
+								</Box>
 							</Stack>
 						</Stack>
 
 						{isLoading ? (
-							<Box display="flex" justifyContent="center" py={8}>
+							<Box
+								sx={{
+									display: 'flex',
+									justifyContent: 'center',
+									py: 8,
+								}}
+							>
 								<CircularProgress />
 							</Box>
 						) : (
@@ -264,7 +315,7 @@ const OccupancyClient: React.FC<SessionProps> = ({ session }) => {
 								<Box sx={{ display: 'grid', gap: 2, gridTemplateColumns: { xs: '1fr 1fr', sm: 'repeat(4, 1fr)' } }}>
 									<KpiCard
 										color="#2e7d32"
-										icon={<PieChartOutlineIcon />}
+										icon={<PieChartOutlinedIcon />}
 										label={t.reservations.globalOccupation}
 										value={`${globalOccPct}%`}
 										tooltip={t.reservations.globalOccupationTooltip}
@@ -306,7 +357,11 @@ const OccupancyClient: React.FC<SessionProps> = ({ session }) => {
 										}
 									/>
 									<CardContent>
-										<Box height={300}>
+										<Box
+											sx={{
+												height: 300,
+											}}
+										>
 											{Object.values(occupancy).some((a) => a.occupied_days > 0) ? (
 												<Bar
 													data={chartData}
@@ -324,17 +379,33 @@ const OccupancyClient: React.FC<SessionProps> = ({ session }) => {
 												/>
 											) : (
 												<Box
-													display="flex"
-													flexDirection="column"
-													alignItems="center"
-													justifyContent="center"
-													height="100%"
-													sx={{ border: '1px dashed', borderColor: 'grey.300', borderRadius: 2, bgcolor: 'grey.50' }}
+													sx={{
+														display: 'flex',
+														flexDirection: 'column',
+														alignItems: 'center',
+														justifyContent: 'center',
+														height: '100%',
+														border: '1px dashed',
+														borderColor: 'grey.300',
+														borderRadius: 2,
+														bgcolor: 'grey.50',
+													}}
 												>
-													<Typography variant="h6" color="text.secondary" gutterBottom>
+													<Typography
+														variant="h6"
+														gutterBottom
+														sx={{
+															color: 'text.secondary',
+														}}
+													>
 														📊
 													</Typography>
-													<Typography variant="body2" color="text.secondary">
+													<Typography
+														variant="body2"
+														sx={{
+															color: 'text.secondary',
+														}}
+													>
 														{t.reservations.noDataAvailable}
 													</Typography>
 												</Box>
@@ -358,11 +429,26 @@ const OccupancyClient: React.FC<SessionProps> = ({ session }) => {
 									/>
 									<CardContent>
 										{/* Month navigation */}
-										<Stack direction="row" alignItems="center" justifyContent="center" spacing={2} mb={2}>
+										<Stack
+											direction="row"
+											spacing={2}
+											sx={{
+												alignItems: 'center',
+												justifyContent: 'center',
+												mb: 2,
+											}}
+										>
 											<IconButton onClick={prevHeatmapMonth} size="small">
 												<ChevronLeftIcon />
 											</IconButton>
-											<Typography variant="h6" fontWeight={600} minWidth={180} textAlign="center">
+											<Typography
+												variant="h6"
+												sx={{
+													fontWeight: 600,
+													minWidth: 180,
+													textAlign: 'center',
+												}}
+											>
 												{t.rawData.monthNames[heatmapMonth - 1]} {year}
 											</Typography>
 											<IconButton onClick={nextHeatmapMonth} size="small">
@@ -371,7 +457,15 @@ const OccupancyClient: React.FC<SessionProps> = ({ session }) => {
 										</Stack>
 
 										{/* Legend */}
-										<Stack direction="row" spacing={1} flexWrap="wrap" justifyContent="center" mb={2}>
+										<Stack
+											direction="row"
+											spacing={1}
+											sx={{
+												flexWrap: 'wrap',
+												justifyContent: 'center',
+												mb: 2,
+											}}
+										>
 											{Object.entries(PAYMENT_SOURCE_BG)
 												.filter(([src]) => src !== 'Bank transfer')
 												.map(([source, color]) => (
@@ -391,7 +485,13 @@ const OccupancyClient: React.FC<SessionProps> = ({ session }) => {
 										</Stack>
 
 										{planningLoading ? (
-											<Box display="flex" justifyContent="center" py={4}>
+											<Box
+												sx={{
+													display: 'flex',
+													justifyContent: 'center',
+													py: 4,
+												}}
+											>
 												<CircularProgress size={28} />
 											</Box>
 										) : heatmapRows.length > 0 ? (
@@ -409,23 +509,50 @@ const OccupancyClient: React.FC<SessionProps> = ({ session }) => {
 															}}
 														>
 															{/* Apartment header */}
-															<Stack direction="row" justifyContent="space-between" alignItems="center" mb={1}>
-																<Typography variant="subtitle2" fontWeight={700}>
+															<Stack
+																direction="row"
+																sx={{
+																	justifyContent: 'space-between',
+																	alignItems: 'center',
+																	mb: 1,
+																}}
+															>
+																<Typography
+																	variant="subtitle2"
+																	sx={{
+																		fontWeight: 700,
+																	}}
+																>
 																	{row.nom}
 																</Typography>
 																<Stack direction="row" spacing={2}>
-																	<Typography variant="caption" color="text.secondary">
+																	<Typography
+																		variant="caption"
+																		sx={{
+																			color: 'text.secondary',
+																		}}
+																	>
 																		{t.reservations.occupiedPercent(pct)}
 																	</Typography>
-																	<Typography variant="caption" color="text.secondary">
+																	<Typography
+																		variant="caption"
+																		sx={{
+																			color: 'text.secondary',
+																		}}
+																	>
 																		{t.reservations.occupiedDaysCount(row.occupied, lastDay)}
 																	</Typography>
-																	<Typography variant="caption" fontWeight={600} color="primary.main">
+																	<Typography
+																		variant="caption"
+																		sx={{
+																			fontWeight: 600,
+																			color: 'primary.main',
+																		}}
+																	>
 																		{fmt(row.revenue)} MAD
 																	</Typography>
 																</Stack>
 															</Stack>
-
 															{/* Day squares grid */}
 															<Box sx={{ display: 'flex', gap: '3px', flexWrap: 'wrap' }}>
 																{row.days.map((cell) => {
@@ -463,16 +590,38 @@ const OccupancyClient: React.FC<SessionProps> = ({ session }) => {
 																			arrow
 																			title={
 																				<Box>
-																					<Typography variant="caption" display="block" fontWeight={600}>
+																					<Typography
+																						variant="caption"
+																						sx={{
+																							display: 'block',
+																							fontWeight: 600,
+																						}}
+																					>
 																						{res.guest_name}
 																					</Typography>
-																					<Typography variant="caption" display="block">
+																					<Typography
+																						variant="caption"
+																						sx={{
+																							display: 'block',
+																						}}
+																					>
 																						{formatDate(res.check_in)} → {formatDate(res.check_out)}
 																					</Typography>
-																					<Typography variant="caption" display="block">
-																						{Number(res.amount).toLocaleString('fr-MA')} MAD · {t.reservations.nightsTooltip(res.nights ?? 0)}
+																					<Typography
+																						variant="caption"
+																						sx={{
+																							display: 'block',
+																						}}
+																					>
+																						{Number(res.amount).toLocaleString('fr-MA')} MAD ·{' '}
+																						{t.reservations.nightsTooltip(res.nights ?? 0)}
 																					</Typography>
-																					<Typography variant="caption" display="block">
+																					<Typography
+																						variant="caption"
+																						sx={{
+																							display: 'block',
+																						}}
+																					>
 																						{res.payment_source}
 																					</Typography>
 																				</Box>
@@ -489,13 +638,22 @@ const OccupancyClient: React.FC<SessionProps> = ({ session }) => {
 											</Stack>
 										) : (
 											<Box
-												display="flex"
-												alignItems="center"
-												justifyContent="center"
-												py={4}
-												sx={{ border: '2px dashed', borderColor: 'divider', borderRadius: 2, bgcolor: 'action.hover' }}
+												sx={{
+													display: 'flex',
+													alignItems: 'center',
+													justifyContent: 'center',
+													py: 4,
+													border: '2px dashed',
+													borderColor: 'divider',
+													borderRadius: 2,
+													bgcolor: 'action.hover',
+												}}
 											>
-												<Typography color="text.secondary">
+												<Typography
+													sx={{
+														color: 'text.secondary',
+													}}
+												>
 													{t.reservations.noDataForMonthYear(t.rawData.monthNames[heatmapMonth - 1], year)}
 												</Typography>
 											</Box>
@@ -521,18 +679,45 @@ const OccupancyClient: React.FC<SessionProps> = ({ session }) => {
 												const pct = Math.min(100, Math.round((apt.occupied_days / daysInYear) * 100));
 												return (
 													<Box key={code}>
-														<Stack direction="row" justifyContent="space-between" mb={0.5}>
-															<Typography variant="subtitle2" fontWeight={600}>
+														<Stack
+															direction="row"
+															sx={{
+																justifyContent: 'space-between',
+																mb: 0.5,
+															}}
+														>
+															<Typography
+																variant="subtitle2"
+																sx={{
+																	fontWeight: 600,
+																}}
+															>
 																{code}
 															</Typography>
 															<Stack direction="row" spacing={2}>
-																<Typography variant="caption" color="text.secondary">
+																<Typography
+																	variant="caption"
+																	sx={{
+																		color: 'text.secondary',
+																	}}
+																>
 																	{apt.occupied_days} {t.reservations.daysLabel}
 																</Typography>
-																<Typography variant="caption" color="text.secondary">
+																<Typography
+																	variant="caption"
+																	sx={{
+																		color: 'text.secondary',
+																	}}
+																>
 																	{apt.reservation_count} {t.reservations.reservationsLabel}
 																</Typography>
-																<Typography variant="caption" fontWeight={600} color="primary">
+																<Typography
+																	variant="caption"
+																	color="primary"
+																	sx={{
+																		fontWeight: 600,
+																	}}
+																>
 																	{pct}%
 																</Typography>
 															</Stack>
@@ -549,18 +734,42 @@ const OccupancyClient: React.FC<SessionProps> = ({ session }) => {
 																},
 															}}
 														/>
-														<Typography variant="caption" color="text.secondary">
+														<Typography
+															variant="caption"
+															sx={{
+																color: 'text.secondary',
+															}}
+														>
 															{t.reservations.revenueLabel}: {fmt(Number(apt.revenue))} MAD
 														</Typography>
 													</Box>
 												);
 											})}
 											{Object.keys(occupancy).length === 0 && (
-												<Box display="flex" flexDirection="column" alignItems="center" py={2}>
-													<Typography variant="h6" color="text.secondary" gutterBottom>
+												<Box
+													sx={{
+														display: 'flex',
+														flexDirection: 'column',
+														alignItems: 'center',
+														py: 2,
+													}}
+												>
+													<Typography
+														variant="h6"
+														gutterBottom
+														sx={{
+															color: 'text.secondary',
+														}}
+													>
 														📊
 													</Typography>
-													<Typography variant="body2" color="text.secondary" textAlign="center">
+													<Typography
+														variant="body2"
+														sx={{
+															color: 'text.secondary',
+															textAlign: 'center',
+														}}
+													>
 														{t.reservations.noDataForYear(year)}
 													</Typography>
 												</Box>
@@ -578,6 +787,3 @@ const OccupancyClient: React.FC<SessionProps> = ({ session }) => {
 };
 
 export default OccupancyClient;
-
-
-

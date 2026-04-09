@@ -17,8 +17,18 @@ export const paymentSourceItemsList = [
 export const MONTH_LABELS = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin', 'Juil', 'Août', 'Sep', 'Oct', 'Nov', 'Déc'];
 
 export const MONTH_NAMES = [
-	'Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin',
-	'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre',
+	'Janvier',
+	'Février',
+	'Mars',
+	'Avril',
+	'Mai',
+	'Juin',
+	'Juillet',
+	'Août',
+	'Septembre',
+	'Octobre',
+	'Novembre',
+	'Décembre',
 ];
 
 export const DAY_ABBREVIATIONS = ['L', 'M', 'M', 'J', 'V', 'S', 'D'];

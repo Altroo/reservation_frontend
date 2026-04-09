@@ -21,8 +21,8 @@ import {
 	useTheme,
 } from '@mui/material';
 import {
-	ArrowBack as ArrowBackIcon,
 	Apartment as ApartmentIcon,
+	ArrowBack as ArrowBackIcon,
 	AttachMoney as MoneyIcon,
 	CalendarMonth as CalendarIcon,
 	CreditCard as CreditCardIcon,
@@ -38,7 +38,7 @@ import ApiAlert from '@/components/formikElements/apiLoading/apiAlert/apiAlert';
 import ActionModals from '@/components/htmlElements/modals/actionModal/actionModals';
 import { Protected } from '@/components/layouts/protected/protected';
 import { extractApiErrorMessage, formatDate } from '@/utils/helpers';
-import { useToast, useLanguage } from '@/utils/hooks';
+import { useLanguage, useToast } from '@/utils/hooks';
 import { PAYMENT_SOURCE_CHIP_COLORS } from '@/utils/rawData';
 
 interface InfoRowProps {
@@ -51,33 +51,39 @@ const InfoRow: React.FC<InfoRowProps> = ({ icon, label, value }) => {
 	const theme = useTheme();
 	const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
-	const displayValue =
-		React.isValidElement(value)
-			? value
-			: value === null || value === undefined || String(value).trim() === ''
-				? '-'
-				: value;
+	const displayValue = React.isValidElement(value)
+		? value
+		: value === null || value === undefined || String(value).trim() === ''
+			? '-'
+			: value;
 
 	return (
 		<Stack
 			direction="row"
-			alignItems="flex-start"
 			spacing={2}
-			sx={{ py: 1.5, flexWrap: 'wrap' }}
+			sx={{
+				alignItems: 'flex-start',
+				py: 1.5,
+				flexWrap: 'wrap',
+			}}
 		>
-			<Box sx={{ color: 'primary.main', display: 'flex', alignItems: 'center', minWidth: 40 }}>
-				{icon}
-			</Box>
+			<Box sx={{ color: 'primary.main', display: 'flex', alignItems: 'center', minWidth: 40 }}>{icon}</Box>
 			<Stack
 				direction="row"
-				alignItems="center"
 				spacing={isMobile ? 0 : 2}
-				sx={{ flex: 1, flexWrap: 'wrap' }}
+				sx={{
+					alignItems: 'center',
+					flex: 1,
+					flexWrap: 'wrap',
+				}}
 			>
 				<Typography
-					fontWeight={600}
-					color="text.secondary"
-					sx={{ minWidth: { xs: '100%', sm: 200 }, wordBreak: 'break-word' }}
+					sx={{
+						fontWeight: 600,
+						color: 'text.secondary',
+						minWidth: { xs: '100%', sm: 200 },
+						wordBreak: 'break-word',
+					}}
 				>
 					{label}
 				</Typography>
@@ -143,15 +149,24 @@ const ReservationViewClient: React.FC<Props> = ({ session, id }) => {
 	];
 
 	return (
-		<Stack direction="column" spacing={2} className={Styles.flexRootStack} mt="32px">
+		<Stack
+			direction="column"
+			spacing={2}
+			className={Styles.flexRootStack}
+			sx={{
+				mt: '32px',
+			}}
+		>
 			<NavigationBar title={t.reservations.reservationDetails}>
 				<Protected permission="can_view">
 					<Stack spacing={3} sx={{ p: { xs: 2, md: 3 }, mt: 2 }}>
 						<Stack
 							direction={isMobile ? 'column' : 'row'}
-							justifyContent="space-between"
-							alignItems={isMobile ? 'stretch' : 'center'}
 							spacing={2}
+							sx={{
+								justifyContent: 'space-between',
+								alignItems: isMobile ? 'stretch' : 'center',
+							}}
 						>
 							<Button
 								size="large"
@@ -163,7 +178,13 @@ const ReservationViewClient: React.FC<Props> = ({ session, id }) => {
 								{t.reservations.reservationsList}
 							</Button>
 							{!isLoading && !error && (
-								<Stack direction="row" gap={1} flexWrap="wrap">
+								<Stack
+									direction="row"
+									sx={{
+										gap: 1,
+										flexWrap: 'wrap',
+									}}
+								>
 									<Button
 										variant="outlined"
 										size="small"
@@ -200,13 +221,28 @@ const ReservationViewClient: React.FC<Props> = ({ session, id }) => {
 										<Stack
 											direction={isMobile ? 'column' : 'row'}
 											spacing={2}
-											alignItems={isMobile ? 'flex-start' : 'center'}
+											sx={{
+												alignItems: isMobile ? 'flex-start' : 'center',
+											}}
 										>
 											<Stack spacing={1} sx={{ flex: 1 }}>
-												<Typography variant="h5" fontWeight={700} fontSize={isMobile ? '20px' : '24px'}>
+												<Typography
+													variant="h5"
+													sx={{
+														fontWeight: 700,
+														fontSize: isMobile ? '20px' : '24px',
+													}}
+												>
 													{t.reservations.reservationNumber(reservation.id)}
 												</Typography>
-												<Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap">
+												<Stack
+													direction="row"
+													spacing={1}
+													sx={{
+														alignItems: 'center',
+														flexWrap: 'wrap',
+													}}
+												>
 													{reservation.apartment_building_nom && (
 														<Chip
 															icon={<ApartmentIcon />}
@@ -236,9 +272,21 @@ const ReservationViewClient: React.FC<Props> = ({ session, id }) => {
 								{/* Séjour */}
 								<Card elevation={2} sx={{ borderRadius: 2 }}>
 									<CardContent sx={{ px: { xs: 2, md: 3 }, py: { xs: 2, md: 3 } }}>
-										<Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 2 }}>
+										<Stack
+											direction="row"
+											spacing={2}
+											sx={{
+												alignItems: 'center',
+												mb: 2,
+											}}
+										>
 											<PersonIcon color="primary" />
-											<Typography variant="h6" fontWeight={700}>
+											<Typography
+												variant="h6"
+												sx={{
+													fontWeight: 700,
+												}}
+											>
 												{t.reservations.stayInfo}
 											</Typography>
 										</Stack>
@@ -249,7 +297,18 @@ const ReservationViewClient: React.FC<Props> = ({ session, id }) => {
 											<InfoRow
 												icon={<ApartmentIcon />}
 												label={t.reservations.residence}
-												value={reservation.apartment_building_nom ? <Chip label={reservation.apartment_building_nom} size="small" color="primary" variant="outlined" /> : '—'}
+												value={
+													reservation.apartment_building_nom ? (
+														<Chip
+															label={reservation.apartment_building_nom}
+															size="small"
+															color="primary"
+															variant="outlined"
+														/>
+													) : (
+														'—'
+													)
+												}
 											/>
 											<Divider />
 											<InfoRow
@@ -258,9 +317,17 @@ const ReservationViewClient: React.FC<Props> = ({ session, id }) => {
 												value={<Chip label={reservation.apartment_nom} size="small" variant="outlined" />}
 											/>
 											<Divider />
-											<InfoRow icon={<CalendarIcon />} label={t.reservations.arrival} value={formatDate(reservation.check_in)} />
+											<InfoRow
+												icon={<CalendarIcon />}
+												label={t.reservations.arrival}
+												value={formatDate(reservation.check_in)}
+											/>
 											<Divider />
-											<InfoRow icon={<CalendarIcon />} label={t.reservations.departure} value={formatDate(reservation.check_out)} />
+											<InfoRow
+												icon={<CalendarIcon />}
+												label={t.reservations.departure}
+												value={formatDate(reservation.check_out)}
+											/>
 											<Divider />
 											<InfoRow
 												icon={<CalendarIcon />}
@@ -281,9 +348,21 @@ const ReservationViewClient: React.FC<Props> = ({ session, id }) => {
 								{/* Paiement */}
 								<Card elevation={2} sx={{ borderRadius: 2 }}>
 									<CardContent sx={{ px: { xs: 2, md: 3 }, py: { xs: 2, md: 3 } }}>
-										<Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 2 }}>
+										<Stack
+											direction="row"
+											spacing={2}
+											sx={{
+												alignItems: 'center',
+												mb: 2,
+											}}
+										>
 											<CreditCardIcon color="primary" />
-											<Typography variant="h6" fontWeight={700}>
+											<Typography
+												variant="h6"
+												sx={{
+													fontWeight: 700,
+												}}
+											>
 												{t.common.payment}
 											</Typography>
 										</Stack>
@@ -293,7 +372,12 @@ const ReservationViewClient: React.FC<Props> = ({ session, id }) => {
 												icon={<MoneyIcon />}
 												label={t.reservations.amountLabel}
 												value={
-													<Typography fontWeight={600} color="primary">
+													<Typography
+														color="primary"
+														sx={{
+															fontWeight: 600,
+														}}
+													>
 														{Number(reservation.amount).toLocaleString('fr-MA')} MAD
 													</Typography>
 												}
@@ -318,14 +402,32 @@ const ReservationViewClient: React.FC<Props> = ({ session, id }) => {
 								{reservation.notes && (
 									<Card elevation={2} sx={{ borderRadius: 2 }}>
 										<CardContent sx={{ px: { xs: 2, md: 3 }, py: { xs: 2, md: 3 } }}>
-											<Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 2 }}>
+											<Stack
+												direction="row"
+												spacing={2}
+												sx={{
+													alignItems: 'center',
+													mb: 2,
+												}}
+											>
 												<NotesIcon color="primary" />
-												<Typography variant="h6" fontWeight={700}>
+												<Typography
+													variant="h6"
+													sx={{
+														fontWeight: 700,
+													}}
+												>
 													{t.reservations.notes}
 												</Typography>
 											</Stack>
 											<Divider sx={{ mb: { xs: 1.5, md: 2 } }} />
-											<Typography variant="body2" color="text.secondary" sx={{ whiteSpace: 'pre-wrap' }}>
+											<Typography
+												variant="body2"
+												sx={{
+													color: 'text.secondary',
+													whiteSpace: 'pre-wrap',
+												}}
+											>
 												{reservation.notes}
 											</Typography>
 										</CardContent>
@@ -336,7 +438,6 @@ const ReservationViewClient: React.FC<Props> = ({ session, id }) => {
 					</Stack>
 				</Protected>
 			</NavigationBar>
-
 			{showDeleteModal && (
 				<ActionModals
 					title={t.reservations.deleteReservation}
@@ -351,6 +452,3 @@ const ReservationViewClient: React.FC<Props> = ({ session, id }) => {
 };
 
 export default ReservationViewClient;
-
-
-

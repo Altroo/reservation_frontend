@@ -56,6 +56,10 @@ jest.mock('@/store/services/reservation', () => ({
 	useCreateBuildingMutation: () => [mockCreateBuilding, { isLoading: false }],
 	useUpdateBuildingMutation: () => [mockUpdateBuilding, { isLoading: false }],
 	useDeleteBuildingMutation: () => [mockDeleteBuilding, { isLoading: false }],
+	useGetLocalTypesQuery: () => ({ data: [], isLoading: false }),
+	useAddLocalTypeMutation: () => [jest.fn(), { isLoading: false }],
+	useUpdateLocalTypeMutation: () => [jest.fn(), { isLoading: false }],
+	useDeleteLocalTypeMutation: () => [jest.fn(), { isLoading: false }],
 }));
 
 // Mock form sub-components
@@ -170,6 +174,10 @@ jest.mock('@/components/htmlElements/modals/actionModal/actionModals', () => ({
 			</div>
 		</div>
 	),
+}));
+jest.mock('@/components/shared/entityCrudControls/entityCrudControls', () => ({
+	__esModule: true,
+	default: () => <div data-testid="entity-crud-controls" />,
 }));
 
 // Mock MUI date pickers

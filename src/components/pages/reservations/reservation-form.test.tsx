@@ -49,6 +49,10 @@ jest.mock('@/store/services/reservation', () => ({
 	useAddApartmentMutation: () => [jest.fn(), { isLoading: false }],
 	useUpdateApartmentMutation: () => [jest.fn().mockResolvedValue({ data: {} }), { isLoading: false }],
 	useDeleteApartmentMutation: () => [jest.fn().mockResolvedValue({ data: {} }), { isLoading: false }],
+	useGetPaymentSourcesQuery: () => ({ data: [], isLoading: false }),
+	useAddPaymentSourceMutation: () => [jest.fn(), { isLoading: false }],
+	useUpdatePaymentSourceMutation: () => [jest.fn(), { isLoading: false }],
+	useDeletePaymentSourceMutation: () => [jest.fn(), { isLoading: false }],
 	useGetOccupiedDatesQuery: () => ({ data: [], isLoading: false }),
 	useGetBuildingsQuery: () => ({ data: [{ id: 1, nom: 'Building A' }], isLoading: false }),
 }));
@@ -103,6 +107,10 @@ jest.mock('@/components/formikElements/apiLoading/apiAlert/apiAlert', () => ({
 jest.mock('@/components/shared/addEntityModal/addEntityModal', () => ({
 	__esModule: true,
 	default: () => <div data-testid="add-entity-modal" />,
+}));
+jest.mock('@/components/shared/entityCrudControls/entityCrudControls', () => ({
+	__esModule: true,
+	default: () => <div data-testid="entity-crud-controls" />,
 }));
 
 jest.mock('@/utils/themes', () => ({

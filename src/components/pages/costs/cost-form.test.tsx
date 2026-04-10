@@ -38,6 +38,10 @@ jest.mock('@/store/services/reservation', () => ({
 	useGetCostsQuery: (params: unknown, options: unknown) => mockUseGetCostsQuery(params, options),
 	useCreateCostMutation: () => [mockCreateCost, { isLoading: false }],
 	useUpdateCostMutation: () => [mockUpdateCost, { isLoading: false }],
+	useGetCostCategoriesQuery: () => ({ data: [], isLoading: false }),
+	useAddCostCategoryMutation: () => [jest.fn(), { isLoading: false }],
+	useUpdateCostCategoryMutation: () => [jest.fn(), { isLoading: false }],
+	useDeleteCostCategoryMutation: () => [jest.fn(), { isLoading: false }],
 }));
 
 // Mock form sub-components
@@ -115,6 +119,10 @@ jest.mock('@/utils/routes', () => ({
 jest.mock('@/styles/dashboard/dashboard.module.sass', () => ({
 	flexRootStack: 'flexRootStack',
 	submitButton: 'submitButton',
+}));
+jest.mock('@/components/shared/entityCrudControls/entityCrudControls', () => ({
+	__esModule: true,
+	default: () => <div data-testid="entity-crud-controls" />,
 }));
 
 // Mock MUI date pickers to avoid jsdom complexities

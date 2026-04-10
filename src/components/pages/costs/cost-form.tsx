@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Alert, Box, Button, Card, CardContent, Divider, InputAdornment, Stack, Typography } from '@mui/material';
 import {
@@ -28,12 +28,21 @@ import CustomTextInput from '@/components/formikElements/customTextInput/customT
 import CustomAutoCompleteSelect from '@/components/formikElements/customAutoCompleteSelect/customAutoCompleteSelect';
 import PrimaryLoadingButton from '@/components/htmlElements/buttons/primaryLoadingButton/primaryLoadingButton';
 import ApiProgress from '@/components/formikElements/apiLoading/apiProgress/apiProgress';
+import EntityCrudControls from '@/components/shared/entityCrudControls/entityCrudControls';
 import { textInputTheme } from '@/utils/themes';
 import { costSchema } from '@/utils/formValidationSchemas';
 import { getLabelForKey, setFormikAutoErrors } from '@/utils/helpers';
 import { COSTS_LIST } from '@/utils/routes';
 import { useLanguage, useToast } from '@/utils/hooks';
-import { useCreateCostMutation, useGetCostsQuery, useUpdateCostMutation } from '@/store/services/reservation';
+import {
+	useAddCostCategoryMutation,
+	useCreateCostMutation,
+	useDeleteCostCategoryMutation,
+	useGetCostCategoriesQuery,
+	useGetCostsQuery,
+	useUpdateCostCategoryMutation,
+	useUpdateCostMutation,
+} from '@/store/services/reservation';
 import { useInitAccessToken } from '@/contexts/InitContext';
 import type { DropDownType } from '@/types/accountTypes';
 import Styles from '@/styles/dashboard/dashboard.module.sass';
@@ -52,19 +61,20 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 	const router = useRouter();
 
 	const { data: costs } = useGetCostsQuery({}, { skip: !token || !isEditMode });
+	const { data: costCategories } = useGetCostCategoriesQuery(undefined, { skip: !token });
 	const rawData = isEditMode ? (costs ?? []).find((c) => c.id === id) : undefined;
 
 	const [createCost, { isLoading: isCreateLoading }] = useCreateCostMutation();
 	const [updateCost, { isLoading: isUpdateLoading }] = useUpdateCostMutation();
+	const [addCostCategory] = useAddCostCategoryMutation();
+	const [updateCostCategory] = useUpdateCostCategoryMutation();
+	const [deleteCostCategory] = useDeleteCostCategoryMutation();
 	const [isPending, setIsPending] = useState(false);
 
-	const categoryItems: DropDownType[] = [
-		{ code: 'Entretien', value: t.rawData.costCategories.maintenance },
-		{ code: 'Charges', value: t.rawData.costCategories.charges },
-		{ code: 'Assurance', value: t.rawData.costCategories.insurance },
-		{ code: 'Taxes', value: t.rawData.costCategories.taxes },
-		{ code: 'Autre', value: t.rawData.costCategories.other },
-	];
+	const categoryItems: DropDownType[] = useMemo(
+		() => (costCategories ?? []).map((category) => ({ code: category.nom, value: String(category.id) })),
+		[costCategories],
+	);
 
 	const formik = useFormik<CostFormValues>({
 		initialValues: {
@@ -99,7 +109,7 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 		},
 	});
 
-	const selectedCategory = categoryItems.find((c) => c.value === formik.values.category) ?? null;
+	const selectedCategory = categoryItems.find((category) => category.code === formik.values.category) ?? null;
 
 	const validationEntries = Object.entries(formik.errors).filter(([k]) => k !== 'globalError') as [string, string][];
 	const hasValidationErrors = validationEntries.length > 0;
@@ -248,6 +258,24 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 										error={formik.submitCount > 0 && Boolean(formik.errors.category)}
 										helperText={formik.submitCount > 0 ? ((formik.errors.category as string) ?? '') : ''}
 										startIcon={<CategoryIcon fontSize="small" />}
+										endIcon={
+											<EntityCrudControls
+												label={t.common.category.toLowerCase()}
+												icon={<CategoryIcon fontSize="small" />}
+												inputTheme={inputTheme}
+												selectedItem={selectedCategory}
+												addEntity={(args) => addCostCategory(args)}
+												editEntity={({ id: entityId, data }) => updateCostCategory({ id: entityId, data })}
+												deleteEntity={({ id: entityId }) => deleteCostCategory({ id: entityId })}
+												onAddSuccess={(newId) => {
+													const createdCategory = costCategories?.find((item) => item.id === newId);
+													formik.setFieldValue('category', createdCategory?.nom ?? '');
+												}}
+												onDeleteSuccess={() => {
+													formik.setFieldValue('category', '');
+												}}
+											/>
+										}
 									/>
 								</Stack>
 							</CardContent>

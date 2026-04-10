@@ -65,6 +65,7 @@ import PrimaryLoadingButton from '@/components/htmlElements/buttons/primaryLoadi
 import ApiProgress from '@/components/formikElements/apiLoading/apiProgress/apiProgress';
 import ActionModals from '@/components/htmlElements/modals/actionModal/actionModals';
 import AddEntityModal from '@/components/shared/addEntityModal/addEntityModal';
+import EntityCrudControls from '@/components/shared/entityCrudControls/entityCrudControls';
 import { textInputTheme } from '@/utils/themes';
 import type { DropDownType } from '@/types/accountTypes';
 import { localSchema, loyerSchema } from '@/utils/formValidationSchemas';
@@ -73,16 +74,20 @@ import { LOCAUX_EDIT, LOCAUX_LIST } from '@/utils/routes';
 import { useLanguage, useToast } from '@/utils/hooks';
 import {
 	useCreateBuildingMutation,
+	useAddLocalTypeMutation,
 	useCreateLocalMutation,
 	useCreateLoyerMutation,
 	useDeleteBuildingMutation,
+	useDeleteLocalTypeMutation,
 	useDeleteLoyerMutation,
 	useGetBuildingsQuery,
 	useGetLocalQuery,
+	useGetLocalTypesQuery,
 	useGetLocalYearsQuery,
 	useGetLoyersListQuery,
 	useToggleLoyerPaidMutation,
 	useUpdateBuildingMutation,
+	useUpdateLocalTypeMutation,
 	useUpdateLocalMutation,
 	useUpdateLoyerMutation,
 } from '@/store/services/reservation';
@@ -109,9 +114,13 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 	const [createLocal, { isLoading: isCreateLoading }] = useCreateLocalMutation();
 	const [updateLocal, { isLoading: isUpdateLoading }] = useUpdateLocalMutation();
 	const { data: buildingsData } = useGetBuildingsQuery(undefined, { skip: !token });
+	const { data: localTypes } = useGetLocalTypesQuery(undefined, { skip: !token });
 	const [createBuilding] = useCreateBuildingMutation();
+	const [createLocalType] = useAddLocalTypeMutation();
 	const [updateBuilding] = useUpdateBuildingMutation();
+	const [updateLocalType] = useUpdateLocalTypeMutation();
 	const [deleteBuilding] = useDeleteBuildingMutation();
+	const [deleteLocalType] = useDeleteLocalTypeMutation();
 	const [isPending, setIsPending] = useState(false);
 
 	// Building add/edit/delete state
@@ -142,10 +151,10 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 	const [showDeleteLoyerModal, setShowDeleteLoyerModal] = useState(false);
 	const [selectedLoyerId, setSelectedLoyerId] = useState<number | null>(null);
 
-	const typeItems: DropDownType[] = [
-		{ code: 'Bureau', value: t.rawData.localTypes.office },
-		{ code: 'Magasin', value: t.rawData.localTypes.shop },
-	];
+	const typeItems: DropDownType[] = useMemo(
+		() => (localTypes ?? []).map((type) => ({ code: type.nom, value: String(type.id) })),
+		[localTypes],
+	);
 
 	const formik = useFormik<LocalFormValues>({
 		initialValues: {
@@ -189,7 +198,7 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 		},
 	});
 
-	const selectedType = typeItems.find((t) => t.value === formik.values.type_local) ?? null;
+	const selectedType = typeItems.find((type) => type.code === formik.values.type_local) ?? null;
 
 	const buildingItems: DropDownType[] = useMemo(
 		() => (buildingsData ?? []).map((b) => ({ code: b.nom, value: String(b.id) })),
@@ -397,6 +406,24 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 											error={formik.submitCount > 0 && Boolean(formik.errors.type_local)}
 											helperText={formik.submitCount > 0 ? ((formik.errors.type_local as string) ?? '') : ''}
 											startIcon={<BusinessIcon fontSize="small" />}
+											endIcon={
+												<EntityCrudControls
+													label={t.common.type.toLowerCase()}
+													icon={<BusinessIcon fontSize="small" />}
+													inputTheme={inputTheme}
+													selectedItem={selectedType}
+													addEntity={(args) => createLocalType(args)}
+													editEntity={({ id: entityId, data }) => updateLocalType({ id: entityId, data })}
+													deleteEntity={({ id: entityId }) => deleteLocalType({ id: entityId })}
+													onAddSuccess={(newId) => {
+														const createdType = localTypes?.find((item) => item.id === newId);
+														formik.setFieldValue('type_local', createdType?.nom ?? '');
+													}}
+													onDeleteSuccess={() => {
+														formik.setFieldValue('type_local', '');
+													}}
+												/>
+											}
 										/>
 									</Stack>
 									<CustomAutoCompleteSelect

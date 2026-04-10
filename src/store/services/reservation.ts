@@ -48,7 +48,7 @@ const baseQueryWithRetry = retry(
 
 export const reservationApi = createApi({
 	reducerPath: 'reservationApi',
-	tagTypes: ['Reservation', 'Apartment', 'Dashboard', 'Planning', 'Balance', 'Cost', 'Notification', 'NotificationPreference', 'Local', 'Loyer', 'LocalDashboard', 'LocalPlanning', 'Building'],
+	tagTypes: ['Reservation', 'Apartment', 'PaymentSource', 'Dashboard', 'Planning', 'Balance', 'Cost', 'CostCategory', 'Notification', 'NotificationPreference', 'Local', 'LocalType', 'Loyer', 'LocalDashboard', 'LocalPlanning', 'Building'],
 	baseQuery: baseQueryWithRetry,
 	endpoints: (builder) => ({
 		// ── Apartments ──────────────────────────────────────────────────────
@@ -64,6 +64,37 @@ export const reservationApi = createApi({
 				data,
 			}),
 			invalidatesTags: ['Apartment'],
+		}),
+
+		getPaymentSources: builder.query<Array<{ id: number; nom: string }>, void>({
+			query: () => ({ url: process.env.NEXT_PUBLIC_RESERVATION_PAYMENT_SOURCES, method: 'GET' }),
+			providesTags: ['PaymentSource'],
+		}),
+
+		addPaymentSource: builder.mutation<{ id: number; nom: string }, { data: { nom: string } }>({
+			query: ({ data }) => ({
+				url: process.env.NEXT_PUBLIC_RESERVATION_PAYMENT_SOURCES,
+				method: 'POST',
+				data,
+			}),
+			invalidatesTags: ['PaymentSource', 'Reservation', 'Dashboard', 'Planning', 'Balance'],
+		}),
+
+		updatePaymentSource: builder.mutation<{ id: number; nom: string }, { id: number; data: { nom: string } }>({
+			query: ({ id, data }) => ({
+				url: `${process.env.NEXT_PUBLIC_RESERVATION_PAYMENT_SOURCES}${id}/`,
+				method: 'PUT',
+				data,
+			}),
+			invalidatesTags: ['PaymentSource', 'Reservation', 'Dashboard', 'Planning', 'Balance'],
+		}),
+
+		deletePaymentSource: builder.mutation<void, { id: number }>({
+			query: ({ id }) => ({
+				url: `${process.env.NEXT_PUBLIC_RESERVATION_PAYMENT_SOURCES}${id}/`,
+				method: 'DELETE',
+			}),
+			invalidatesTags: ['PaymentSource'],
 		}),
 
 		// ── Reservations ────────────────────────────────────────────────────
@@ -227,6 +258,37 @@ export const reservationApi = createApi({
 			providesTags: ['Cost'],
 		}),
 
+		getCostCategories: builder.query<Array<{ id: number; nom: string }>, void>({
+			query: () => ({ url: process.env.NEXT_PUBLIC_RESERVATION_COST_CATEGORIES, method: 'GET' }),
+			providesTags: ['CostCategory'],
+		}),
+
+		addCostCategory: builder.mutation<{ id: number; nom: string }, { data: { nom: string } }>({
+			query: ({ data }) => ({
+				url: process.env.NEXT_PUBLIC_RESERVATION_COST_CATEGORIES,
+				method: 'POST',
+				data,
+			}),
+			invalidatesTags: ['CostCategory', 'Cost', 'Dashboard'],
+		}),
+
+		updateCostCategory: builder.mutation<{ id: number; nom: string }, { id: number; data: { nom: string } }>({
+			query: ({ id, data }) => ({
+				url: `${process.env.NEXT_PUBLIC_RESERVATION_COST_CATEGORIES}${id}/`,
+				method: 'PUT',
+				data,
+			}),
+			invalidatesTags: ['CostCategory', 'Cost', 'Dashboard'],
+		}),
+
+		deleteCostCategory: builder.mutation<void, { id: number }>({
+			query: ({ id }) => ({
+				url: `${process.env.NEXT_PUBLIC_RESERVATION_COST_CATEGORIES}${id}/`,
+				method: 'DELETE',
+			}),
+			invalidatesTags: ['CostCategory'],
+		}),
+
 		createCost: builder.mutation<CostType, { data: CostFormType }>({
 			query: ({ data }) => ({
 				url: process.env.NEXT_PUBLIC_RESERVATION_COSTS,
@@ -362,6 +424,40 @@ export const reservationApi = createApi({
 				method: 'GET',
 			}),
 			providesTags: ['Local'],
+		}),
+
+		getLocalTypes: builder.query<Array<{ id: number; nom: string }>, void>({
+			query: () => ({
+				url: process.env.NEXT_PUBLIC_LOCAL_TYPES,
+				method: 'GET',
+			}),
+			providesTags: ['LocalType'],
+		}),
+
+		addLocalType: builder.mutation<{ id: number; nom: string }, { data: { nom: string } }>({
+			query: ({ data }) => ({
+				url: process.env.NEXT_PUBLIC_LOCAL_TYPES,
+				method: 'POST',
+				data,
+			}),
+			invalidatesTags: ['LocalType', 'Local', 'LocalDashboard', 'LocalPlanning'],
+		}),
+
+		updateLocalType: builder.mutation<{ id: number; nom: string }, { id: number; data: { nom: string } }>({
+			query: ({ id, data }) => ({
+				url: `${process.env.NEXT_PUBLIC_LOCAL_TYPES}${id}/`,
+				method: 'PUT',
+				data,
+			}),
+			invalidatesTags: ['LocalType', 'Local', 'LocalDashboard', 'LocalPlanning'],
+		}),
+
+		deleteLocalType: builder.mutation<void, { id: number }>({
+			query: ({ id }) => ({
+				url: `${process.env.NEXT_PUBLIC_LOCAL_TYPES}${id}/`,
+				method: 'DELETE',
+			}),
+			invalidatesTags: ['LocalType'],
 		}),
 
 		createLocal: builder.mutation<LocalClass | ApiErrorResponseType, LocalFormType>({
@@ -540,6 +636,10 @@ export const {
 	useAddApartmentMutation,
 	useUpdateApartmentMutation,
 	useDeleteApartmentMutation,
+	useGetPaymentSourcesQuery,
+	useAddPaymentSourceMutation,
+	useUpdatePaymentSourceMutation,
+	useDeletePaymentSourceMutation,
 	useGetReservationsListQuery,
 	useGetReservationQuery,
 	useCreateReservationMutation,
@@ -554,6 +654,10 @@ export const {
 	useGetOccupiedDatesQuery,
 	useGetCostYearsQuery,
 	useGetCostsQuery,
+	useGetCostCategoriesQuery,
+	useAddCostCategoryMutation,
+	useUpdateCostCategoryMutation,
+	useDeleteCostCategoryMutation,
 	useCreateCostMutation,
 	useUpdateCostMutation,
 	useDeleteCostMutation,
@@ -566,6 +670,10 @@ export const {
 	useGetUnreadNotificationCountQuery,
 	useGetLocauxListQuery,
 	useGetLocalQuery,
+	useGetLocalTypesQuery,
+	useAddLocalTypeMutation,
+	useUpdateLocalTypeMutation,
+	useDeleteLocalTypeMutation,
 	useCreateLocalMutation,
 	useUpdateLocalMutation,
 	useDeleteLocalMutation,

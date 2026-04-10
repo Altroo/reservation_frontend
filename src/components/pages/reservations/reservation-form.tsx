@@ -49,6 +49,7 @@ import CustomAutoCompleteSelect from '@/components/formikElements/customAutoComp
 import CustomDropDownSelect from '@/components/formikElements/customDropDownSelect/customDropDownSelect';
 import AddEntityModal from '@/components/shared/addEntityModal/addEntityModal';
 import ActionModals from '@/components/htmlElements/modals/actionModal/actionModals';
+import EntityCrudControls from '@/components/shared/entityCrudControls/entityCrudControls';
 import type { DropDownType } from '@/types/accountTypes';
 import PrimaryLoadingButton from '@/components/htmlElements/buttons/primaryLoadingButton/primaryLoadingButton';
 import ApiProgress from '@/components/formikElements/apiLoading/apiProgress/apiProgress';
@@ -61,13 +62,17 @@ import { useRouter } from 'next/navigation';
 import { useLanguage, useToast } from '@/utils/hooks';
 import {
 	useAddApartmentMutation,
+	useAddPaymentSourceMutation,
 	useCreateReservationMutation,
 	useDeleteApartmentMutation,
+	useDeletePaymentSourceMutation,
 	useGetApartmentsQuery,
 	useGetBuildingsQuery,
 	useGetOccupiedDatesQuery,
+	useGetPaymentSourcesQuery,
 	useGetReservationQuery,
 	useUpdateApartmentMutation,
+	useUpdatePaymentSourceMutation,
 	useUpdateReservationMutation,
 } from '@/store/services/reservation';
 import { useInitAccessToken } from '@/contexts/InitContext';
@@ -97,12 +102,16 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 
 	const { data: apartments, isLoading: isApartmentsLoading } = useGetApartmentsQuery(undefined, { skip: !token });
 	const { data: buildings } = useGetBuildingsQuery(undefined, { skip: !token });
+	const { data: paymentSources } = useGetPaymentSourcesQuery(undefined, { skip: !token });
 
 	const [createReservation, { isLoading: isCreateLoading, error: createError }] = useCreateReservationMutation();
 	const [updateReservation, { isLoading: isUpdateLoading, error: updateError }] = useUpdateReservationMutation();
 	const [addApartment] = useAddApartmentMutation();
+	const [addPaymentSource] = useAddPaymentSourceMutation();
 	const [updateApartment] = useUpdateApartmentMutation();
 	const [deleteApartment] = useDeleteApartmentMutation();
+	const [updatePaymentSource] = useUpdatePaymentSourceMutation();
+	const [deletePaymentSource] = useDeletePaymentSourceMutation();
 
 	// Apartment edit/delete state
 	const [editAptId, setEditAptId] = useState<number | null>(null);
@@ -240,19 +249,14 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 	};
 
 	const paymentSourceItems: DropDownType[] = useMemo(
-		() => [
-			{ code: 'Booking', value: 'Booking' },
-			{ code: 'Airbnb', value: 'Airbnb' },
-			{ code: t.rawData.paymentSources.cash, value: 'Cash' },
-			{ code: t.rawData.paymentSources.bankTransfer, value: 'Bank' },
-		],
-		[t],
+		() => (paymentSources ?? []).map((source) => ({ code: source.nom, value: String(source.id) })),
+		[paymentSources],
 	);
 
 	const selectedPaymentSource = useMemo<DropDownType | null>(() => {
 		const v = formik.values.payment_source;
 		if (!v) return null;
-		return paymentSourceItems.find((p) => p.value === v) ?? null;
+		return paymentSourceItems.find((p) => p.code === v) ?? null;
 	}, [formik.values.payment_source, paymentSourceItems]);
 
 	const buildingItems: DropDownType[] = useMemo(
@@ -581,6 +585,24 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 												helperText={formik.submitCount > 0 ? (formik.errors.payment_source ?? '') : ''}
 												disabled={isLoading}
 												startIcon={<CreditCardIcon fontSize="small" />}
+												endIcon={
+													<EntityCrudControls
+														label={t.reservations.paymentSource.toLowerCase()}
+														icon={<CreditCardIcon fontSize="small" />}
+														inputTheme={inputTheme}
+														selectedItem={selectedPaymentSource}
+														addEntity={(args) => addPaymentSource(args)}
+														editEntity={({ id: entityId, data }) => updatePaymentSource({ id: entityId, data })}
+														deleteEntity={({ id: entityId }) => deletePaymentSource({ id: entityId })}
+														onAddSuccess={(newId) => {
+															const createdSource = paymentSources?.find((item) => item.id === newId);
+															formik.setFieldValue('payment_source', createdSource?.nom ?? '');
+														}}
+														onDeleteSuccess={() => {
+															formik.setFieldValue('payment_source', '');
+														}}
+													/>
+												}
 											/>
 										</Stack>
 									</Stack>

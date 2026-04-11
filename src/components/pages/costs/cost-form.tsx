@@ -252,7 +252,7 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 										value={selectedCategory}
 										fullWidth
 										onChange={(_, newVal) => {
-											formik.setFieldValue('category', newVal ? newVal.value : '');
+										formik.setFieldValue('category', newVal ? newVal.code : '');
 										}}
 										onBlur={formik.handleBlur('category')}
 										error={formik.submitCount > 0 && Boolean(formik.errors.category)}

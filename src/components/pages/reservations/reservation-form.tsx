@@ -578,7 +578,7 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 												value={selectedPaymentSource}
 												fullWidth
 												onChange={(_, newVal) => {
-													formik.setFieldValue('payment_source', newVal ? newVal.value : '');
+													formik.setFieldValue('payment_source', newVal ? newVal.code : '');
 												}}
 												onBlur={formik.handleBlur('payment_source')}
 												error={formik.submitCount > 0 && Boolean(formik.errors.payment_source)}

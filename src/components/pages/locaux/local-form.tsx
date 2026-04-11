@@ -400,7 +400,7 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 											value={selectedType}
 											fullWidth
 											onChange={(_, newVal) => {
-												formik.setFieldValue('type_local', newVal ? newVal.value : '');
+												formik.setFieldValue('type_local', newVal ? newVal.code : '');
 											}}
 											onBlur={formik.handleBlur('type_local')}
 											error={formik.submitCount > 0 && Boolean(formik.errors.type_local)}

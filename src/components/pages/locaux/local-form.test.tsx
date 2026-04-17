@@ -74,8 +74,20 @@ jest.mock('@/components/formikElements/customTextInput/customTextInput', () => (
 
 jest.mock('@/components/formikElements/customAutoCompleteSelect/customAutoCompleteSelect', () => ({
 	__esModule: true,
-	default: ({ id, label }: { id: string; label: string }) => (
+	default: ({
+		id,
+		label,
+		value,
+		items,
+	}: {
+		id: string;
+		label: string;
+		value?: { code: string; value: string } | null;
+		items?: Array<{ code: string; value: string }>;
+	}) => (
 		<div data-testid={`autocomplete-${id}`}>
+			<div data-testid={`autocomplete-${id}-value`}>{value?.code ?? ''}</div>
+			<div data-testid={`autocomplete-${id}-items`}>{(items ?? []).map((item) => item.code).join('|')}</div>
 			<label>{label}</label>
 		</div>
 	),
@@ -292,6 +304,7 @@ describe('LocalFormClient', () => {
 			render(<LocalFormClient session={mockSession} />);
 			expect(screen.getByTestId('input-nom')).toBeInTheDocument();
 			expect(screen.getByTestId('autocomplete-type_local')).toBeInTheDocument();
+			expect(screen.getByTestId('autocomplete-type_local-items')).toHaveTextContent('Bureau|Magasin');
 			expect(screen.getByTestId('input-adresse')).toBeInTheDocument();
 			expect(screen.getByTestId('input-superficie')).toBeInTheDocument();
 		});
@@ -366,6 +379,12 @@ describe('LocalFormClient', () => {
 		it('renders Loyers section in edit mode', () => {
 			render(<LocalFormClient session={mockSession} id={1} />);
 			expect(screen.getByText('Loyers')).toBeInTheDocument();
+		});
+
+		it('keeps the built-in local type selected when custom type options are empty', () => {
+			render(<LocalFormClient session={mockSession} id={1} />);
+			expect(screen.getByTestId('autocomplete-type_local-value')).toHaveTextContent('Bureau');
+			expect(screen.getByTestId('autocomplete-type_local-items')).toHaveTextContent('Bureau|Magasin');
 		});
 
 		it('renders Ajouter loyer button in edit mode', () => {

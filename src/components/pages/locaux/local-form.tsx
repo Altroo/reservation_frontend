@@ -70,6 +70,7 @@ import { textInputTheme } from '@/utils/themes';
 import type { DropDownType } from '@/types/accountTypes';
 import { localSchema, loyerSchema } from '@/utils/formValidationSchemas';
 import { extractApiErrorMessage, formatDate, getLabelForKey, setFormikAutoErrors } from '@/utils/helpers';
+import { typeLocalItemsList } from '@/utils/rawData';
 import { LOCAUX_EDIT, LOCAUX_LIST } from '@/utils/routes';
 import { useLanguage, useToast } from '@/utils/hooks';
 import {
@@ -151,10 +152,18 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 	const [showDeleteLoyerModal, setShowDeleteLoyerModal] = useState(false);
 	const [selectedLoyerId, setSelectedLoyerId] = useState<number | null>(null);
 
-	const typeItems: DropDownType[] = useMemo(
+	const managedTypeItems: DropDownType[] = useMemo(
 		() => (localTypes ?? []).map((type) => ({ code: type.nom, value: String(type.id) })),
 		[localTypes],
 	);
+
+	const typeItems: DropDownType[] = useMemo(() => {
+		if (managedTypeItems.length > 0) {
+			return managedTypeItems;
+		}
+
+		return typeLocalItemsList.map((item) => ({ code: item.code, value: item.value }));
+	}, [managedTypeItems]);
 
 	const formik = useFormik<LocalFormValues>({
 		initialValues: {
@@ -199,6 +208,7 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 	});
 
 	const selectedType = typeItems.find((type) => type.code === formik.values.type_local) ?? null;
+	const selectedManagedType = managedTypeItems.find((type) => type.code === formik.values.type_local) ?? null;
 
 	const buildingItems: DropDownType[] = useMemo(
 		() => (buildingsData ?? []).map((b) => ({ code: b.nom, value: String(b.id) })),
@@ -411,7 +421,7 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 													label={t.common.type.toLowerCase()}
 													icon={<BusinessIcon fontSize="small" />}
 													inputTheme={inputTheme}
-													selectedItem={selectedType}
+													selectedItem={selectedManagedType}
 													addEntity={(args) => createLocalType(args)}
 													editEntity={({ id: entityId, data }) => updateLocalType({ id: entityId, data })}
 													deleteEntity={({ id: entityId }) => deleteLocalType({ id: entityId })}

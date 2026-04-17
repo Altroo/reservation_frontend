@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Alert, Box, Button, Card, CardContent, Divider, InputAdornment, Stack, Typography } from '@mui/material';
 import {
 	Add as AddIcon,
+	Apartment as ApartmentIcon,
 	ArrowBack as ArrowBackIcon,
 	CalendarMonth as CalendarMonthIcon,
 	Category as CategoryIcon,
@@ -36,10 +37,14 @@ import { COSTS_LIST } from '@/utils/routes';
 import { useLanguage, useToast } from '@/utils/hooks';
 import {
 	useAddCostCategoryMutation,
+	useCreateBuildingMutation,
 	useCreateCostMutation,
+	useDeleteBuildingMutation,
 	useDeleteCostCategoryMutation,
+	useGetBuildingsQuery,
 	useGetCostCategoriesQuery,
 	useGetCostsQuery,
+	useUpdateBuildingMutation,
 	useUpdateCostCategoryMutation,
 	useUpdateCostMutation,
 } from '@/store/services/reservation';
@@ -61,15 +66,24 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 	const router = useRouter();
 
 	const { data: costs } = useGetCostsQuery({}, { skip: !token || !isEditMode });
+	const { data: buildingsData } = useGetBuildingsQuery(undefined, { skip: !token });
 	const { data: costCategories } = useGetCostCategoriesQuery(undefined, { skip: !token });
 	const rawData = isEditMode ? (costs ?? []).find((c) => c.id === id) : undefined;
 
+	const [createBuilding] = useCreateBuildingMutation();
 	const [createCost, { isLoading: isCreateLoading }] = useCreateCostMutation();
+	const [updateBuilding] = useUpdateBuildingMutation();
 	const [updateCost, { isLoading: isUpdateLoading }] = useUpdateCostMutation();
+	const [deleteBuilding] = useDeleteBuildingMutation();
 	const [addCostCategory] = useAddCostCategoryMutation();
 	const [updateCostCategory] = useUpdateCostCategoryMutation();
 	const [deleteCostCategory] = useDeleteCostCategoryMutation();
 	const [isPending, setIsPending] = useState(false);
+
+	const buildingItems: DropDownType[] = useMemo(
+		() => (buildingsData ?? []).map((building) => ({ code: building.nom, value: String(building.id) })),
+		[buildingsData],
+	);
 
 	const categoryItems: DropDownType[] = useMemo(
 		() => (costCategories ?? []).map((category) => ({ code: category.nom, value: String(category.id) })),
@@ -82,6 +96,7 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 			amount: rawData?.amount ?? '',
 			date: rawData?.date ?? '',
 			category: rawData?.category ?? '',
+			building: rawData?.building ?? '',
 			globalError: '',
 		},
 		enableReinitialize: true,
@@ -91,12 +106,13 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 			setIsPending(true);
 			// eslint-disable-next-line @typescript-eslint/no-unused-vars
 			const { globalError, ...fields } = data;
+			const payload = { ...fields, building: fields.building === '' ? null : fields.building };
 			try {
 				if (isEditMode) {
-					await updateCost({ id: id!, data: fields }).unwrap();
+					await updateCost({ id: id!, data: payload }).unwrap();
 					onSuccess(t.costs.costUpdatedSuccess);
 				} else {
-					await createCost({ data: fields }).unwrap();
+					await createCost({ data: payload }).unwrap();
 					onSuccess(t.costs.costAddedSuccess);
 				}
 				router.push(COSTS_LIST);
@@ -109,6 +125,7 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 		},
 	});
 
+	const selectedBuilding = buildingItems.find((building) => building.value === String(formik.values.building)) ?? null;
 	const selectedCategory = categoryItems.find((category) => category.code === formik.values.category) ?? null;
 
 	const validationEntries = Object.entries(formik.errors).filter(([k]) => k !== 'globalError') as [string, string][];
@@ -120,12 +137,7 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 	return (
 		<LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={fr}>
 			<Stack spacing={3} sx={{ p: { xs: 2, md: 3 } }}>
-				<Stack
-					direction="row"
-					sx={{
-						justifyContent: 'space-between',
-					}}
-				>
+				<Stack direction="row" sx={{ justifyContent: 'space-between' }}>
 					<Button
 						variant="outlined"
 						startIcon={<ArrowBackIcon />}
@@ -164,24 +176,24 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 					<Stack spacing={3}>
 						<Card elevation={2} sx={{ borderRadius: 2 }}>
 							<CardContent sx={{ p: 3 }}>
-								<Stack
-									direction="row"
-									spacing={2}
-									sx={{
-										alignItems: 'center',
-										mb: 2,
-									}}
-								>
-									<NotesIcon color="primary" />
-									<Typography
-										variant="h6"
+									<Stack
+										direction="row"
+										spacing={2}
 										sx={{
-											fontWeight: 700,
+											alignItems: 'center',
+											mb: 2,
 										}}
 									>
-										{t.costs.costDetails}
-									</Typography>
-								</Stack>
+										<NotesIcon color="primary" />
+										<Typography
+											variant="h6"
+											sx={{
+												fontWeight: 700,
+											}}
+										>
+											{t.costs.costDetails}
+										</Typography>
+									</Stack>
 								<Divider sx={{ mb: 3 }} />
 								<Stack spacing={2.5}>
 									<CustomTextInput
@@ -242,6 +254,40 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 											}}
 										/>
 									</Stack>
+									<CustomAutoCompleteSelect
+										id="building"
+										size="small"
+										noOptionsText={t.locaux.noResidenceFound}
+										label={t.locaux.residence}
+										items={buildingItems}
+										theme={inputTheme}
+										value={selectedBuilding}
+										fullWidth
+										onChange={(_, newVal) => {
+											formik.setFieldValue('building', newVal ? Number(newVal.value) : '');
+										}}
+										onBlur={formik.handleBlur('building')}
+										error={formik.submitCount > 0 && Boolean(formik.errors.building)}
+										helperText={formik.submitCount > 0 ? ((formik.errors.building as string) ?? '') : ''}
+										startIcon={<ApartmentIcon fontSize="small" />}
+										endIcon={
+											<EntityCrudControls
+												label={t.locaux.residence.toLowerCase()}
+												icon={<ApartmentIcon fontSize="small" />}
+												inputTheme={inputTheme}
+												selectedItem={selectedBuilding}
+												addEntity={(args) => createBuilding(args.data)}
+												editEntity={({ id: entityId, data }) => updateBuilding({ id: entityId, data })}
+												deleteEntity={({ id: entityId }) => deleteBuilding({ id: entityId })}
+												onAddSuccess={(newId) => {
+													formik.setFieldValue('building', newId);
+												}}
+												onDeleteSuccess={() => {
+													formik.setFieldValue('building', '');
+												}}
+											/>
+										}
+									/>
 									<CustomAutoCompleteSelect
 										id="category"
 										size="small"

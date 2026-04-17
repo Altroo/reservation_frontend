@@ -249,11 +249,11 @@ export const reservationApi = createApi({
 			query: () => ({ url: process.env.NEXT_PUBLIC_RESERVATION_COST_YEARS, method: 'GET' }),
 			providesTags: ['Cost'],
 		}),
-		getCosts: builder.query<CostType[], { year?: number; month?: number }>({
-			query: ({ year, month }) => ({
+		getCosts: builder.query<CostType[], { year?: number; month?: number; building?: number }>({
+			query: ({ year, month, building }) => ({
 				url: process.env.NEXT_PUBLIC_RESERVATION_COSTS,
 				method: 'GET',
-				params: { year, month },
+				params: { year, month, building },
 			}),
 			providesTags: ['Cost'],
 		}),

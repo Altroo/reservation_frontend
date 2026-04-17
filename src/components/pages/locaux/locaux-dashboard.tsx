@@ -120,6 +120,9 @@ const KpiCard: React.FC<KpiCardProps> = ({ icon, label, value, color, tooltip })
 	</Card>
 );
 
+const formatSignedMad = (value: number | string, sign: '+' | '-') =>
+	`${sign}${Number(value).toLocaleString('fr-MA')} MAD`;
+
 const LocauxDashboardClient: React.FC<SessionProps> = ({ session }) => {
 	const router = useRouter();
 	const { t } = useLanguage();
@@ -354,7 +357,7 @@ const LocauxDashboardClient: React.FC<SessionProps> = ({ session }) => {
 																				textAlign: 'right',
 																			}}
 																		>
-																			{Number(local.loyers_payes).toLocaleString('fr-MA')} MAD
+																				{formatSignedMad(local.loyers_payes, '+')}
 																		</Typography>
 																		<Typography
 																			variant="caption"
@@ -372,7 +375,7 @@ const LocauxDashboardClient: React.FC<SessionProps> = ({ session }) => {
 																				textAlign: 'right',
 																			}}
 																		>
-																			{Number(local.loyers_impayes).toLocaleString('fr-MA')} MAD
+																				{formatSignedMad(local.loyers_impayes, '-')}
 																		</Typography>
 																		<Typography
 																			variant="caption"
@@ -472,7 +475,7 @@ const LocauxDashboardClient: React.FC<SessionProps> = ({ session }) => {
 																					fontWeight: 600,
 																				}}
 																			>
-																				{Number(local.loyers_payes).toLocaleString('fr-MA')} MAD
+																				{formatSignedMad(local.loyers_payes, '+')}
 																			</Typography>
 																		</TableCell>
 																		<TableCell align="right">
@@ -482,7 +485,7 @@ const LocauxDashboardClient: React.FC<SessionProps> = ({ session }) => {
 																					fontWeight: 600,
 																				}}
 																			>
-																				{Number(local.loyers_impayes).toLocaleString('fr-MA')} MAD
+																				{formatSignedMad(local.loyers_impayes, '-')}
 																			</Typography>
 																		</TableCell>
 																		<TableCell align="right">

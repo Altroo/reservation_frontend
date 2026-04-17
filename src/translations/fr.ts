@@ -686,6 +686,7 @@ export const fr: TranslationDictionary = {
 				amount: 'Montant',
 				date: 'Date',
 				category: 'Catégorie',
+				building: 'Résidence',
 			},
 			local: {
 				nom: 'Nom',

@@ -134,6 +134,8 @@ export interface CostType {
 	amount: string;
 	date: string;
 	category: CostCategoryType | string;
+	building: number | null;
+	building_nom: string | null;
 	created_by_user: number | null;
 	created_by_user_name: string | null;
 	date_created: string;
@@ -145,6 +147,7 @@ export interface CostFormType {
 	amount: string;
 	date: string;
 	category: CostCategoryType | string;
+	building: number | '' | null;
 }
 
 // Formik form state (includes globalError for form-level error display)
@@ -164,6 +167,7 @@ export interface CostFormValues {
 	amount: string;
 	date: string;
 	category: string;
+	building: number | '';
 	globalError: string;
 }
 

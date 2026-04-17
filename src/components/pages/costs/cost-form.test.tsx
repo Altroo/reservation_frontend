@@ -36,6 +36,10 @@ const mockUpdateCost = jest.fn();
 jest.mock('@/store/services/reservation', () => ({
 	__esModule: true,
 	useGetCostsQuery: (params: unknown, options: unknown) => mockUseGetCostsQuery(params, options),
+	useGetBuildingsQuery: () => ({ data: [{ id: 1, nom: 'Résidence A' }], isLoading: false }),
+	useCreateBuildingMutation: () => [jest.fn(), { isLoading: false }],
+	useUpdateBuildingMutation: () => [jest.fn(), { isLoading: false }],
+	useDeleteBuildingMutation: () => [jest.fn(), { isLoading: false }],
 	useCreateCostMutation: () => [mockCreateCost, { isLoading: false }],
 	useUpdateCostMutation: () => [mockUpdateCost, { isLoading: false }],
 	useGetCostCategoriesQuery: () => ({ data: [], isLoading: false }),
@@ -186,6 +190,7 @@ describe('CostFormClient', () => {
 			render(<CostFormClient session={mockSession} />);
 			expect(screen.getByTestId('input-description')).toBeInTheDocument();
 			expect(screen.getByTestId('input-amount')).toBeInTheDocument();
+			expect(screen.getByTestId('autocomplete-building')).toBeInTheDocument();
 			expect(screen.getByTestId('autocomplete-category')).toBeInTheDocument();
 		});
 

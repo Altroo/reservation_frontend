@@ -39,6 +39,7 @@ jest.mock('@/store/services/reservation', () => ({
 	__esModule: true,
 	useGetCostYearsQuery: (params: unknown, options: unknown) => mockUseGetCostYearsQuery(params, options),
 	useGetCostsQuery: (params: unknown, options: unknown) => mockUseGetCostsQuery(params, options),
+	useGetBuildingsQuery: () => ({ data: [{ id: 1, nom: 'Résidence A' }], isLoading: false }),
 	useDeleteCostMutation: () => [mockDeleteCost, { isLoading: false }],
 	useBulkDeleteCostsMutation: () => [mockBulkDeleteCosts, { isLoading: false }],
 }));
@@ -199,6 +200,8 @@ const mockCosts = [
 		amount: '500',
 		date: '2024-01-15',
 		category: 'Utilities',
+		building: 1,
+		building_nom: 'Résidence A',
 		created_by_user_name: 'Admin',
 	},
 	{
@@ -207,6 +210,8 @@ const mockCosts = [
 		amount: '1200',
 		date: '2024-02-20',
 		category: 'Maintenance',
+		building: null,
+		building_nom: null,
 		created_by_user_name: 'Admin',
 	},
 ];
@@ -326,6 +331,12 @@ describe('CostsListClient', () => {
 		render(<CostsListClient session={mockSession} />);
 		expect(screen.getByTestId('chip-filter-bar')).toBeInTheDocument();
 		expect(screen.getByText('Catégorie')).toBeInTheDocument();
+		expect(screen.getByText('Résidence')).toBeInTheDocument();
+	});
+
+	it('renders residence values in the grid', () => {
+		render(<CostsListClient session={mockSession} />);
+		expect(screen.getByText('Résidence A')).toBeInTheDocument();
 	});
 
 	it('does not show total when costs list is empty', () => {

@@ -36,6 +36,7 @@ import { useLanguage, useToast } from '@/utils/hooks';
 import {
 	useBulkDeleteCostsMutation,
 	useDeleteCostMutation,
+	useGetBuildingsQuery,
 	useGetCostsQuery,
 	useGetCostYearsQuery,
 } from '@/store/services/reservation';
@@ -63,6 +64,7 @@ const CostsListClient: React.FC<SessionProps> = ({ session }) => {
 	});
 	const [chipFilterParams, setChipFilterParams] = useState<Record<string, string>>({});
 	const [customFilterParams, setCustomFilterParams] = useState<Record<string, string>>({});
+	const { data: buildingsData } = useGetBuildingsQuery(undefined, { skip: !token });
 	const { data: costs, isLoading } = useGetCostsQuery({ year, month }, { skip: !token });
 
 	const yearItems: DropDownType[] = useMemo(
@@ -85,6 +87,13 @@ const CostsListClient: React.FC<SessionProps> = ({ session }) => {
 		});
 		return Array.from(nameMap.values()).map((name) => ({ value: name, label: name }));
 	}, [costs]);
+	const buildingNameOptions = useMemo(() => {
+		const nameMap = new Map<string, string>();
+		(costs ?? []).forEach((c) => {
+			if (c.building_nom) nameMap.set(c.building_nom, c.building_nom);
+		});
+		return Array.from(nameMap.values()).map((name) => ({ value: name, label: name }));
+	}, [costs]);
 	const [deleteCost] = useDeleteCostMutation();
 	const [bulkDeleteCosts] = useBulkDeleteCostsMutation();
 
@@ -103,12 +112,19 @@ const CostsListClient: React.FC<SessionProps> = ({ session }) => {
 			result = result.filter((c) => categories.includes(c.category as string));
 		}
 
+		const buildingParam = chipFilterParams['building'];
+		if (buildingParam) {
+			const buildingIds = buildingParam.split(',');
+			result = result.filter((c) => c.building !== null && buildingIds.includes(String(c.building)));
+		}
+
 		if (searchTerm.trim()) {
 			const term = searchTerm.toLowerCase();
 			result = result.filter(
 				(c) =>
 					(c.description ?? '').toLowerCase().includes(term) ||
-					(c.created_by_user_name ?? '').toLowerCase().includes(term),
+					(c.created_by_user_name ?? '').toLowerCase().includes(term) ||
+					(c.building_nom ?? '').toLowerCase().includes(term),
 			);
 		}
 
@@ -151,6 +167,10 @@ const CostsListClient: React.FC<SessionProps> = ({ session }) => {
 		// Created by dropdown filter
 		if (customFilterParams['created_by_user_name']) {
 			result = result.filter((c) => c.created_by_user_name === customFilterParams['created_by_user_name']);
+		}
+
+		if (customFilterParams['building_nom']) {
+			result = result.filter((c) => c.building_nom === customFilterParams['building_nom']);
 		}
 
 		return result;
@@ -232,8 +252,14 @@ const CostsListClient: React.FC<SessionProps> = ({ session }) => {
 				paramName: 'category',
 				options: costCategoryItemsList.map((c) => ({ id: c.code, nom: c.value })),
 			},
+			{
+				key: 'building',
+				label: t.locaux.residence,
+				paramName: 'building',
+				options: (buildingsData ?? []).map((building) => ({ id: String(building.id), nom: building.nom })),
+			},
 		],
-		[t.common.category],
+		[buildingsData, t.common.category, t.locaux.residence],
 	);
 
 	const columns: GridColDef[] = [
@@ -297,6 +323,20 @@ const CostsListClient: React.FC<SessionProps> = ({ session }) => {
 					</DarkTooltip>
 				);
 			},
+		},
+		{
+			field: 'building_nom',
+			headerName: t.locaux.residence,
+			flex: 1,
+			minWidth: 120,
+			filterOperators: createDropdownFilterOperators(buildingNameOptions, t.locaux.allResidences, undefined, t.filters.is),
+			renderCell: (params: GridRenderCellParams<CostType>) => (
+				<DarkTooltip title={params.value ?? ''}>
+					<Typography variant="body2" noWrap>
+						{(params.value as string) ?? '—'}
+					</Typography>
+				</DarkTooltip>
+			),
 		},
 		{
 			field: 'created_by_user_name',

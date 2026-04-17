@@ -160,6 +160,10 @@ export const costSchema = z.object({
 	),
 	date: requiredDateField(() => getTranslations().common.date),
 	category: requiredChoiceTextField(),
+	building: z.preprocess(
+		(val) => (val === undefined || val === null || val === '' ? null : Number(val)),
+		z.number().positive().nullable(),
+	),
 	globalError: optionalTextField(1, 500),
 });
 

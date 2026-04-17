@@ -133,6 +133,8 @@ const mockCost = {
 	amount: '850',
 	date: '2024-03-15',
 	category: 'Charges',
+	building: 3,
+	building_nom: 'Résidence Atlas',
 	created_by_user: 1,
 	created_by_user_name: 'Admin',
 	date_created: '2024-03-15T10:00:00Z',
@@ -192,6 +194,11 @@ describe('CostViewClient', () => {
 		it('renders created by', () => {
 			render(<CostViewClient session={mockSession} id={7} />);
 			expect(screen.getByText('Admin')).toBeInTheDocument();
+		});
+
+		it('renders residence when present', () => {
+			render(<CostViewClient session={mockSession} id={7} />);
+			expect(screen.getByText('Résidence Atlas')).toBeInTheDocument();
 		});
 
 		it('renders category chip', () => {

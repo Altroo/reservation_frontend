@@ -21,6 +21,7 @@ import {
 	useTheme,
 } from '@mui/material';
 import {
+	Apartment as ApartmentIcon,
 	ArrowBack as ArrowBackIcon,
 	AttachMoney as AttachMoneyIcon,
 	CalendarToday as CalendarTodayIcon,
@@ -281,6 +282,12 @@ const CostViewClient: React.FC<Props> = ({ session, id }) => {
 											/>
 											<Divider />
 											<InfoRow icon={<CalendarTodayIcon />} label={t.common.date} value={formatDate(cost.date)} />
+											<Divider />
+											<InfoRow
+												icon={<ApartmentIcon />}
+												label={t.locaux.residence}
+												value={cost.building_nom ?? '—'}
+											/>
 										</Stack>
 									</CardContent>
 								</Card>

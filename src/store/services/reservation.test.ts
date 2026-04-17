@@ -148,6 +148,7 @@ describe('reservationApi', () => {
 						amount: '500',
 						date: '2024-01-15',
 						category: 'Maintenance',
+						building: null,
 					},
 				}),
 			);
@@ -163,6 +164,7 @@ describe('reservationApi', () => {
 						amount: '750',
 						date: '2024-02-01',
 						category: 'Utilities',
+						building: null,
 					},
 				}),
 			);

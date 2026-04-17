@@ -208,4 +208,10 @@ describe('LocauxDashboardClient', () => {
 		expect(screen.getByText('12.00%')).toBeInTheDocument();
 		expect(screen.getByText('8.50%')).toBeInTheDocument();
 	});
+
+	it('renders signed paid and unpaid rent amounts', () => {
+		render(<LocauxDashboardClient session={mockSession} />);
+		expect(screen.getByText(/\+30[\s\u00a0,.]?000 MAD/)).toBeInTheDocument();
+		expect(screen.getByText(/-10[\s\u00a0,.]?000 MAD/)).toBeInTheDocument();
+	});
 });

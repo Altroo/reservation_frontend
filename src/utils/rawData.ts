@@ -119,6 +119,7 @@ export const COST_FIELD_LABELS: Record<string, string> = {
 	amount: 'Montant',
 	date: 'Date',
 	category: 'Catégorie',
+	building: 'Résidence',
 };
 
 // Shared Chart.js options

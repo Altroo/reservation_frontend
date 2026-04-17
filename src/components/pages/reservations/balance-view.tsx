@@ -187,14 +187,19 @@ const BalanceClient: React.FC<SessionProps> = ({ session }) => {
 								py: 2,
 							}}
 						>
-							<Typography
-								variant="h5"
-								sx={{
-									fontWeight: 600,
-								}}
-							>
-								{t.reservations.balanceYear(year)}
-							</Typography>
+							<Stack spacing={0.5}>
+								<Typography
+									variant="h5"
+									sx={{
+										fontWeight: 600,
+									}}
+								>
+									{t.reservations.balanceYear(year)}
+								</Typography>
+								<Typography variant="body2" sx={{ color: 'text.secondary' }}>
+									{t.reservations.balanceScopeSubtitle}
+								</Typography>
+							</Stack>
 							<Stack direction="row" spacing={1}>
 								<Box sx={{ minWidth: 180 }}>
 									<CustomDropDownSelect

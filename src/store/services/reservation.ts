@@ -362,7 +362,12 @@ export const reservationApi = createApi({
 
 		updateNotificationPreferences: builder.mutation<
 			NotificationPreferenceType,
-			{ notify_check_in: boolean; notify_check_out: boolean; reminder_minutes: number }
+			{
+				notify_check_in: boolean;
+				notify_check_out: boolean;
+				notify_unpaid_rents: boolean;
+				reminder_minutes: number;
+			}
 		>({
 			query: (data) => ({
 				url: process.env.NEXT_PUBLIC_RESERVATION_NOTIFICATION_PREFERENCES,

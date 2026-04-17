@@ -191,6 +191,7 @@ describe('reservationApi', () => {
 				reservationApi.endpoints.updateNotificationPreferences.initiate({
 					notify_check_in: true,
 					notify_check_out: false,
+					notify_unpaid_rents: true,
 					reminder_minutes: 60,
 				}),
 			);

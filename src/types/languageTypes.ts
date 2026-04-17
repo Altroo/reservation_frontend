@@ -203,6 +203,7 @@ export type TranslationDictionary = {
 		// balance
 		balance: string;
 		balanceYear: (year: number) => string;
+		balanceScopeSubtitle: string;
 		totalBalance: string;
 		totalBalanceTooltip: string;
 		amountReturned: string;
@@ -222,6 +223,7 @@ export type TranslationDictionary = {
 		// gains
 		gainsRevenues: string;
 		gainsRevenuesYear: (year: number) => string;
+		gainsScopeSubtitle: string;
 		totalGain: string;
 		bestApartment: string;
 		bestMonth: string;
@@ -498,6 +500,7 @@ export type TranslationDictionary = {
 		notificationPreferences: string;
 		checkInNotifications: string;
 		checkOutNotifications: string;
+		unpaidRentReminders: string;
 		reminderDelay: string;
 		notificationUpdateSuccess: string;
 		notificationUpdateError: string;
@@ -603,6 +606,7 @@ export type TranslationDictionary = {
 		allMatchingSelected: (n: number) => string;
 		clearSelection: string;
 		pageItemsSelected: (n: number) => string;
+		searchPlaceholder: string;
 		selectAllMatching: (n: number) => string;
 	};
 	addEntityModal: {

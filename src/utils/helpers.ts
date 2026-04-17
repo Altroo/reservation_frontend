@@ -38,11 +38,18 @@ export const isAuthenticatedInstance = (
 
 	// Request interceptor - add auth token and Accept-Language
 	instance.interceptors.request.use(
-		(config: InternalAxiosRequestConfig) => {
+		async (config: InternalAxiosRequestConfig) => {
 			const headers = new AxiosHeaders(config.headers as Record<string, string>);
 			const token = getToken?.();
-			if (token?.access) {
-				headers.set('Authorization', `Bearer ${token.access}`);
+			let accessToken = token?.access;
+
+			if (!accessToken && typeof window !== 'undefined') {
+				const session = await getSession();
+				accessToken = session?.accessToken;
+			}
+
+			if (accessToken) {
+				headers.set('Authorization', `Bearer ${accessToken}`);
 			}
 
 			// Forward the active UI language so Django LocaleMiddleware can activate it

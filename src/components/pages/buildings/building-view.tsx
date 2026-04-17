@@ -19,6 +19,7 @@ import {
 	useTheme,
 } from '@mui/material';
 import {
+	Add as AddIcon,
 	Apartment as ApartmentIcon,
 	ArrowBack as ArrowBackIcon,
 	Business as BusinessIcon,
@@ -35,11 +36,14 @@ import { Protected } from '@/components/layouts/protected/protected';
 import ApiProgress from '@/components/formikElements/apiLoading/apiProgress/apiProgress';
 import ApiAlert from '@/components/formikElements/apiLoading/apiAlert/apiAlert';
 import ActionModals from '@/components/htmlElements/modals/actionModal/actionModals';
+import AddEntityModal from '@/components/shared/addEntityModal/addEntityModal';
 import { extractApiErrorMessage, formatDate } from '@/utils/helpers';
+import { textInputTheme } from '@/utils/themes';
 import { LOCAL_TYPE_LABEL_KEYS } from '@/utils/rawData';
 import { BUILDINGS_EDIT, BUILDINGS_LIST, LOCAUX_VIEW } from '@/utils/routes';
 import { useLanguage, useToast } from '@/utils/hooks';
 import {
+	useAddApartmentMutation,
 	useDeleteBuildingMutation,
 	useGetApartmentsQuery,
 	useGetBuildingQuery,
@@ -110,8 +114,10 @@ const BuildingViewClient: React.FC<SessionProps & { id: number }> = ({ session, 
 
 	const { data: building, isLoading, isError } = useGetBuildingQuery({ id }, { skip: !token });
 	const [deleteBuilding] = useDeleteBuildingMutation();
+	const [addApartment] = useAddApartmentMutation();
 	const { data: apartmentsRaw } = useGetApartmentsQuery(undefined, { skip: !token });
 	const { data: locauxRaw } = useGetLocauxListQuery({}, { skip: !token });
+	const [showAddApartmentModal, setShowAddApartmentModal] = useState(false);
 
 	const buildingApartments = useMemo(
 		() => (Array.isArray(apartmentsRaw) ? apartmentsRaw : []).filter((a) => a.building === id),
@@ -123,6 +129,7 @@ const BuildingViewClient: React.FC<SessionProps & { id: number }> = ({ session, 
 	);
 
 	const [showDeleteModal, setShowDeleteModal] = useState(false);
+	const inputTheme = textInputTheme();
 
 	const deleteHandler = async () => {
 		try {
@@ -281,18 +288,29 @@ const BuildingViewClient: React.FC<SessionProps & { id: number }> = ({ session, 
 											sx={{
 												alignItems: 'center',
 												mb: 2,
+												justifyContent: 'space-between',
 											}}
 										>
-											<HotelIcon color="primary" />
-											<Typography
-												variant="h6"
-												sx={{
-													fontWeight: 700,
-												}}
+											<Stack direction="row" spacing={2} sx={{ alignItems: 'center' }}>
+												<HotelIcon color="primary" />
+												<Typography
+													variant="h6"
+													sx={{
+														fontWeight: 700,
+													}}
+												>
+													{t.buildings.apartments}
+												</Typography>
+												<Chip label={buildingApartments.length} size="small" color="primary" />
+											</Stack>
+											<Button
+												variant="outlined"
+												startIcon={<AddIcon />}
+												onClick={() => setShowAddApartmentModal(true)}
+												sx={{ whiteSpace: 'nowrap' }}
 											>
-												{t.buildings.apartments}
-											</Typography>
-											<Chip label={buildingApartments.length} size="small" color="primary" />
+												+ {t.common.add} {t.reservations.apartment.toLowerCase()}
+											</Button>
 										</Stack>
 										<Divider sx={{ mb: 1 }} />
 										{buildingApartments.length === 0 ? (
@@ -386,6 +404,24 @@ const BuildingViewClient: React.FC<SessionProps & { id: number }> = ({ session, 
 								title={t.buildings.deleteResidence}
 								body={t.buildings.deleteResidenceConfirm}
 								actions={deleteModalActions}
+							/>
+						)}
+						{building && (
+							<AddEntityModal
+								open={showAddApartmentModal}
+								setOpen={setShowAddApartmentModal}
+								label={t.reservations.apartment}
+								icon={<HotelIcon fontSize="small" />}
+								inputTheme={inputTheme}
+								mutationFn={(args) =>
+									addApartment({
+										data: {
+											...args.data,
+											building: id,
+										},
+									})
+								}
+								buildings={[{ id, nom: building.nom }]}
 							/>
 						)}
 					</Stack>

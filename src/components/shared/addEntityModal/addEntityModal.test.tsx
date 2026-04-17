@@ -118,6 +118,35 @@ describe('AddEntityModal', () => {
 		expect(setOpen).toHaveBeenCalledWith(false);
 	});
 
+	it('preselects the only available residence when opened from a residence context', async () => {
+		const mutationFn = jest.fn().mockResolvedValue(undefined);
+
+		render(
+			<AddEntityModal
+				open={true}
+				setOpen={setOpen}
+				label={label}
+				icon={null}
+				inputTheme={inputTheme}
+				mutationFn={mutationFn}
+				buildings={[{ id: 1, nom: 'Residence Test Copilot' }]}
+			/>,
+		);
+
+		const input = screen.getByTestId(inputId);
+		await act(async () => {
+			fireEvent.change(input, { target: { value: 'Appartement Seed' } });
+		});
+
+		await act(async () => {
+			fireEvent.click(screen.getByText('Ajouter'));
+		});
+
+		await waitFor(() => {
+			expect(mutationFn).toHaveBeenCalledWith({ data: { nom: 'Appartement Seed', building: 1 } });
+		});
+	});
+
 	it('calls onSuccess callback with new entity ID when provided', async () => {
 		const newEntityId = 123;
 		const mutationFn = jest.fn().mockResolvedValue({ data: { id: newEntityId } });

@@ -43,6 +43,7 @@ const FormikContent: React.FC = () => {
 		initialValues: {
 			notify_check_in: preferences?.notify_check_in ?? true,
 			notify_check_out: preferences?.notify_check_out ?? true,
+			notify_unpaid_rents: preferences?.notify_unpaid_rents ?? true,
 			reminder_minutes: preferences?.reminder_minutes ?? 60,
 			globalError: '',
 		},
@@ -53,6 +54,7 @@ const FormikContent: React.FC = () => {
 				await updatePreferences({
 					notify_check_in: values.notify_check_in,
 					notify_check_out: values.notify_check_out,
+					notify_unpaid_rents: values.notify_unpaid_rents,
 					reminder_minutes: values.reminder_minutes,
 				}).unwrap();
 				onSuccess(t.settings.notificationUpdateSuccess);
@@ -114,6 +116,15 @@ const FormikContent: React.FC = () => {
 									/>
 								}
 								label={t.settings.checkOutNotifications}
+							/>
+							<FormControlLabel
+								control={
+									<Switch
+										checked={formik.values.notify_unpaid_rents}
+										onChange={(e) => formik.setFieldValue('notify_unpaid_rents', e.target.checked)}
+									/>
+								}
+								label={t.settings.unpaidRentReminders}
 							/>
 							<FormControl size="small" fullWidth>
 								<InputLabel id="reminder-minutes-label">{t.settings.reminderDelay}</InputLabel>

@@ -148,7 +148,7 @@ describe('GainsClient', () => {
 	describe('Rendering', () => {
 		it('renders the page title with year', () => {
 			render(<GainsClient session={mockSession} />);
-			expect(screen.getByText(/Gains & Revenus/)).toBeInTheDocument();
+			expect(screen.getByText(/Gains Airbnb \/ Virement bancaire/)).toBeInTheDocument();
 		});
 
 		it('renders inside Protected and NavigationBar', () => {

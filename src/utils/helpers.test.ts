@@ -171,9 +171,14 @@ describe('setFormikAutoErrors', () => {
 // ─── handleUnauthorized ──────────────────────────────────────────────────────
 
 jest.mock('next-auth/react', () => ({
+	getSession: jest.fn().mockResolvedValue(null),
 	signOut: jest.fn().mockResolvedValue(undefined),
 }));
 jest.mock('@/utils/routes', () => ({ SITE_ROOT: 'https://example.com/' }));
+
+beforeEach(() => {
+	jest.clearAllMocks();
+});
 
 describe('handleUnauthorized', () => {
 	it('dispatches session-expired event and calls signOut', async () => {
@@ -211,6 +216,41 @@ describe('isAuthenticatedInstance', () => {
 		const instance = isAuthenticatedInstance();
 		expect(typeof instance.request).toBe('function');
 		expect(typeof instance.interceptors).toBe('object');
+	});
+
+	it('falls back to the NextAuth session token when Redux auth state is empty', async () => {
+		// eslint-disable-next-line @typescript-eslint/no-require-imports
+		const { getSession } = require('next-auth/react');
+		// eslint-disable-next-line @typescript-eslint/no-require-imports
+		const { isAuthenticatedInstance } = require('./helpers');
+
+		getSession.mockResolvedValueOnce({ accessToken: 'session-access-token' });
+		const instance = isAuthenticatedInstance(() => undefined);
+		const handler = instance.interceptors.request.handlers[0]?.fulfilled as
+			| ((config: { headers?: Record<string, string>; data?: unknown }) => Promise<{ headers?: Record<string, string> }>)
+			| undefined;
+
+		const config = await handler?.({ headers: {} });
+
+		expect(getSession).toHaveBeenCalledTimes(1);
+		expect(config?.headers?.Authorization).toBe('Bearer session-access-token');
+	});
+
+	it('prefers the Redux token and skips NextAuth fallback when access is already present', async () => {
+		// eslint-disable-next-line @typescript-eslint/no-require-imports
+		const { getSession } = require('next-auth/react');
+		// eslint-disable-next-line @typescript-eslint/no-require-imports
+		const { isAuthenticatedInstance } = require('./helpers');
+
+		const instance = isAuthenticatedInstance(() => ({ access: 'redux-access-token' }));
+		const handler = instance.interceptors.request.handlers[0]?.fulfilled as
+			| ((config: { headers?: Record<string, string>; data?: unknown }) => Promise<{ headers?: Record<string, string> }>)
+			| undefined;
+
+		const config = await handler?.({ headers: {} });
+
+		expect(getSession).not.toHaveBeenCalled();
+		expect(config?.headers?.Authorization).toBe('Bearer redux-access-token');
 	});
 });
 

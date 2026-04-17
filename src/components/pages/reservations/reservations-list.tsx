@@ -2,12 +2,24 @@
 
 import React, { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Box, Button, Chip, Stack, Typography } from '@mui/material';
+import {
+	Box,
+	Button,
+	Card,
+	CardContent,
+	Chip,
+	InputAdornment,
+	Stack,
+	TextField,
+	Typography,
+	useMediaQuery,
+} from '@mui/material';
 import {
 	Add as AddIcon,
 	Close as CloseIcon,
 	Delete as DeleteIcon,
 	Edit as EditIcon,
+	Search as SearchIcon,
 	Visibility as VisibilityIcon,
 } from '@mui/icons-material';
 import { GridColDef, GridFilterModel, GridLogicOperator, GridRenderCellParams } from '@mui/x-data-grid';
@@ -42,6 +54,7 @@ const ReservationsListClient: React.FC<SessionProps> = ({ session }) => {
 	const { onSuccess, onError } = useToast();
 	const { t } = useLanguage();
 	const token = useInitAccessToken(session);
+	const isCardView = useMediaQuery('(max-width:1100px)');
 
 	const { data: apartments } = useGetApartmentsQuery(undefined, { skip: !token });
 
@@ -399,22 +412,107 @@ const ReservationsListClient: React.FC<SessionProps> = ({ session }) => {
 						) : (
 							<>
 								<ChipSelectFilterBar filters={chipFilters} onFilterChange={setChipFilterParams} columns={1} />
-
-								<PaginatedDataGrid
-									data={data}
-									isLoading={isLoading}
-									columns={columns}
-									paginationModel={paginationModel}
-									setPaginationModel={setPaginationModel}
-									searchTerm={searchTerm}
-									setSearchTerm={setSearchTerm}
-									filterModel={filterModel}
-									onFilterModelChange={setFilterModel}
-									onCustomFilterParamsChange={setCustomFilterParams}
-									checkboxSelection
-									onSelectionChange={setSelectedIds}
-									selectedIds={selectedIds}
-								/>
+								{isCardView ? (
+									<Stack spacing={2}>
+										<TextField
+											size="small"
+											placeholder={t.dataGrid.searchPlaceholder}
+											value={searchTerm}
+											onChange={(e) => setSearchTerm(e.target.value)}
+											slotProps={{
+												input: {
+													startAdornment: (
+														<InputAdornment position="start">
+															<SearchIcon fontSize="small" />
+														</InputAdornment>
+													),
+												},
+											}}
+										/>
+										{(data?.results ?? []).map((reservation) => (
+											<Card key={reservation.id} elevation={1}>
+												<CardContent>
+													<Stack spacing={1.5}>
+														<Stack direction="row" sx={{ justifyContent: 'space-between', gap: 1, alignItems: 'flex-start' }}>
+															<Stack spacing={1} sx={{ minWidth: 0 }}>
+																<DarkTooltip title={reservation.apartment_nom ?? ''}>
+																	<Chip
+																		label={reservation.apartment_nom ?? '—'}
+																		size="small"
+																		variant="outlined"
+																		sx={{ width: 'fit-content', maxWidth: '100%' }}
+																	/>
+																</DarkTooltip>
+																<DarkTooltip title={reservation.guest_name}>
+																	<Typography variant="subtitle2" noWrap>
+																		{reservation.guest_name}
+																	</Typography>
+																</DarkTooltip>
+															</Stack>
+															<Chip
+																label={reservation.payment_source}
+																size="small"
+																color={PAYMENT_SOURCE_CHIP_COLORS[String(reservation.payment_source)] ?? 'default'}
+																variant="outlined"
+															/>
+														</Stack>
+														<Stack direction="row" sx={{ justifyContent: 'space-between', gap: 2 }}>
+															<Typography variant="body2" color="text.secondary">
+																{t.reservations.columnCheckIn}: {formatDate(reservation.check_in)}
+															</Typography>
+															<Typography variant="body2" color="text.secondary">
+																{t.reservations.columnCheckOut}: {formatDate(reservation.check_out)}
+															</Typography>
+														</Stack>
+														<Stack direction="row" sx={{ justifyContent: 'space-between', gap: 2 }}>
+															<Typography variant="body2">
+																{t.reservations.columnNights}: {reservation.nights ?? '—'}
+															</Typography>
+															<Typography variant="body2" sx={{ fontWeight: 600 }}>
+																{Number(reservation.amount).toLocaleString('fr-MA')} MAD
+															</Typography>
+														</Stack>
+														<Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap' }}>
+															<Button size="small" variant="outlined" onClick={() => router.push(RESERVATIONS_VIEW(reservation.id))}>
+																{t.common.view}
+															</Button>
+															<Button size="small" variant="outlined" onClick={() => router.push(RESERVATIONS_EDIT(reservation.id))}>
+																{t.common.edit}
+															</Button>
+															<Button
+																size="small"
+																variant="outlined"
+																color="error"
+																onClick={() => {
+																	setSelectedId(reservation.id);
+																	setShowDeleteModal(true);
+																}}
+															>
+																{t.common.delete}
+															</Button>
+														</Stack>
+													</Stack>
+												</CardContent>
+											</Card>
+										))}
+									</Stack>
+								) : (
+									<PaginatedDataGrid
+										data={data}
+										isLoading={isLoading}
+										columns={columns}
+										paginationModel={paginationModel}
+										setPaginationModel={setPaginationModel}
+										searchTerm={searchTerm}
+										setSearchTerm={setSearchTerm}
+										filterModel={filterModel}
+										onFilterModelChange={setFilterModel}
+										onCustomFilterParamsChange={setCustomFilterParams}
+										checkboxSelection
+										onSelectionChange={setSelectedIds}
+										selectedIds={selectedIds}
+									/>
+								)}
 							</>
 						)}
 

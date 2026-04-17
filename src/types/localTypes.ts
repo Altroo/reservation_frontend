@@ -70,10 +70,11 @@ export interface LoyerFormValues extends LoyerFormType {
 }
 
 export interface LoyerMonthData {
-	id: number;
+	id: number | null;
 	montant: string;
 	paye: boolean;
 	date_paiement: string | null;
+	is_implicit?: boolean;
 }
 
 export interface PlanningLocalType {

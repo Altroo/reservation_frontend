@@ -55,6 +55,7 @@ jest.mock('@/store/services/reservation', () => ({
 		data: {
 			notify_check_in: true,
 			notify_check_out: false,
+			notify_unpaid_rents: true,
 			reminder_minutes: 60,
 		},
 		isLoading: false,
@@ -131,6 +132,11 @@ describe('NotificationsClient', () => {
 		expect(screen.getByText('Enregistrer')).toBeInTheDocument();
 	});
 
+	it('renders notification channel switches', () => {
+		renderWithProviders(<NotificationsClient />);
+		expect(screen.getByLabelText('Rappels de loyers impayés')).toBeInTheDocument();
+	});
+
 	it('populates form with preferences data', () => {
 		renderWithProviders(<NotificationsClient />);
 		const checkInSwitch = screen.getByLabelText('Notifications de check-in');
@@ -160,6 +166,7 @@ describe('NotificationsClient', () => {
 			expect(mockUpdatePreferences).toHaveBeenCalledWith({
 				notify_check_in: true,
 				notify_check_out: false,
+				notify_unpaid_rents: true,
 				reminder_minutes: 60,
 			});
 		});

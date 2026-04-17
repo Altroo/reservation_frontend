@@ -217,8 +217,9 @@ const LocauxPlanningClient: React.FC<SessionProps> = ({ session }) => {
 					color={data.paye ? 'success' : 'error'}
 					size="small"
 					variant="outlined"
-					onClick={() => handleTogglePaid(data.id, data.paye)}
-					sx={{ cursor: 'pointer', fontWeight: 600, minWidth: 42 }}
+					onClick={data.id ? () => handleTogglePaid(data.id as number, data.paye) : undefined}
+					disabled={!data.id}
+					sx={{ cursor: data.id ? 'pointer' : 'default', fontWeight: 600, minWidth: 42 }}
 				/>
 			</MuiTooltip>
 		);

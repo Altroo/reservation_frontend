@@ -31,11 +31,13 @@ jest.mock('@/utils/hooks', () => ({
 
 // Mock RTK Query hooks
 const mockDeleteBuilding = jest.fn(() => ({ unwrap: () => Promise.resolve() }));
+const mockAddApartment = jest.fn(() => ({ unwrap: () => Promise.resolve() }));
 const mockUseGetBuildingQuery = jest.fn();
 
 jest.mock('@/store/services/reservation', () => ({
 	useGetBuildingQuery: (params: unknown, options: unknown) => mockUseGetBuildingQuery(params, options),
 	useDeleteBuildingMutation: () => [mockDeleteBuilding, { isLoading: false }],
+	useAddApartmentMutation: () => [mockAddApartment, { isLoading: false }],
 	useGetApartmentsQuery: () => ({ data: [{ id: 1, nom: 'Apt 1', building: 1 }, { id: 2, nom: 'Apt 2', building: 2 }], isLoading: false }),
 	useGetLocauxListQuery: () => ({ data: [{ id: 10, nom: 'Bureau Centre', building: 1, type_local: 'Bureau' }], isLoading: false }),
 }));
@@ -91,6 +93,11 @@ jest.mock('@/components/htmlElements/modals/actionModal/actionModals', () => ({
 	),
 }));
 
+jest.mock('@/components/shared/addEntityModal/addEntityModal', () => ({
+	__esModule: true,
+	default: ({ open }: { open: boolean }) => (open ? <div data-testid="add-entity-modal" /> : null),
+}));
+
 jest.mock('@/components/formikElements/apiLoading/apiProgress/apiProgress', () => ({
 	__esModule: true,
 	default: () => <div data-testid="api-loader">Loading...</div>,
@@ -99,6 +106,7 @@ jest.mock('@/components/formikElements/apiLoading/apiProgress/apiProgress', () =
 jest.mock('@/utils/helpers', () => ({
 	formatDate: (date: string | null) => (date ? new Date(date).toLocaleDateString('fr-FR') : '—'),
 	extractApiErrorMessage: (_error: unknown, fallback: string) => fallback,
+	hexToRGB: (color: string) => color,
 }));
 
 jest.mock('@/styles/dashboard/dashboard.module.sass', () => ({

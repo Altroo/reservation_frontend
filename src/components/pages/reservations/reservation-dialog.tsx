@@ -18,10 +18,10 @@ import {
 } from '@mui/material';
 import {
 	Add as AddIcon,
-	AttachMoney as AttachMoneyIcon,
 	CalendarMonth as CalendarMonthIcon,
 	Close as CloseIcon,
 	CreditCard as CreditCardIcon,
+	CurrencyExchange as CurrencyExchangeIcon,
 	Edit as EditIcon,
 	Hotel as HotelIcon,
 	Notes as NotesIcon,
@@ -448,7 +448,7 @@ const ReservationDialog: React.FC<ReservationDialogProps> = ({
 									helperText={formik.submitCount > 0 ? (formik.errors.amount ?? '') : ''}
 									fullWidth
 									disabled={isLoading}
-									startIcon={<AttachMoneyIcon fontSize="small" />}
+									startIcon={<CurrencyExchangeIcon fontSize="small" />}
 									slotProps={{ input: { inputProps: { inputMode: 'decimal' } } }}
 								/>
 								<CustomAutoCompleteSelect

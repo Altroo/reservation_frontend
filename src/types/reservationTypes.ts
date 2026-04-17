@@ -186,6 +186,7 @@ export interface NotificationPreferenceType {
 	id: number;
 	notify_check_in: boolean;
 	notify_check_out: boolean;
+	notify_unpaid_rents: boolean;
 	reminder_minutes: ReminderMinutesValue;
 	date_created: string;
 	date_updated: string;
@@ -194,6 +195,7 @@ export interface NotificationPreferenceType {
 export interface NotificationPreferenceFormValues {
 	notify_check_in: boolean;
 	notify_check_out: boolean;
+	notify_unpaid_rents: boolean;
 	reminder_minutes: ReminderMinutesValue;
 	globalError: string;
 }

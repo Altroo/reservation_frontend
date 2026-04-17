@@ -6,9 +6,9 @@ import { Alert, Box, Button, Card, CardContent, Divider, InputAdornment, Stack, 
 import {
 	Add as AddIcon,
 	ArrowBack as ArrowBackIcon,
-	AttachMoney as AttachMoneyIcon,
 	CalendarMonth as CalendarMonthIcon,
 	Category as CategoryIcon,
+	CurrencyExchange as CurrencyExchangeIcon,
 	Edit as EditIcon,
 	Notes as NotesIcon,
 	Warning as WarningIcon,
@@ -214,7 +214,7 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 											error={formik.submitCount > 0 && Boolean(formik.errors.amount)}
 											helperText={formik.submitCount > 0 ? (formik.errors.amount ?? '') : ''}
 											fullWidth
-											startIcon={<AttachMoneyIcon fontSize="small" />}
+											startIcon={<CurrencyExchangeIcon fontSize="small" />}
 											slotProps={{ input: { inputProps: { inputMode: 'decimal' } } }}
 										/>
 										<DatePicker

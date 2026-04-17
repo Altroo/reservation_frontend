@@ -26,10 +26,10 @@ import {
 import {
 	Add as AddIcon,
 	ArrowBack as ArrowBackIcon,
-	AttachMoney as AttachMoneyIcon,
 	CalendarMonth as CalendarMonthIcon,
 	Close as CloseIcon,
 	CreditCard as CreditCardIcon,
+	CurrencyExchange as CurrencyExchangeIcon,
 	Delete as DeleteIcon,
 	Edit as EditIcon,
 	Hotel as HotelIcon,
@@ -565,7 +565,7 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 												helperText={formik.submitCount > 0 ? (formik.errors.amount ?? '') : ''}
 												fullWidth
 												disabled={isLoading}
-												startIcon={<AttachMoneyIcon fontSize="small" />}
+														startIcon={<CurrencyExchangeIcon fontSize="small" />}
 												slotProps={{ input: { inputProps: { inputMode: 'decimal' } } }}
 											/>
 											<CustomAutoCompleteSelect

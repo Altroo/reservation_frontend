@@ -46,7 +46,10 @@ const AddEntityModal: React.FC<AddEntityModalProps> = ({
 
 	if (prevOpen !== open) {
 		setPrevOpen(open);
-		if (!open) {
+		if (open && buildings?.length === 1) {
+			setSelectedBuilding(buildings[0].id);
+			setError(null);
+		} else if (!open) {
 			setNewName('');
 			setSelectedBuilding('');
 			setError(null);

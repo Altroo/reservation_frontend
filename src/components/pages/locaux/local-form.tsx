@@ -35,10 +35,10 @@ import {
 	Add as AddIcon,
 	Apartment as ApartmentIcon,
 	ArrowBack as ArrowBackIcon,
-	AttachMoney as AttachMoneyIcon,
 	Business as BusinessIcon,
 	CalendarMonth as CalendarMonthIcon,
 	Close as CloseIcon,
+	CurrencyExchange as CurrencyExchangeIcon,
 	Delete as DeleteIcon,
 	Edit as EditIcon,
 	LocationOn as LocationOnIcon,
@@ -523,7 +523,7 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 										mb: 2,
 									}}
 								>
-									<AttachMoneyIcon color="primary" />
+									<CurrencyExchangeIcon color="primary" />
 									<Typography
 										variant="h6"
 										sx={{
@@ -551,7 +551,7 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 											error={formik.submitCount > 0 && Boolean(formik.errors.prix_achat)}
 											helperText={formik.submitCount > 0 ? (formik.errors.prix_achat ?? '') : ''}
 											fullWidth
-											startIcon={<AttachMoneyIcon fontSize="small" />}
+											startIcon={<CurrencyExchangeIcon fontSize="small" />}
 											slotProps={{ input: { inputProps: { inputMode: 'decimal' } } }}
 										/>
 										<CustomTextInput
@@ -569,7 +569,7 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 											error={formik.submitCount > 0 && Boolean(formik.errors.prix_location_mensuel)}
 											helperText={formik.submitCount > 0 ? (formik.errors.prix_location_mensuel ?? '') : ''}
 											fullWidth
-											startIcon={<AttachMoneyIcon fontSize="small" />}
+											startIcon={<CurrencyExchangeIcon fontSize="small" />}
 											slotProps={{ input: { inputProps: { inputMode: 'decimal' } } }}
 										/>
 									</Stack>
@@ -1055,7 +1055,7 @@ const LoyerDialog: React.FC<LoyerDialogProps> = ({ localId, year, loyer, onClose
 							error={loyerFormik.submitCount > 0 && Boolean(loyerFormik.errors.montant)}
 							helperText={loyerFormik.submitCount > 0 ? (loyerFormik.errors.montant ?? '') : ''}
 							fullWidth
-							startIcon={<AttachMoneyIcon fontSize="small" />}
+							startIcon={<CurrencyExchangeIcon fontSize="small" />}
 							slotProps={{ input: { inputProps: { inputMode: 'decimal' } } }}
 						/>
 						<FormControlLabel

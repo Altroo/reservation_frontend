@@ -19,6 +19,7 @@ import {
 	Close as CloseIcon,
 	Delete as DeleteIcon,
 	Edit as EditIcon,
+	Notes as NotesIcon,
 	Search as SearchIcon,
 	Visibility as VisibilityIcon,
 } from '@mui/icons-material';
@@ -48,6 +49,28 @@ import { useInitAccessToken } from '@/contexts/InitContext';
 import { createDateRangeFilterOperator } from '@/components/shared/dateRangeFilter/dateRangeFilterOperator';
 import { createNumericFilterOperators } from '@/components/shared/numericFilter/numericFilterOperator';
 import { createDropdownFilterOperators } from '@/components/shared/dropdownFilter/dropdownFilter';
+
+const normalizeNotes = (notes: string | null | undefined) => notes?.trim() ?? '';
+
+const getNotesPreview = (notes: string) => {
+	const collapsedNotes = notes.replace(/\s+/g, ' ').trim();
+	if (!collapsedNotes) return '';
+
+	const words = collapsedNotes.split(' ');
+	return words.length <= 2 ? collapsedNotes : `${words.slice(0, 2).join(' ')}…`;
+};
+
+const renderNotesTooltip = (notes: string) => (
+	<Box
+		sx={{
+			maxWidth: 320,
+			whiteSpace: 'pre-line',
+			wordBreak: 'break-word',
+		}}
+	>
+		{notes}
+	</Box>
+);
 
 const ReservationsListClient: React.FC<SessionProps> = ({ session }) => {
 	const router = useRouter();
@@ -290,6 +313,42 @@ const ReservationsListClient: React.FC<SessionProps> = ({ session }) => {
 			},
 		},
 		{
+			field: 'notes',
+			headerName: t.reservations.notes,
+			flex: 0.9,
+			minWidth: 130,
+			sortable: false,
+			filterable: false,
+			renderCell: (params: GridRenderCellParams<ReservationClass>) => {
+				const notes = normalizeNotes(params.row.notes);
+				if (!notes) {
+					return (
+						<Typography variant="body2" color="text.disabled">
+							—
+						</Typography>
+					);
+				}
+
+				return (
+					<DarkTooltip title={renderNotesTooltip(notes)}>
+						<Chip
+							icon={<NotesIcon fontSize="small" />}
+							label={getNotesPreview(notes)}
+							size="small"
+							variant="outlined"
+							sx={{
+								maxWidth: '100%',
+								'& .MuiChip-label': {
+									overflow: 'hidden',
+									textOverflow: 'ellipsis',
+								},
+							}}
+						/>
+					</DarkTooltip>
+				);
+			},
+		},
+		{
 			field: 'actions',
 			headerName: t.common.actions,
 			flex: 1.2,
@@ -429,10 +488,24 @@ const ReservationsListClient: React.FC<SessionProps> = ({ session }) => {
 												},
 											}}
 										/>
-										{(data?.results ?? []).map((reservation) => (
+								{(data?.results ?? []).map((reservation) => (
 											<Card key={reservation.id} elevation={1}>
 												<CardContent>
 													<Stack spacing={1.5}>
+														{(() => {
+															const notes = normalizeNotes(reservation.notes);
+															return notes ? (
+																<DarkTooltip title={renderNotesTooltip(notes)}>
+																	<Chip
+																		icon={<NotesIcon fontSize="small" />}
+																		label={getNotesPreview(notes)}
+																		size="small"
+																		variant="outlined"
+																		sx={{ alignSelf: 'flex-start', maxWidth: '100%' }}
+																	/>
+																</DarkTooltip>
+															) : null;
+														})()}
 														<Stack direction="row" sx={{ justifyContent: 'space-between', gap: 1, alignItems: 'flex-start' }}>
 															<Stack spacing={1} sx={{ minWidth: 0 }}>
 																<DarkTooltip title={reservation.apartment_nom ?? ''}>

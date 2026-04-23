@@ -47,6 +47,7 @@ const mockUseGetReservationsListQuery = jest.fn(() => ({
 				nights: 4,
 				amount: '5000',
 				payment_source: 'Airbnb',
+				notes: 'Late check-in requested\nBring extra towels',
 			},
 			{
 				id: 2,
@@ -59,6 +60,7 @@ const mockUseGetReservationsListQuery = jest.fn(() => ({
 				nights: 5,
 				amount: '3500',
 				payment_source: 'Booking',
+				notes: null,
 			},
 		],
 		count: 2,
@@ -284,6 +286,11 @@ describe('ReservationsListClient', () => {
 			expect(screen.getByText('Booking')).toBeInTheDocument();
 		});
 
+		it('renders notes preview only for rows with notes', () => {
+			render(<ReservationsListClient session={mockSession} />);
+			expect(screen.getByText('Late check-in…')).toBeInTheDocument();
+		});
+
 		it('renders action buttons for each row', () => {
 			render(<ReservationsListClient session={mockSession} />);
 			expect(screen.getAllByText('Voir').length).toBeGreaterThanOrEqual(2);
@@ -351,7 +358,7 @@ describe('ReservationsListClient', () => {
 	describe('Column headers', () => {
 		it('renders all expected column headers', () => {
 			render(<ReservationsListClient session={mockSession} />);
-			for (const h of ['Appart.', 'Client', 'Arrivée', 'Départ', 'Nuits', 'Montant', 'Source', 'Actions']) {
+			for (const h of ['Appart.', 'Client', 'Arrivée', 'Départ', 'Nuits', 'Montant', 'Source', 'Notes', 'Actions']) {
 				expect(screen.getByText(h)).toBeInTheDocument();
 			}
 		});

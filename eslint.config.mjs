@@ -17,6 +17,7 @@ const eslintConfig = defineConfig([
 		'node_modules/*',
 		'.swc/*',
 		'coverage',
+		'.pytest_cache/**',
 	]),
 ]);
 

@@ -20,6 +20,7 @@ describe('UserClass', () => {
 			true,   // can_create
 			false,  // can_edit
 			false,  // can_delete
+			false,  // can_access_hilton_reports
 		];
 		if (overrides) {
 			overrides.forEach((value, index) => {
@@ -54,6 +55,7 @@ describe('UserClass', () => {
 		expect(user.can_create).toBe(true);
 		expect(user.can_edit).toBe(false);
 		expect(user.can_delete).toBe(false);
+		expect(user.can_access_hilton_reports).toBe(false);
 	});
 
 	it('allows mutating non-readonly properties', () => {
@@ -81,11 +83,13 @@ describe('UserClass', () => {
 			true,
 			true,
 			true,
+			true,
 		);
 		expect(user.is_staff).toBe(true);
 		expect(user.can_view).toBe(true);
 		expect(user.can_create).toBe(true);
 		expect(user.can_edit).toBe(true);
 		expect(user.can_delete).toBe(true);
+		expect(user.can_access_hilton_reports).toBe(true);
 	});
 });

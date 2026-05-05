@@ -57,6 +57,7 @@ export interface UserFormValues {
 	can_create: boolean;
 	can_edit: boolean;
 	can_delete: boolean;
+	can_access_hilton_reports: boolean;
 	avatar: string | ArrayBuffer | null;
 	avatar_cropped: string | ArrayBuffer | null;
 	globalError: string;

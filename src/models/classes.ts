@@ -18,6 +18,7 @@ export class UserClass {
 		public can_create: boolean,
 		public can_edit: boolean,
 		public can_delete: boolean,
+		public can_access_hilton_reports: boolean,
 	) {}
 }
 

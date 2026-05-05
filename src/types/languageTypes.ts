@@ -109,6 +109,7 @@ export type TranslationDictionary = {
 		markAllRead: string;
 		noNotifications: string;
 		loadMore: string;
+		hiltonReports: string;
 	};
 	reservations: {
 		apartment: string;
@@ -483,6 +484,46 @@ export type TranslationDictionary = {
 		userAddError: string;
 		addUserBtn: string;
 		lastUpdated: string;
+		canAccessHiltonReports: string;
+	};
+	hiltonReports: {
+		title: string;
+		subtitle: string;
+		createReport: string;
+		reportHistory: string;
+		startDate: string;
+		endDate: string;
+		period: string;
+		grossRevenue: string;
+		manualCosts: string;
+		manualAdjustments: string;
+		netTotal: string;
+		apartmentsRevenue: string;
+		manualLines: string;
+		lineType: string;
+		cost: string;
+		adjustment: string;
+		note: string;
+		addLine: string;
+		noReports: string;
+		noManualLines: string;
+		preview: string;
+		createSuccess: string;
+		createError: string;
+		updateSuccess: string;
+		updateError: string;
+		deleteReport: string;
+		deleteReportConfirm: string;
+		deleteSuccess: string;
+		deleteError: string;
+		editReport: string;
+		viewReport: string;
+		latestOnlyDelete: string;
+		reservationCount: string;
+		reportNumber: (id: number) => string;
+		building: string;
+		createdAt: string;
+		amount: string;
 	};
 	settings: {
 		profile: string;
@@ -733,5 +774,7 @@ export type TranslationDictionary = {
 		usersDetailDescription: string;
 		usersEditTitle: string;
 		usersEditDescription: string;
+		hiltonReportsTitle: string;
+		hiltonReportsDescription: string;
 	};
 };

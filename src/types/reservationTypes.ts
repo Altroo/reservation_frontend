@@ -150,6 +150,61 @@ export interface CostFormType {
 	building: number | '' | null;
 }
 
+// Hilton reports
+export type HiltonReportManualLineKind = 'cost' | 'adjustment' | 'note';
+
+export interface HiltonReportManualLineType {
+	id?: number;
+	line_type: HiltonReportManualLineKind;
+	description: string;
+	amount: string;
+	sort_order?: number;
+}
+
+export interface HiltonReportApartmentRevenueType {
+	id?: number;
+	apartment: number | null;
+	apartment_nom: string;
+	reservation_count: number;
+	total_amount: string;
+}
+
+export interface HiltonReportType {
+	id: number;
+	building_name: string;
+	start_date: string;
+	end_date: string;
+	notes: string;
+	gross_revenue: string;
+	manual_cost_total: string;
+	manual_adjustment_total: string;
+	net_total: string;
+	created_by_user: number | null;
+	created_by_user_name: string | null;
+	date_created: string;
+	date_updated: string;
+	apartment_revenues: HiltonReportApartmentRevenueType[];
+	manual_lines: HiltonReportManualLineType[];
+}
+
+export interface HiltonReportFormType {
+	start_date?: string;
+	end_date?: string;
+	notes?: string;
+	manual_lines?: HiltonReportManualLineType[];
+}
+
+export interface HiltonReportPreviewType {
+	building_name: string;
+	start_date: string;
+	end_date: string;
+	gross_revenue: string;
+	manual_cost_total: string;
+	manual_adjustment_total: string;
+	net_total: string;
+	apartment_revenues: HiltonReportApartmentRevenueType[];
+}
+
 // Formik form state (includes globalError for form-level error display)
 export interface ReservationFormValues {
 	apartment: number | '';

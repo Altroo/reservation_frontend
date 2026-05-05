@@ -101,6 +101,7 @@ export const userSchema = z.object({
 	can_create: z.boolean(),
 	can_edit: z.boolean(),
 	can_delete: z.boolean(),
+	can_access_hilton_reports: z.boolean(),
 	avatar: base64ImageField,
 	avatar_cropped: base64ImageField,
 	globalError: optionalTextField(1, 500),

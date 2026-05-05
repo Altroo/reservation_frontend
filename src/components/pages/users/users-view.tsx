@@ -448,6 +448,18 @@ const UsersViewClient: React.FC<Props> = ({ session, id }) => {
 													)
 												}
 											/>
+											<Divider />
+											<InfoRow
+												icon={<CheckCircleIcon />}
+												label={t.users.canAccessHiltonReports}
+												value={
+													userData?.can_access_hilton_reports ? (
+														<Chip icon={<CheckCircleIcon />} label={t.common.yes} color="success" size="small" />
+													) : (
+														<Chip icon={<CancelIcon />} label={t.common.no} size="small" variant="outlined" />
+													)
+												}
+											/>
 										</Stack>
 									</CardContent>
 								</Card>

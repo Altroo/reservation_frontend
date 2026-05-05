@@ -20,6 +20,7 @@ describe('account slice', () => {
 		true,   // can_create
 		false,  // can_edit
 		false,  // can_delete
+		false,  // can_access_hilton_reports
 	);
 
 	it('returns the initial state when given undefined state', () => {

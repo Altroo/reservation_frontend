@@ -14,13 +14,15 @@ import { LanguageContext, type LanguageContextType } from '@/contexts/languageCo
 
 /** Returns the current user's permission flags. Staff always bypass individual flags. */
 export const usePermission = () => {
-	const { is_staff, can_view, can_create, can_edit, can_delete } = useAppSelector(getProfilState);
+	const { is_staff, can_view, can_create, can_edit, can_delete, can_access_hilton_reports } =
+		useAppSelector(getProfilState);
 	return {
 		is_staff: is_staff,
 		can_view: is_staff || can_view,
 		can_create: is_staff || can_create,
 		can_edit: is_staff || can_edit,
 		can_delete: is_staff || can_delete,
+		can_access_hilton_reports: is_staff || can_access_hilton_reports,
 	};
 };
 

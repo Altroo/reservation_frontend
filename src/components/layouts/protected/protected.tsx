@@ -4,7 +4,13 @@ import { useAppSelector, usePermission } from '@/utils/hooks';
 import { getProfilState } from '@/store/selectors';
 import NoPermission from '@/components/shared/noPermission/noPermission';
 
-type PermissionKey = 'is_staff' | 'can_view' | 'can_create' | 'can_edit' | 'can_delete';
+type PermissionKey =
+	| 'is_staff'
+	| 'can_view'
+	| 'can_create'
+	| 'can_edit'
+	| 'can_delete'
+	| 'can_access_hilton_reports';
 
 interface ProtectedProps {
 	children: ReactNode;

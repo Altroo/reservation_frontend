@@ -24,6 +24,7 @@ const makeUser = (id: number) =>
 		false,
 		false,
 		false,
+		false,
 	);
 
 describe('account sagas', () => {

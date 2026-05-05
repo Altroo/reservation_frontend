@@ -14,6 +14,9 @@ import type {
 	BalanceType,
 	CostType,
 	CostFormType,
+	HiltonReportFormType,
+	HiltonReportPreviewType,
+	HiltonReportType,
 	NotificationType,
 	NotificationPreferenceType,
 } from '@/types/reservationTypes';
@@ -48,7 +51,7 @@ const baseQueryWithRetry = retry(
 
 export const reservationApi = createApi({
 	reducerPath: 'reservationApi',
-	tagTypes: ['Reservation', 'Apartment', 'PaymentSource', 'Dashboard', 'Planning', 'Balance', 'Cost', 'CostCategory', 'Notification', 'NotificationPreference', 'Local', 'LocalType', 'Loyer', 'LocalDashboard', 'LocalPlanning', 'Building'],
+	tagTypes: ['Reservation', 'Apartment', 'PaymentSource', 'Dashboard', 'Planning', 'Balance', 'Cost', 'CostCategory', 'HiltonReport', 'Notification', 'NotificationPreference', 'Local', 'LocalType', 'Loyer', 'LocalDashboard', 'LocalPlanning', 'Building'],
 	baseQuery: baseQueryWithRetry,
 	endpoints: (builder) => ({
 		// ── Apartments ──────────────────────────────────────────────────────
@@ -322,6 +325,64 @@ export const reservationApi = createApi({
 				data: { ids },
 			}),
 			invalidatesTags: ['Cost', 'Dashboard'],
+		}),
+
+		// ── Hilton reports ───────────────────────────────────────────────
+		getHiltonReports: builder.query<HiltonReportType[], void>({
+			query: () => ({
+				url: process.env.NEXT_PUBLIC_RESERVATION_HILTON_REPORTS,
+				method: 'GET',
+			}),
+			providesTags: ['HiltonReport'],
+		}),
+
+		getHiltonReport: builder.query<HiltonReportType, { id: number }>({
+			query: ({ id }) => ({
+				url: `${process.env.NEXT_PUBLIC_RESERVATION_HILTON_REPORTS}${id}/`,
+				method: 'GET',
+			}),
+			providesTags: ['HiltonReport'],
+		}),
+
+		previewHiltonReport: builder.query<
+			HiltonReportPreviewType,
+			{ start_date?: string; end_date?: string }
+		>({
+			query: ({ start_date, end_date }) => ({
+				url: `${process.env.NEXT_PUBLIC_RESERVATION_HILTON_REPORTS}preview/`,
+				method: 'GET',
+				params: { start_date, end_date },
+			}),
+			providesTags: ['HiltonReport'],
+		}),
+
+		createHiltonReport: builder.mutation<HiltonReportType, HiltonReportFormType>({
+			query: (data) => ({
+				url: process.env.NEXT_PUBLIC_RESERVATION_HILTON_REPORTS,
+				method: 'POST',
+				data,
+			}),
+			invalidatesTags: ['HiltonReport'],
+		}),
+
+		updateHiltonReport: builder.mutation<
+			HiltonReportType,
+			{ id: number; data: HiltonReportFormType }
+		>({
+			query: ({ id, data }) => ({
+				url: `${process.env.NEXT_PUBLIC_RESERVATION_HILTON_REPORTS}${id}/`,
+				method: 'PUT',
+				data,
+			}),
+			invalidatesTags: ['HiltonReport'],
+		}),
+
+		deleteHiltonReport: builder.mutation<void, { id: number }>({
+			query: ({ id }) => ({
+				url: `${process.env.NEXT_PUBLIC_RESERVATION_HILTON_REPORTS}${id}/`,
+				method: 'DELETE',
+			}),
+			invalidatesTags: ['HiltonReport'],
 		}),
 
 		// ── Apartments detail ─────────────────────────────────────────────
@@ -667,6 +728,12 @@ export const {
 	useUpdateCostMutation,
 	useDeleteCostMutation,
 	useBulkDeleteCostsMutation,
+	useGetHiltonReportsQuery,
+	useGetHiltonReportQuery,
+	usePreviewHiltonReportQuery,
+	useCreateHiltonReportMutation,
+	useUpdateHiltonReportMutation,
+	useDeleteHiltonReportMutation,
 	useGetNotificationsQuery,
 	useLazyGetNotificationsQuery,
 	useGetNotificationPreferencesQuery,

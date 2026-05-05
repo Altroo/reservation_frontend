@@ -65,6 +65,7 @@ import {
 	DASHBOARD_NOTIFICATIONS,
 	DASHBOARD_PASSWORD,
 	GAINS,
+	HILTON_REPORTS,
 	LOCAUX_ADD,
 	LOCAUX_DASHBOARD,
 	LOCAUX_LIST,
@@ -97,7 +98,7 @@ import { formatDate } from '@/utils/helpers';
 import type { NotificationType } from '@/types/reservationTypes';
 import type { TranslationDictionary } from '@/types/languageTypes';
 
-const getNavigationMenu = (isStaff: boolean, t: TranslationDictionary) => {
+const getNavigationMenu = (isStaff: boolean, canAccessHiltonReports: boolean, t: TranslationDictionary) => {
 	return {
 		tableau_de_bord: {
 			title: t.navigation.dashboard,
@@ -147,6 +148,9 @@ const getNavigationMenu = (isStaff: boolean, t: TranslationDictionary) => {
 				{ title: t.navigation.balance, label: t.navigation.balance, path: BALANCE },
 				{ title: t.navigation.gainsRevenues, label: t.navigation.gainsRevenues, path: GAINS },
 				{ title: t.navigation.calendar, label: t.navigation.calendar, path: CALENDAR },
+				...(canAccessHiltonReports
+					? [{ title: t.navigation.hiltonReports, label: t.navigation.hiltonReports, path: HILTON_REPORTS }]
+					: []),
 			],
 		},
 		...(isStaff && {
@@ -235,9 +239,14 @@ const NavigationBar = (props: Props) => {
 	const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 	const [open, setOpen] = useState(!isMobile);
 	const { data: session, status } = useSession();
-	const { avatar_cropped, first_name, last_name, gender, is_staff } = useAppSelector(getProfilState);
+	const { avatar_cropped, first_name, last_name, gender, is_staff, can_access_hilton_reports } =
+		useAppSelector(getProfilState);
 	const { t, language, setLanguage } = useLanguage();
-	const navigationMenu = useMemo(() => getNavigationMenu(is_staff, t), [is_staff, t]);
+	const canAccessHiltonReports = is_staff || can_access_hilton_reports;
+	const navigationMenu = useMemo(
+		() => getNavigationMenu(is_staff, canAccessHiltonReports, t),
+		[is_staff, canAccessHiltonReports, t],
+	);
 	const dispatch = useAppDispatch();
 	const router = useRouter();
 	const moreVertRef = useRef<HTMLButtonElement>(null);

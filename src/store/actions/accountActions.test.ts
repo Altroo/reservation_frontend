@@ -22,6 +22,7 @@ describe('Account Actions', () => {
 			false,
 			false,
 			false,
+			false,
 		);
 
 	it('accountSetProfilAction creates ACCOUNT_SET_PROFIL action with user data', () => {

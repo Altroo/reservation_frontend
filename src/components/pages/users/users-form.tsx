@@ -102,6 +102,7 @@ const FormikContent: React.FC<FormikContentProps> = (props: FormikContentProps) 
 			can_create: rawData?.can_create ?? false,
 			can_edit: rawData?.can_edit ?? false,
 			can_delete: rawData?.can_delete ?? false,
+			can_access_hilton_reports: rawData?.can_access_hilton_reports ?? false,
 			avatar: rawData?.avatar ?? '',
 			avatar_cropped: rawData?.avatar_cropped ?? '',
 			globalError: '',
@@ -155,6 +156,7 @@ const FormikContent: React.FC<FormikContentProps> = (props: FormikContentProps) 
 			can_create: t.users.canCreate,
 			can_edit: t.users.canEdit,
 			can_delete: t.users.canDelete,
+			can_access_hilton_reports: t.users.canAccessHiltonReports,
 			globalError: 'globalError',
 		}),
 		[
@@ -170,6 +172,7 @@ const FormikContent: React.FC<FormikContentProps> = (props: FormikContentProps) 
 			t.users.canCreate,
 			t.users.canEdit,
 			t.users.canDelete,
+			t.users.canAccessHiltonReports,
 		],
 	);
 
@@ -479,6 +482,16 @@ const FormikContent: React.FC<FormikContentProps> = (props: FormikContentProps) 
 											<Switch checked={formik.values.can_delete} onChange={formik.handleChange} name="can_delete" />
 										}
 										label={t.users.canDelete}
+									/>
+									<FormControlLabel
+										control={
+											<Switch
+												checked={formik.values.can_access_hilton_reports}
+												onChange={formik.handleChange}
+												name="can_access_hilton_reports"
+											/>
+										}
+										label={t.users.canAccessHiltonReports}
 									/>
 								</Stack>
 							</CardContent>

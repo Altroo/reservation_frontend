@@ -28,6 +28,7 @@ export const OCCUPANCY = `${SITE_ROOT}dashboard/occupancy`;
 export const BALANCE = `${SITE_ROOT}dashboard/balance`;
 export const GAINS = `${SITE_ROOT}dashboard/gains`;
 export const CALENDAR = `${SITE_ROOT}dashboard/calendar`;
+export const HILTON_REPORTS = `${SITE_ROOT}dashboard/hilton-reports`;
 export const COSTS_LIST = `${SITE_ROOT}dashboard/costs`;
 export const COSTS_ADD = `${SITE_ROOT}dashboard/costs/new`;
 export const COSTS_VIEW = (id: number) => `${SITE_ROOT}dashboard/costs/${id}`;

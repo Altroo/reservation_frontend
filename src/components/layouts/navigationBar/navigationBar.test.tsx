@@ -72,6 +72,7 @@ const mockProfileData = {
 	last_name: 'Doe',
 	gender: 'Homme',
 	is_staff: false,
+	can_access_hilton_reports: false,
 };
 
 describe('NavigationBar', () => {
@@ -84,6 +85,7 @@ describe('NavigationBar', () => {
 		mockProfileData.last_name = 'Doe';
 		mockProfileData.gender = 'Homme';
 		mockProfileData.is_staff = false;
+		mockProfileData.can_access_hilton_reports = false;
 		mockUseAppSelector.mockImplementation((selector: (...args: unknown[]) => unknown) => {
 			if (selector.name === 'getUnreadNotificationCount') {
 				return 0;
@@ -163,6 +165,7 @@ describe('NavigationBar', () => {
 			</Provider>,
 		);
 		expect(screen.getByText('Utilisateurs')).toBeInTheDocument();
+		expect(screen.getByText('Rapports Hilton')).toBeInTheDocument();
 	});
 
 	it('does not show Utilisateurs section for non-staff users', () => {
@@ -174,6 +177,19 @@ describe('NavigationBar', () => {
 			</Provider>,
 		);
 		expect(screen.queryByText('Utilisateurs')).not.toBeInTheDocument();
+		expect(screen.queryByText('Rapports Hilton')).not.toBeInTheDocument();
+	});
+
+	it('shows Hilton reports link for non-staff users with permission', () => {
+		mockProfileData.can_access_hilton_reports = true;
+		render(
+			<Provider store={store}>
+				<NavigationBar title="User">
+					<div />
+				</NavigationBar>
+			</Provider>,
+		);
+		expect(screen.getByText('Rapports Hilton')).toBeInTheDocument();
 	});
 
 	it('drawer toggle button only appears on mobile', async () => {

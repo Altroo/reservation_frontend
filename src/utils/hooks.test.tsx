@@ -61,6 +61,7 @@ describe('usePermission', () => {
 		expect(result.current.can_create).toBe(true);
 		expect(result.current.can_edit).toBe(true);
 		expect(result.current.can_delete).toBe(true);
+		expect(result.current.can_access_hilton_reports).toBe(true);
 	});
 
 	it('returns individual flags for non-staff user', () => {
@@ -71,6 +72,7 @@ describe('usePermission', () => {
 				can_create: true,
 				can_edit: false,
 				can_delete: false,
+				can_access_hilton_reports: true,
 			}),
 		});
 		expect(result.current.is_staff).toBe(false);
@@ -78,6 +80,7 @@ describe('usePermission', () => {
 		expect(result.current.can_create).toBe(true);
 		expect(result.current.can_edit).toBe(false);
 		expect(result.current.can_delete).toBe(false);
+		expect(result.current.can_access_hilton_reports).toBe(true);
 	});
 });
 

@@ -510,6 +510,7 @@ export type TranslationDictionary = {
 		preview: string;
 		createSuccess: string;
 		createError: string;
+		emptyReportError: string;
 		updateSuccess: string;
 		updateError: string;
 		deleteReport: string;

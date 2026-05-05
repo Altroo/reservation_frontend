@@ -514,6 +514,7 @@ export const en: TranslationDictionary = {
 		preview: 'Preview',
 		createSuccess: 'Report created successfully',
 		createError: 'Error creating report',
+		emptyReportError: 'Add at least one Hilton reservation or one completed manual line before creating the report.',
 		updateSuccess: 'Report updated successfully',
 		updateError: 'Error updating report',
 		deleteReport: 'Delete report',

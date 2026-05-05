@@ -39,9 +39,13 @@ import {
 	Delete as DeleteIcon,
 	Description as DescriptionIcon,
 	Edit as EditIcon,
+	AttachMoney as MoneyIcon,
 	Notes as NotesIcon,
 	RemoveCircleOutlined as RemoveIcon,
 	Save as SaveIcon,
+	Savings as SavingsIcon,
+	TrendingDown as TrendingDownIcon,
+	TrendingUp as TrendingUpIcon,
 	Visibility as VisibilityIcon,
 } from '@mui/icons-material';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
@@ -54,6 +58,7 @@ import type { HiltonReportManualLineKind, HiltonReportManualLineType, HiltonRepo
 import Styles from '@/styles/dashboard/dashboard.module.sass';
 import NavigationBar from '@/components/layouts/navigationBar/navigationBar';
 import { Protected } from '@/components/layouts/protected/protected';
+import ActionModals from '@/components/htmlElements/modals/actionModal/actionModals';
 import { useInitAccessToken } from '@/contexts/InitContext';
 import { useLanguage, useToast } from '@/utils/hooks';
 import { extractApiErrorMessage, formatDate, formatNumber, formatLocalDate } from '@/utils/helpers';
@@ -95,7 +100,7 @@ const sanitizeManualLines = (lines: ManualLineForm[]): HiltonReportManualLineTyp
 		}))
 		.filter((line) => line.description.length > 0);
 
-const calculateManualTotals = (lines: ManualLineForm[]) =>
+const calculateManualTotals = (lines: Array<Pick<ManualLineForm, 'line_type' | 'amount'>>) =>
 	lines.reduce(
 		(acc, line) => {
 			const amount = toNumber(line.amount);
@@ -106,15 +111,54 @@ const calculateManualTotals = (lines: ManualLineForm[]) =>
 		{ cost: 0, adjustment: 0 },
 	);
 
-const StatCard = ({ label, value, color }: { label: string; value: string; color?: string }) => (
-	<Card elevation={1} sx={{ height: '100%', borderRadius: 2 }}>
-		<CardContent>
-			<Typography variant="body2" sx={{ color: 'text.secondary', mb: 1 }}>
-				{label}
-			</Typography>
-			<Typography variant="h6" sx={{ fontWeight: 700, color: color ?? 'text.primary' }}>
-				{value}
-			</Typography>
+const StatCard = ({
+	label,
+	value,
+	icon,
+	color,
+}: {
+	label: string;
+	value: string;
+	icon: React.ReactNode;
+	color: string;
+}) => (
+	<Card
+		elevation={1}
+		sx={{
+			height: '100%',
+			position: 'relative',
+			overflow: 'visible',
+			'&::before': {
+				content: '""',
+				position: 'absolute',
+				left: 0,
+				top: 0,
+				bottom: 0,
+				width: 4,
+				bgcolor: color,
+				borderRadius: '4px 0 0 4px',
+			},
+		}}
+	>
+		<CardContent sx={{ py: 1.5, px: 2, '&:last-child': { pb: 1.5 } }}>
+			<Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
+				<Box sx={{ color, display: 'flex' }}>{icon}</Box>
+				<Box>
+					<Typography
+						variant="caption"
+						sx={{
+							color: 'text.secondary',
+							textTransform: 'uppercase',
+							letterSpacing: 0.5,
+						}}
+					>
+						{label}
+					</Typography>
+					<Typography variant="h6" sx={{ fontWeight: 700 }}>
+						{value}
+					</Typography>
+				</Box>
+			</Stack>
 		</CardContent>
 	</Card>
 );
@@ -159,7 +203,7 @@ const HiltonReportsClient: React.FC<SessionProps> = ({ session }) => {
 	};
 
 	const periodIsValid = Boolean(startDate && endDate && endDate > startDate);
-	const { data: preview } = usePreviewHiltonReportQuery(
+	const { currentData: preview, isFetching: isPreviewFetching } = usePreviewHiltonReportQuery(
 		{
 			start_date: hasReports ? undefined : startDate,
 			end_date: endDate,
@@ -171,9 +215,14 @@ const HiltonReportsClient: React.FC<SessionProps> = ({ session }) => {
 	const [updateReport, { isLoading: isUpdating }] = useUpdateHiltonReportMutation();
 	const [deleteReport, { isLoading: isDeleting }] = useDeleteHiltonReportMutation();
 
-	const manualTotals = useMemo(() => calculateManualTotals(manualLines), [manualLines]);
+	const manualPayloadLines = useMemo(() => sanitizeManualLines(manualLines), [manualLines]);
+	const manualTotals = useMemo(() => calculateManualTotals(manualPayloadLines), [manualPayloadLines]);
 	const previewGross = toNumber(preview?.gross_revenue);
 	const previewNet = previewGross + manualTotals.adjustment - manualTotals.cost;
+	const previewHasRevenue = Boolean(
+		preview?.apartment_revenues.some((row) => row.reservation_count > 0 || toNumber(row.total_amount) > 0),
+	);
+	const reportHasContent = manualPayloadLines.length > 0 || previewHasRevenue;
 
 	const lineTypes = useMemo(
 		() => [
@@ -288,12 +337,16 @@ const HiltonReportsClient: React.FC<SessionProps> = ({ session }) => {
 	);
 
 	const handleCreate = async () => {
+		if (!periodIsValid || !reportHasContent) {
+			onError(t.hiltonReports.emptyReportError);
+			return;
+		}
 		try {
 			const payload = {
 				...(hasReports ? {} : { start_date: startDate }),
 				end_date: endDate,
 				notes,
-				manual_lines: sanitizeManualLines(manualLines),
+				manual_lines: manualPayloadLines,
 			};
 			const created = await createReport(payload).unwrap();
 			setStartDate(created.end_date);
@@ -349,6 +402,25 @@ const HiltonReportsClient: React.FC<SessionProps> = ({ session }) => {
 		}
 	};
 
+	const deleteModalActions = [
+		{
+			text: t.common.cancel,
+			active: false,
+			onClick: () => setDeleteReportId(null),
+			icon: <CloseIcon />,
+			color: '#6B6B6B',
+			disabled: isDeleting,
+		},
+		{
+			text: t.common.delete,
+			active: true,
+			onClick: handleDelete,
+			icon: <DeleteIcon />,
+			color: '#D32F2F',
+			disabled: isDeleting,
+		},
+	];
+
 	const renderTotals = (report?: HiltonReportType | null) => {
 		const gross = report ? report.gross_revenue : preview?.gross_revenue;
 		const costs = report ? report.manual_cost_total : String(manualTotals.cost);
@@ -358,20 +430,36 @@ const HiltonReportsClient: React.FC<SessionProps> = ({ session }) => {
 		return (
 			<Grid container spacing={2}>
 				<Grid size={{ xs: 12, sm: 6, md: 3 }}>
-					<StatCard label={t.hiltonReports.grossRevenue} value={`${formatNumber(gross)} MAD`} />
+					<StatCard
+						label={t.hiltonReports.grossRevenue}
+						value={`${formatNumber(gross)} MAD`}
+						icon={<MoneyIcon fontSize="small" />}
+						color="#1976d2"
+					/>
 				</Grid>
 				<Grid size={{ xs: 12, sm: 6, md: 3 }}>
-					<StatCard label={t.hiltonReports.manualCosts} value={`${formatNumber(costs)} MAD`} color="error.main" />
+					<StatCard
+						label={t.hiltonReports.manualCosts}
+						value={`${formatNumber(costs)} MAD`}
+						icon={<TrendingDownIcon fontSize="small" />}
+						color="#d32f2f"
+					/>
 				</Grid>
 				<Grid size={{ xs: 12, sm: 6, md: 3 }}>
 					<StatCard
 						label={t.hiltonReports.manualAdjustments}
 						value={`${formatNumber(adjustments)} MAD`}
-						color="success.main"
+						icon={<TrendingUpIcon fontSize="small" />}
+						color="#2e7d32"
 					/>
 				</Grid>
 				<Grid size={{ xs: 12, sm: 6, md: 3 }}>
-					<StatCard label={t.hiltonReports.netTotal} value={`${formatNumber(net)} MAD`} color="primary.main" />
+					<StatCard
+						label={t.hiltonReports.netTotal}
+						value={`${formatNumber(net)} MAD`}
+						icon={<SavingsIcon fontSize="small" />}
+						color="#0D070B"
+					/>
 				</Grid>
 			</Grid>
 		);
@@ -447,16 +535,16 @@ const HiltonReportsClient: React.FC<SessionProps> = ({ session }) => {
 		<LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={fr}>
 			<Stack direction="column" spacing={2} className={Styles.flexRootStack} sx={{ mt: '48px' }}>
 				<NavigationBar title={t.hiltonReports.title}>
-				<Protected permission="can_access_hilton_reports">
-					<Stack spacing={3} sx={{ p: { xs: 2, md: 3 } }}>
-						<Box>
-							<Typography variant="h5" sx={{ fontWeight: 700 }}>
-								{t.hiltonReports.title}
-							</Typography>
-							<Typography variant="body2" sx={{ color: 'text.secondary' }}>
-								{t.hiltonReports.subtitle}
-							</Typography>
-						</Box>
+					<Protected permission="can_access_hilton_reports">
+						<Stack spacing={3} sx={{ p: { xs: 2, md: 3 } }}>
+							<Box>
+								<Typography variant="h5" sx={{ fontWeight: 700 }}>
+									{t.hiltonReports.title}
+								</Typography>
+								<Typography variant="body2" sx={{ color: 'text.secondary' }}>
+									{t.hiltonReports.subtitle}
+								</Typography>
+							</Box>
 
 						<Card elevation={2} sx={{ borderRadius: 2 }}>
 							<CardContent>
@@ -539,6 +627,9 @@ const HiltonReportsClient: React.FC<SessionProps> = ({ session }) => {
 											{t.hiltonReports.period}: {formatDate(startDate)} - {formatDate(endDate)}
 										</Alert>
 									)}
+									{periodIsValid && !isPreviewFetching && !reportHasContent && (
+										<Alert severity="warning">{t.hiltonReports.emptyReportError}</Alert>
+									)}
 
 									<TextField
 										label={t.common.notes}
@@ -581,7 +672,7 @@ const HiltonReportsClient: React.FC<SessionProps> = ({ session }) => {
 											variant="contained"
 											startIcon={<SaveIcon />}
 											onClick={handleCreate}
-											disabled={!periodIsValid || isCreating}
+											disabled={!periodIsValid || !reportHasContent || isCreating}
 										>
 											{t.hiltonReports.createReport}
 										</Button>
@@ -663,8 +754,8 @@ const HiltonReportsClient: React.FC<SessionProps> = ({ session }) => {
 								</Stack>
 							</CardContent>
 						</Card>
-					</Stack>
-				</Protected>
+						</Stack>
+					</Protected>
 				</NavigationBar>
 
 			<Dialog open={Boolean(viewReport)} onClose={() => setViewReport(null)} fullWidth maxWidth="md">
@@ -745,18 +836,16 @@ const HiltonReportsClient: React.FC<SessionProps> = ({ session }) => {
 				</DialogActions>
 			</Dialog>
 
-			<Dialog open={Boolean(deleteReportId)} onClose={() => setDeleteReportId(null)} fullWidth maxWidth="xs">
-				<DialogTitle>{t.hiltonReports.deleteReport}</DialogTitle>
-				<DialogContent>
-					<Typography>{t.hiltonReports.deleteReportConfirm}</Typography>
-				</DialogContent>
-				<DialogActions>
-					<Button onClick={() => setDeleteReportId(null)}>{t.common.cancel}</Button>
-					<Button variant="contained" color="error" startIcon={<DeleteIcon />} onClick={handleDelete} disabled={isDeleting}>
-						{t.common.delete}
-					</Button>
-				</DialogActions>
-			</Dialog>
+			{deleteReportId && (
+				<ActionModals
+					title={t.hiltonReports.deleteReport}
+					body={t.hiltonReports.deleteReportConfirm}
+					actions={deleteModalActions}
+					titleIcon={<DeleteIcon />}
+					titleIconColor="#D32F2F"
+					onClose={() => setDeleteReportId(null)}
+				/>
+			)}
 			</Stack>
 		</LocalizationProvider>
 	);

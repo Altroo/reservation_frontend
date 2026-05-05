@@ -178,6 +178,11 @@ export interface HiltonReportType {
 	gross_revenue: string;
 	manual_cost_total: string;
 	manual_adjustment_total: string;
+	booking_total: string;
+	airbnb_total: string;
+	cash_revenue_total: string;
+	cash_total: string;
+	bank_total: string;
 	net_total: string;
 	created_by_user: number | null;
 	created_by_user_name: string | null;
@@ -201,6 +206,11 @@ export interface HiltonReportPreviewType {
 	gross_revenue: string;
 	manual_cost_total: string;
 	manual_adjustment_total: string;
+	booking_total: string;
+	airbnb_total: string;
+	cash_revenue_total: string;
+	cash_total: string;
+	bank_total: string;
 	net_total: string;
 	apartment_revenues: HiltonReportApartmentRevenueType[];
 }

@@ -465,6 +465,52 @@ const HiltonReportsClient: React.FC<SessionProps> = ({ session }) => {
 		);
 	};
 
+	const renderSourceTotals = (report?: HiltonReportType | null) => {
+		const booking = report ? report.booking_total : preview?.booking_total;
+		const airbnb = report ? report.airbnb_total : preview?.airbnb_total;
+		const cash = report
+			? report.cash_total
+			: String(toNumber(preview?.cash_revenue_total ?? preview?.cash_total) - manualTotals.cost);
+		const bank = report ? report.bank_total : preview?.bank_total;
+
+		return (
+			<Grid container spacing={2}>
+				<Grid size={{ xs: 12, sm: 6, md: 3 }}>
+					<StatCard
+						label={t.hiltonReports.bookingAmount}
+						value={`${formatNumber(booking)} MAD`}
+						icon={<CurrencyExchangeIcon fontSize="small" />}
+						color="#1565c0"
+					/>
+				</Grid>
+				<Grid size={{ xs: 12, sm: 6, md: 3 }}>
+					<StatCard
+						label={t.hiltonReports.airbnbAmount}
+						value={`${formatNumber(airbnb)} MAD`}
+						icon={<TrendingUpIcon fontSize="small" />}
+						color="#bf360c"
+					/>
+				</Grid>
+				<Grid size={{ xs: 12, sm: 6, md: 3 }}>
+					<StatCard
+						label={t.hiltonReports.cashAmount}
+						value={`${formatNumber(cash)} MAD`}
+						icon={<MoneyIcon fontSize="small" />}
+						color="#1b5e20"
+					/>
+				</Grid>
+				<Grid size={{ xs: 12, sm: 6, md: 3 }}>
+					<StatCard
+						label={t.hiltonReports.bankAmount}
+						value={`${formatNumber(bank)} MAD`}
+						icon={<SavingsIcon fontSize="small" />}
+						color="#4a148c"
+					/>
+				</Grid>
+			</Grid>
+		);
+	};
+
 	const renderApartmentTable = (report?: HiltonReportType | null) => {
 		const rows = report?.apartment_revenues ?? preview?.apartment_revenues ?? [];
 		return (
@@ -473,7 +519,6 @@ const HiltonReportsClient: React.FC<SessionProps> = ({ session }) => {
 					<TableHead>
 						<TableRow>
 							<TableCell>{t.reservations.apartment}</TableCell>
-							<TableCell align="right">{t.hiltonReports.reservationCount}</TableCell>
 							<TableCell align="right">{t.hiltonReports.amount}</TableCell>
 						</TableRow>
 					</TableHead>
@@ -481,7 +526,6 @@ const HiltonReportsClient: React.FC<SessionProps> = ({ session }) => {
 						{rows.map((row) => (
 							<TableRow key={`${row.apartment ?? row.apartment_nom}-${row.apartment_nom}`}>
 								<TableCell>{row.apartment_nom}</TableCell>
-								<TableCell align="right">{row.reservation_count}</TableCell>
 								<TableCell align="right">{formatNumber(row.total_amount)} MAD</TableCell>
 							</TableRow>
 						))}
@@ -663,6 +707,12 @@ const HiltonReportsClient: React.FC<SessionProps> = ({ session }) => {
 												{t.hiltonReports.preview}
 											</Typography>
 											{renderTotals()}
+											<Stack spacing={1.5}>
+												<Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
+													{t.hiltonReports.sourceBreakdown}
+												</Typography>
+												{renderSourceTotals()}
+											</Stack>
 											{renderApartmentTable()}
 										</Stack>
 									)}
@@ -768,6 +818,12 @@ const HiltonReportsClient: React.FC<SessionProps> = ({ session }) => {
 									{t.hiltonReports.period}: {formatDate(viewReport.start_date)} - {formatDate(viewReport.end_date)}
 								</Alert>
 								{renderTotals(viewReport)}
+								<Stack spacing={1.5}>
+									<Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
+										{t.hiltonReports.sourceBreakdown}
+									</Typography>
+									{renderSourceTotals(viewReport)}
+								</Stack>
 								<Box>
 									<Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 1 }}>
 										{t.hiltonReports.apartmentsRevenue}

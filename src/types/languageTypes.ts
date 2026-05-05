@@ -498,6 +498,11 @@ export type TranslationDictionary = {
 		manualCosts: string;
 		manualAdjustments: string;
 		netTotal: string;
+		sourceBreakdown: string;
+		bookingAmount: string;
+		airbnbAmount: string;
+		cashAmount: string;
+		bankAmount: string;
 		apartmentsRevenue: string;
 		manualLines: string;
 		lineType: string;

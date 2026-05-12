@@ -62,6 +62,7 @@ import {
 	COSTS_LIST,
 	DASHBOARD,
 	DASHBOARD_EDIT_PROFILE,
+	DASHBOARD_HILTON_SETTINGS,
 	DASHBOARD_NOTIFICATIONS,
 	DASHBOARD_PASSWORD,
 	GAINS,
@@ -174,6 +175,15 @@ const getNavigationMenu = (isStaff: boolean, canAccessHiltonReports: boolean, t:
 					label: t.navigation.notificationPreferences,
 					path: DASHBOARD_NOTIFICATIONS,
 				},
+				...(isStaff
+					? [
+							{
+								title: t.navigation.hiltonSettings,
+								label: t.navigation.hiltonSettings,
+								path: DASHBOARD_HILTON_SETTINGS,
+							},
+						]
+					: []),
 			],
 		},
 	};

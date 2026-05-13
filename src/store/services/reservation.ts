@@ -16,6 +16,8 @@ import type {
 	CostFormType,
 	HiltonReportFormType,
 	HiltonReportPreviewType,
+	HiltonReportSettingsFormType,
+	HiltonReportSettingsType,
 	HiltonReportType,
 	NotificationType,
 	NotificationPreferenceType,
@@ -51,7 +53,7 @@ const baseQueryWithRetry = retry(
 
 export const reservationApi = createApi({
 	reducerPath: 'reservationApi',
-	tagTypes: ['Reservation', 'Apartment', 'PaymentSource', 'Dashboard', 'Planning', 'Balance', 'Cost', 'CostCategory', 'HiltonReport', 'Notification', 'NotificationPreference', 'Local', 'LocalType', 'Loyer', 'LocalDashboard', 'LocalPlanning', 'Building'],
+	tagTypes: ['Reservation', 'Apartment', 'PaymentSource', 'Dashboard', 'Planning', 'Balance', 'Cost', 'CostCategory', 'HiltonReport', 'HiltonReportSettings', 'Notification', 'NotificationPreference', 'Local', 'LocalType', 'Loyer', 'LocalDashboard', 'LocalPlanning', 'Building'],
 	baseQuery: baseQueryWithRetry,
 	endpoints: (builder) => ({
 		// ── Apartments ──────────────────────────────────────────────────────
@@ -383,6 +385,23 @@ export const reservationApi = createApi({
 				method: 'DELETE',
 			}),
 			invalidatesTags: ['HiltonReport'],
+		}),
+
+		getHiltonReportSettings: builder.query<HiltonReportSettingsType, void>({
+			query: () => ({
+				url: `${process.env.NEXT_PUBLIC_RESERVATION_ROOT}/hilton-report-settings/`,
+				method: 'GET',
+			}),
+			providesTags: ['HiltonReportSettings'],
+		}),
+
+		updateHiltonReportSettings: builder.mutation<HiltonReportSettingsType, HiltonReportSettingsFormType>({
+			query: (data) => ({
+				url: `${process.env.NEXT_PUBLIC_RESERVATION_ROOT}/hilton-report-settings/`,
+				method: 'PUT',
+				data,
+			}),
+			invalidatesTags: ['HiltonReportSettings', 'HiltonReport'],
 		}),
 
 		// ── Apartments detail ─────────────────────────────────────────────
@@ -734,6 +753,8 @@ export const {
 	useCreateHiltonReportMutation,
 	useUpdateHiltonReportMutation,
 	useDeleteHiltonReportMutation,
+	useGetHiltonReportSettingsQuery,
+	useUpdateHiltonReportSettingsMutation,
 	useGetNotificationsQuery,
 	useLazyGetNotificationsQuery,
 	useGetNotificationPreferencesQuery,

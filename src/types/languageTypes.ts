@@ -110,6 +110,7 @@ export type TranslationDictionary = {
 		noNotifications: string;
 		loadMore: string;
 		hiltonReports: string;
+		hiltonSettings: string;
 	};
 	reservations: {
 		apartment: string;
@@ -530,6 +531,14 @@ export type TranslationDictionary = {
 		building: string;
 		createdAt: string;
 		amount: string;
+		balanceToCarryForward: string;
+		cashRegister: string;
+		costPeriod: string;
+		costs: string;
+		deductions: string;
+		operationsCount: string;
+		printPdf: string;
+		balanceUntil: (date: string) => string;
 	};
 	settings: {
 		profile: string;
@@ -558,6 +567,11 @@ export type TranslationDictionary = {
 		lastName: string;
 		update: string;
 		save: string;
+		hiltonReportSettings: string;
+		balanceToCarryForward: string;
+		hiltonBalanceHelp: string;
+		hiltonBalanceUpdateSuccess: string;
+		hiltonBalanceUpdateError: string;
 		reminderOptions: { value: number; label: string }[];
 	};
 	auth: {
@@ -782,5 +796,7 @@ export type TranslationDictionary = {
 		usersEditDescription: string;
 		hiltonReportsTitle: string;
 		hiltonReportsDescription: string;
+		hiltonReportSettingsTitle: string;
+		hiltonReportSettingsDescription: string;
 	};
 };

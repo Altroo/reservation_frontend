@@ -158,6 +158,7 @@ export interface HiltonReportManualLineType {
 	line_type: HiltonReportManualLineKind;
 	description: string;
 	amount: string;
+	operations_count?: number | null;
 	sort_order?: number;
 }
 
@@ -175,6 +176,9 @@ export interface HiltonReportType {
 	start_date: string;
 	end_date: string;
 	notes: string;
+	opening_balance: string;
+	cash_register_total: string;
+	cost_period_label: string;
 	gross_revenue: string;
 	manual_cost_total: string;
 	manual_adjustment_total: string;
@@ -196,6 +200,8 @@ export interface HiltonReportFormType {
 	start_date?: string;
 	end_date?: string;
 	notes?: string;
+	cash_register_total?: string;
+	cost_period_label?: string;
 	manual_lines?: HiltonReportManualLineType[];
 }
 
@@ -203,6 +209,9 @@ export interface HiltonReportPreviewType {
 	building_name: string;
 	start_date: string;
 	end_date: string;
+	opening_balance: string;
+	cash_register_total: string;
+	cost_period_label: string;
 	gross_revenue: string;
 	manual_cost_total: string;
 	manual_adjustment_total: string;
@@ -213,6 +222,16 @@ export interface HiltonReportPreviewType {
 	bank_total: string;
 	net_total: string;
 	apartment_revenues: HiltonReportApartmentRevenueType[];
+}
+
+export interface HiltonReportSettingsType {
+	id: number;
+	carry_forward_balance: string;
+	date_updated: string;
+}
+
+export interface HiltonReportSettingsFormType {
+	carry_forward_balance: string;
 }
 
 // Formik form state (includes globalError for form-level error display)

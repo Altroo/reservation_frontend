@@ -62,6 +62,7 @@ import {
 	COSTS_LIST,
 	DASHBOARD,
 	DASHBOARD_EDIT_PROFILE,
+	DASHBOARD_HILTON_SETTINGS,
 	DASHBOARD_NOTIFICATIONS,
 	DASHBOARD_PASSWORD,
 	GAINS,
@@ -85,7 +86,7 @@ import { navigationBarTheme } from '@/utils/themes';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Desktop, TabletAndMobile } from '@/utils/clientHelpers';
-import LanguageSwitcher from '@/components/shared/languageSwitcher/languageSwitcher';
+import LanguageSwitcher, { LanguageFlag } from '@/components/shared/languageSwitcher/languageSwitcher';
 import {
 	useGetNotificationsQuery,
 	useGetUnreadNotificationCountQuery,
@@ -174,6 +175,15 @@ const getNavigationMenu = (isStaff: boolean, canAccessHiltonReports: boolean, t:
 					label: t.navigation.notificationPreferences,
 					path: DASHBOARD_NOTIFICATIONS,
 				},
+				...(isStaff
+					? [
+							{
+								title: t.navigation.hiltonSettings,
+								label: t.navigation.hiltonSettings,
+								path: DASHBOARD_HILTON_SETTINGS,
+							},
+						]
+					: []),
 			],
 		},
 	};
@@ -492,7 +502,7 @@ const NavigationBar = (props: Props) => {
 													}}
 												>
 													<MenuListItemIcon>
-														<span style={{ fontSize: '1.2rem', lineHeight: 1 }}>{language === 'fr' ? '🇬🇧' : '🇫🇷'}</span>
+														<LanguageFlag language={language === 'fr' ? 'en' : 'fr'} />
 													</MenuListItemIcon>
 													<MenuListItemText>{language === 'fr' ? 'English' : 'Français'}</MenuListItemText>
 												</MenuItem>

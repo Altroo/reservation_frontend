@@ -224,7 +224,7 @@ const HiltonReportsClient: React.FC<SessionProps> = ({ session }) => {
 	const periodIsValid = Boolean(startDate && endDate && endDate > startDate);
 	const { currentData: preview, isFetching: isPreviewFetching } = usePreviewHiltonReportQuery(
 		{
-			start_date: hasReports ? undefined : startDate,
+			start_date: startDate,
 			end_date: endDate,
 		},
 		{ skip: !token || !periodIsValid },

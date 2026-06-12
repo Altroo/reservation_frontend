@@ -43,9 +43,7 @@ jest.mock('@/store/services/reservation', () => ({
 jest.mock('@/store/sagas', () => ({
 	__esModule: true,
 	rootSaga: function* rootSaga() {
-		while (true) {
-			yield;
-		}
+		// no-op for store wiring tests
 	},
 }));
 

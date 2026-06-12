@@ -77,8 +77,11 @@ describe('EntityCrudControls', () => {
 	const selectedItem: DropDownType = { code: 'Appartement A', value: '12' };
 
 	it('handles add, edit and delete with reservation dropdown item shape', async () => {
+		// eslint-disable-next-line @typescript-eslint/no-unused-vars
 		const addEntity = jest.fn((_args: { data: { nom: string } }) => createMutationResult({ data: { id: 33 } }));
+		// eslint-disable-next-line @typescript-eslint/no-unused-vars
 		const editEntity = jest.fn((_args: { id: number; data: { nom: string } }) => createMutationResult({}));
+		// eslint-disable-next-line @typescript-eslint/no-unused-vars
 		const deleteEntity = jest.fn((_args: { id: number }) => createMutationResult({}));
 		const onAddSuccess = jest.fn();
 		const onDeleteSuccess = jest.fn();

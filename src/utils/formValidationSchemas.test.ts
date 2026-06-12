@@ -117,6 +117,7 @@ describe('Zod Schema Validation', () => {
 			can_create: false,
 			can_edit: false,
 			can_delete: false,
+			can_access_hilton_reports: false,
 		};
 
 		it('validates required fields', () => {
@@ -335,4 +336,3 @@ describe('Zod Schema Validation', () => {
 		});
 	});
 });
-

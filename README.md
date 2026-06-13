@@ -1,40 +1,58 @@
 # Reservation Frontend
 
-## Purpose
+Next.js interface for a reservation and property operations platform for buildings, local units, reservations, planning, occupancy, costs, gains, balances, Hilton reports, users, notifications, and maintenance controls.
 
-Reservation Frontend is the Next.js dashboard for managing reservations, local units, planning, occupancy, costs, gains, reports, notifications, and user access.
+This frontend is built around real staff workflows: authenticated navigation, dense dashboards, tables, filters, create/edit/detail pages, forms, actions, settings, notifications, and production data constraints.
+
+## What It Shows
+
+- Product UI work for an internal business system.
+- Data-heavy React/Next.js screens with real workflow depth.
+- State management with Redux Toolkit and redux-saga.
+- Authenticated app structure with NextAuth and API-backed routes.
+- Form, table, dashboard, notification, and settings flows built for daily operations.
+
+## Key Capabilities
+
+- Reservation dashboard with planning, calendar, occupancy, balance, costs, gains, building, local, user, profile, and report screens.
+- Operational list/detail/create/edit flows for reservations, buildings, locals, costs, users, and settings.
+- MUI tables, filters, date pickers, charts, and forms for booking and property workflows.
+- Redux Toolkit and redux-saga state handling for API requests, auth, notifications, and dashboard data.
+- Jest and Testing Library coverage for app behavior, helpers, routes, and UI state.
 
 ## Stack
 
-- Next.js and React
-- TypeScript
-- NextAuth
-- Redux Toolkit and redux-saga
-- MUI, Sass, and chart components
-- Formik and Zod
-- Jest and Testing Library
+- Next.js 16, React 19, TypeScript
+- NextAuth, Axios, React Redux
+- Redux Toolkit, redux-saga
+- MUI, MUI X Data Grid, Sass, chart components
+- Formik, Zod, date-fns
+- Jest, Testing Library, ts-jest, Bun
 
-## Features
+## Related Repository
 
-- Reservation creation, list, and detail views
-- Calendar and planning screens
-- Building and unit management
-- Occupancy, cost, gain, and balance dashboards
-- User administration and profile settings
-- Notifications and maintenance status handling
+- Backend API: [Altroo/reservation_backend](https://github.com/Altroo/reservation_backend)
 
-## Setup
+## Screenshots
 
-Provide local-only variables for the API, auth, and websocket endpoints. Use localhost values for local development and do not commit local configuration files.
+Redacted production screenshots. Sensitive names, amounts, dates, and records are blurred.
+
+![Reservation dashboard](docs/screenshots/reservation-dashboard.png)
+
+![Planning board](docs/screenshots/reservation-planning.png)
+
+## Local Setup
+
+Create local-only environment variables for the API base URL, auth settings, websocket endpoints, and public runtime config. Do not commit `.env` files or production credentials.
 
 ```bash
 bun install
 bun run dev
 ```
 
-The frontend runs on `localhost:3002`.
+Default local port: `3002`.
 
-## Tests
+## Quality Checks
 
 ```bash
 bun x jest --runInBand --coverage=false
@@ -42,12 +60,6 @@ bun run lint
 bun run build
 ```
 
-## Screenshots
+## Portfolio Note
 
-Sanitized product workspace:
-
-![Reservation product workspace](docs/screenshots/reservation-showcase.png)
-
-Authentication screen:
-
-![Reservation login](docs/screenshots/reservation-login.png)
+The repository is public for portfolio review. Screenshots are redacted, and sensitive production values are intentionally hidden.

@@ -42,6 +42,12 @@ bun run lint
 bun run build
 ```
 
-## Screenshot
+## Screenshots
+
+Sanitized product workspace:
+
+![Reservation product workspace](docs/screenshots/reservation-showcase.png)
+
+Authentication screen:
 
 ![Reservation login](docs/screenshots/reservation-login.png)

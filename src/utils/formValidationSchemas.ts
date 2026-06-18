@@ -128,7 +128,7 @@ export const reservationSchema = z.object({
 		z.string().nonempty({ error: INPUT_REQUIRED }),
 	),
 	payment_source: requiredChoiceTextField(),
-	notes: optionalTextField(1, 1000),
+	notes: optionalTextField(1, 2000),
 	globalError: optionalTextField(1, 500),
 }).refine(
 	(data) => {
@@ -225,4 +225,3 @@ export const loyerSchema = z.object({
 	notes: optionalTextField(1, 2000),
 	globalError: optionalTextField(1, 500),
 });
-

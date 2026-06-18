@@ -691,7 +691,7 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 								<CustomTextInput
 									theme={inputTheme}
 									id="notes"
-									type="text"
+									type="textarea"
 									size="small"
 									label={t.common.notes}
 									value={formik.values.notes}
@@ -1106,7 +1106,7 @@ const LoyerDialog: React.FC<LoyerDialogProps> = ({ localId, year, loyer, onClose
 						<CustomTextInput
 							theme={loyerInputTheme}
 							id="notes"
-							type="text"
+							type="textarea"
 							size="small"
 							label={t.common.notes}
 							value={loyerFormik.values.notes}

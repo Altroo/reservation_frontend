@@ -919,6 +919,7 @@ const HiltonReportsClient: React.FC<SessionProps> = ({ session }) => {
 													</InputAdornment>
 												),
 											},
+											htmlInput: { maxLength: 2000 },
 										}}
 									/>
 
@@ -1124,6 +1125,7 @@ const HiltonReportsClient: React.FC<SessionProps> = ({ session }) => {
 										</InputAdornment>
 									),
 								},
+								htmlInput: { maxLength: 2000 },
 							}}
 						/>
 						<Grid container spacing={2}>

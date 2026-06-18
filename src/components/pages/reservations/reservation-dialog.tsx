@@ -496,7 +496,7 @@ const ReservationDialog: React.FC<ReservationDialogProps> = ({
 							<CustomTextInput
 								theme={inputTheme}
 								id="notes"
-								type="text"
+								type="textarea"
 								size="small"
 								label={t.reservations.notesOptional}
 								value={formik.values.notes}

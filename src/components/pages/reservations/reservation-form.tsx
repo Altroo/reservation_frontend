@@ -635,7 +635,7 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 										<CustomTextInput
 											theme={inputTheme}
 											id="notes"
-											type="text"
+											type="textarea"
 											size="small"
 											label={t.reservations.notesOptional}
 											value={formik.values.notes}

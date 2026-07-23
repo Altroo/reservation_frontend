@@ -6,6 +6,7 @@ import {
 	Box,
 	Card,
 	CardContent,
+	CardHeader,
 	Chip,
 	IconButton,
 	Stack,
@@ -30,6 +31,17 @@ import {
 	TrendingUp as TrendingUpIcon,
 } from '@mui/icons-material';
 import ApartmentIcon from '@mui/icons-material/Apartment';
+import {
+	ArcElement,
+	BarElement,
+	CategoryScale,
+	Chart as ChartJS,
+	Legend,
+	LinearScale,
+	Title,
+	Tooltip,
+} from 'chart.js';
+import { Bar, Doughnut } from 'react-chartjs-2';
 import CustomDropDownSelect from '@/components/formikElements/customDropDownSelect/customDropDownSelect';
 import { customDropdownTheme } from '@/utils/themes';
 import type { DropDownType } from '@/types/accountTypes';
@@ -40,11 +52,13 @@ import { Protected } from '@/components/layouts/protected/protected';
 import ApiProgress from '@/components/formikElements/apiLoading/apiProgress/apiProgress';
 import { LOCAUX_VIEW } from '@/utils/routes';
 import type { ChipColor } from '@/utils/rawData';
-import { LOCAL_TYPE_LABEL_KEYS, TYPE_LOCAL_CHIP_COLORS } from '@/utils/rawData';
+import { CHART_OPTS, LOCAL_TYPE_LABEL_KEYS, TYPE_LOCAL_CHIP_COLORS } from '@/utils/rawData';
 import { useGetBuildingsQuery, useGetLocalDashboardQuery, useGetLocalYearsQuery } from '@/store/services/reservation';
 import { useInitAccessToken } from '@/contexts/InitContext';
 import { useLanguage } from '@/utils/hooks';
 import Styles from '@/styles/dashboard/dashboard.module.sass';
+
+ChartJS.register(CategoryScale, LinearScale, BarElement, ArcElement, Title, Tooltip, Legend);
 
 interface KpiCardProps {
 	icon: React.ReactNode;
@@ -123,6 +137,62 @@ const KpiCard: React.FC<KpiCardProps> = ({ icon, label, value, color, tooltip })
 const formatSignedMad = (value: number | string, sign: '+' | '-') =>
 	`${sign}${Number(value).toLocaleString('fr-MA')} MAD`;
 
+interface ChartCardProps {
+	title: string;
+	subheader: string;
+	children: React.ReactNode;
+	infoTooltip?: string;
+	height?: number;
+}
+
+const ChartCard: React.FC<ChartCardProps> = ({ title, subheader, children, infoTooltip, height = 280 }) => (
+	<Card elevation={2} sx={{ height: '100%', overflow: 'hidden' }}>
+		<CardHeader
+			title={
+				<Typography variant="h6" sx={{ fontSize: { xs: '0.95rem', md: '1.1rem' } }}>
+					{title}
+				</Typography>
+			}
+			subheader={subheader}
+			action={
+				infoTooltip ? (
+					<MuiTooltip title={infoTooltip} arrow placement="top">
+						<IconButton size="small" sx={{ color: 'text.secondary' }}>
+							<InfoIcon fontSize="small" />
+						</IconButton>
+					</MuiTooltip>
+				) : undefined
+			}
+			sx={{ pb: 0 }}
+		/>
+		<CardContent>
+			<Box sx={{ height }}>{children}</Box>
+		</CardContent>
+	</Card>
+);
+
+const EmptyChart: React.FC = () => {
+	const { t } = useLanguage();
+	return (
+		<Box
+			sx={{
+				display: 'flex',
+				alignItems: 'center',
+				justifyContent: 'center',
+				height: '100%',
+				border: '1px dashed',
+				borderColor: 'grey.300',
+				borderRadius: 2,
+				bgcolor: 'grey.50',
+			}}
+		>
+			<Typography variant="body2" color="text.secondary">
+				{t.analytics.noDataAvailable}
+			</Typography>
+		</Box>
+	);
+};
+
 const LocauxDashboardClient: React.FC<SessionProps> = ({ session }) => {
 	const router = useRouter();
 	const { t } = useLanguage();
@@ -161,6 +231,74 @@ const LocauxDashboardClient: React.FC<SessionProps> = ({ session }) => {
 		{ skip: !token },
 	);
 	const locaux = useMemo(() => (dashboardData?.locaux ?? []) as LocalDashboardLocalType[], [dashboardData]);
+	const monthlyRents = dashboardData?.monthly_rents ?? [];
+
+	const monthlyPaid = t.rawData.monthLabels.map(
+		(_, index) => Number(monthlyRents.find((item) => item.month === index + 1)?.paid ?? 0),
+	);
+	const monthlyUnpaid = t.rawData.monthLabels.map(
+		(_, index) => Number(monthlyRents.find((item) => item.month === index + 1)?.unpaid ?? 0),
+	);
+	const hasMonthlyRentData = [...monthlyPaid, ...monthlyUnpaid].some((amount) => amount > 0);
+
+	const monthlyRentChartData = {
+		labels: t.rawData.monthLabels,
+		datasets: [
+			{
+				label: t.locaux.paidRents,
+				data: monthlyPaid,
+				backgroundColor: 'rgba(46, 125, 50, 0.8)',
+				borderRadius: 4,
+			},
+			{
+				label: t.locaux.unpaidRents,
+				data: monthlyUnpaid,
+				backgroundColor: 'rgba(211, 47, 47, 0.75)',
+				borderRadius: 4,
+			},
+		],
+	};
+
+	const rentalStatusChartData = {
+		labels: [t.locaux.inRentalCount, t.locaux.freeCount],
+		datasets: [
+			{
+				data: [dashboardData?.total_en_location ?? 0, dashboardData?.total_libres ?? 0],
+				backgroundColor: ['rgba(25, 118, 210, 0.8)', 'rgba(237, 108, 2, 0.8)'],
+				borderWidth: 1,
+			},
+		],
+	};
+
+	const rentBalanceChartData = {
+		labels: locaux.map((local) => local.nom),
+		datasets: [
+			{
+				label: t.locaux.paidRents,
+				data: locaux.map((local) => Number(local.loyers_payes)),
+				backgroundColor: 'rgba(46, 125, 50, 0.8)',
+				borderRadius: 4,
+			},
+			{
+				label: t.locaux.unpaidRents,
+				data: locaux.map((local) => Number(local.loyers_impayes)),
+				backgroundColor: 'rgba(211, 47, 47, 0.75)',
+				borderRadius: 4,
+			},
+		],
+	};
+
+	const profitabilityChartData = {
+		labels: locaux.map((local) => local.nom),
+		datasets: [
+			{
+				label: `${t.locaux.profitability} (%)`,
+				data: locaux.map((local) => Number(local.rentabilite)),
+				backgroundColor: 'rgba(156, 39, 176, 0.75)',
+				borderRadius: 4,
+			},
+		],
+	};
 
 	return (
 		<Stack
@@ -259,9 +397,94 @@ const LocauxDashboardClient: React.FC<SessionProps> = ({ session }) => {
 										color="#ed6c02"
 										tooltip={t.locaux.freeTooltip}
 									/>
-								</Box>
+									</Box>
 
-								{/* Locaux table */}
+									{/* Dashboard charts */}
+									<ChartCard
+										title={t.locaux.monthlyRentCollection}
+										subheader={t.locaux.monthlyRentCollectionSubheader(year)}
+										infoTooltip={t.locaux.monthlyRentCollectionTooltip}
+									>
+										{hasMonthlyRentData ? (
+											<Bar
+												data={monthlyRentChartData}
+												options={{
+													...CHART_OPTS,
+													scales: { x: { stacked: false }, y: { beginAtZero: true } },
+												}}
+											/>
+										) : (
+											<EmptyChart />
+										)}
+									</ChartCard>
+
+									<Box
+										sx={{
+											display: 'grid',
+											gridTemplateColumns: { xs: '1fr', lg: 'minmax(0, 0.8fr) minmax(0, 1.2fr)' },
+											gap: 2,
+										}}
+									>
+										<ChartCard
+											title={t.locaux.rentalStatusDistribution}
+											subheader={t.locaux.rentalStatusDistributionSubheader}
+										>
+											{locaux.length > 0 ? (
+												<Doughnut
+													data={rentalStatusChartData}
+													options={{
+														...CHART_OPTS,
+														cutout: '62%',
+														plugins: { legend: { position: 'bottom' } },
+													}}
+												/>
+											) : (
+												<EmptyChart />
+											)}
+										</ChartCard>
+
+										<ChartCard
+											title={t.locaux.profitabilityComparison}
+											subheader={t.locaux.profitabilityComparisonSubheader}
+										>
+											{locaux.some((local) => Number(local.rentabilite) > 0) ? (
+												<Bar
+													data={profitabilityChartData}
+													options={{
+														...CHART_OPTS,
+														indexAxis: 'y',
+														plugins: { legend: { display: false } },
+														scales: { x: { beginAtZero: true } },
+													}}
+												/>
+											) : (
+												<EmptyChart />
+											)}
+										</ChartCard>
+									</Box>
+
+									<ChartCard
+										title={t.locaux.rentBalanceByLocal}
+										subheader={t.locaux.rentBalanceByLocalSubheader}
+										height={Math.max(300, Math.min(520, locaux.length * 32))}
+									>
+										{locaux.some(
+											(local) => Number(local.loyers_payes) > 0 || Number(local.loyers_impayes) > 0,
+										) ? (
+											<Bar
+												data={rentBalanceChartData}
+												options={{
+													...CHART_OPTS,
+													indexAxis: 'y',
+													scales: { x: { beginAtZero: true } },
+												}}
+											/>
+										) : (
+											<EmptyChart />
+										)}
+									</ChartCard>
+
+									{/* Locaux table */}
 								{locaux.length === 0 ? (
 									<Card elevation={2} sx={{ borderRadius: 2 }}>
 										<CardContent sx={{ py: 6, textAlign: 'center' }}>

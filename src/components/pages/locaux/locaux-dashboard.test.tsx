@@ -20,6 +20,22 @@ jest.mock('@/contexts/InitContext', () => ({
 	useInitAccessToken: jest.fn(() => 'test-token'),
 }));
 
+jest.mock('react-chartjs-2', () => ({
+	Bar: () => <div data-testid="chart-bar" />,
+	Doughnut: () => <div data-testid="chart-doughnut" />,
+}));
+
+jest.mock('chart.js', () => ({
+	Chart: { register: jest.fn() },
+	CategoryScale: jest.fn(),
+	LinearScale: jest.fn(),
+	BarElement: jest.fn(),
+	ArcElement: jest.fn(),
+	Title: jest.fn(),
+	Tooltip: jest.fn(),
+	Legend: jest.fn(),
+}));
+
 // Mock RTK Query hooks
 const mockUseGetLocalDashboardQuery = jest.fn();
 const mockUseGetLocalYearsQuery = jest.fn();
@@ -57,6 +73,7 @@ jest.mock('@/utils/rawData', () => ({
 		Magasin: 'warning',
 	},
 	LOCAL_TYPE_LABEL_KEYS: { Bureau: 'office', Magasin: 'shop' },
+	CHART_OPTS: { responsive: true, maintainAspectRatio: false },
 }));
 
 jest.mock('@/styles/dashboard/dashboard.module.sass', () => ({
@@ -89,6 +106,11 @@ const mockDashboardData = {
 	total_benefice_ht: '60000',
 	total_en_location: 3,
 	total_libres: 1,
+	monthly_rents: [
+		{ month: 1, paid: '18000', unpaid: '3000' },
+		{ month: 2, paid: '22000', unpaid: '4000' },
+		{ month: 3, paid: '20000', unpaid: '9000' },
+	],
 	locaux: [
 		{
 			id: 1,
@@ -156,6 +178,16 @@ describe('LocauxDashboardClient', () => {
 		expect(screen.getByText('1')).toBeInTheDocument();
 	});
 
+	it('renders meaningful dashboard charts', () => {
+		render(<LocauxDashboardClient session={mockSession} />);
+		expect(screen.getByText('Encaissement mensuel des loyers')).toBeInTheDocument();
+		expect(screen.getByText('Occupation des locaux')).toBeInTheDocument();
+		expect(screen.getByText('Paiements par local')).toBeInTheDocument();
+		expect(screen.getByText('Comparatif de rentabilité')).toBeInTheDocument();
+		expect(screen.getAllByTestId('chart-bar')).toHaveLength(3);
+		expect(screen.getByTestId('chart-doughnut')).toBeInTheDocument();
+	});
+
 	it('renders rentabilite table header', () => {
 		render(<LocauxDashboardClient session={mockSession} />);
 		expect(screen.getByText('Rentabilité par local')).toBeInTheDocument();
@@ -189,7 +221,14 @@ describe('LocauxDashboardClient', () => {
 
 	it('shows empty state when no locaux', () => {
 		mockUseGetLocalDashboardQuery.mockReturnValue({
-			data: { year: 2025, total_benefice_ht: '0', total_en_location: 0, total_libres: 0, locaux: [] },
+			data: {
+				year: 2025,
+				total_benefice_ht: '0',
+				total_en_location: 0,
+				total_libres: 0,
+				monthly_rents: [],
+				locaux: [],
+			},
 			isLoading: false,
 		});
 		render(<LocauxDashboardClient session={mockSession} />);

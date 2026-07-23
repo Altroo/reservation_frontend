@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, cleanup } from '@testing-library/react';
+import { render, screen, cleanup, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
 
 // Mock next/navigation
@@ -81,18 +81,26 @@ interface MockQueryResult<T> {
 	isLoading: boolean;
 }
 
-const mockUseGetDashboardStatsQuery = jest.fn<MockQueryResult<typeof mockDashboardData>, []>(() => ({
-	data: mockDashboardData,
-	isLoading: false,
-}));
+const mockUseGetDashboardStatsQuery = jest.fn<
+	MockQueryResult<typeof mockDashboardData>,
+	[{ year: number; building?: number }, { skip: boolean }]
+>(() => ({ data: mockDashboardData, isLoading: false }));
 
 jest.mock('@/store/services/reservation', () => ({
-	useGetDashboardStatsQuery: () => mockUseGetDashboardStatsQuery(),
+	useGetDashboardStatsQuery: (
+		params: { year: number; building?: number },
+		options: { skip: boolean },
+	) => mockUseGetDashboardStatsQuery(params, options),
 	useGetReservationYearsQuery: () => {
 		const y = new Date().getFullYear();
 		return { data: { years: [y, y - 1] } };
 	},
-	useGetBuildingsQuery: () => ({ data: [] }),
+	useGetBuildingsQuery: () => ({
+		data: [
+			{ id: 1, nom: 'Nectar' },
+			{ id: 2, nom: 'Hilton residence' },
+		],
+	}),
 }));
 
 // Mock layout components
@@ -177,6 +185,16 @@ describe('ReservationDashboardClient', () => {
 			mockUseGetDashboardStatsQuery.mockReturnValueOnce({ data: undefined, isLoading: true });
 			render(<ReservationDashboardClient session={mockSession} />);
 			expect(screen.getByRole('progressbar')).toBeInTheDocument();
+		});
+
+		it('requests dashboard data for the selected residence', () => {
+			render(<ReservationDashboardClient session={mockSession} />);
+			fireEvent.mouseDown(screen.getByLabelText('Résidence'));
+			fireEvent.click(screen.getByRole('option', { name: 'Hilton residence' }));
+			expect(mockUseGetDashboardStatsQuery).toHaveBeenLastCalledWith(
+				{ year: new Date().getFullYear(), building: 2 },
+				{ skip: false },
+			);
 		});
 	});
 
@@ -296,6 +314,5 @@ describe('ReservationDashboardClient', () => {
 		});
 	});
 });
-
 
 

@@ -382,6 +382,15 @@ export type TranslationDictionary = {
 		profitabilityByLocal: string;
 		paidRents: string;
 		unpaidRents: string;
+		monthlyRentCollection: string;
+		monthlyRentCollectionSubheader: (year: number) => string;
+		monthlyRentCollectionTooltip: string;
+		rentalStatusDistribution: string;
+		rentalStatusDistributionSubheader: string;
+		rentBalanceByLocal: string;
+		rentBalanceByLocalSubheader: string;
+		profitabilityComparison: string;
+		profitabilityComparisonSubheader: string;
 		rentPerMonth: string;
 		rentPlanning: string;
 		rentPlanningYear: (year: number) => string;

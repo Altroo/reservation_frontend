@@ -104,11 +104,18 @@ export interface LocalDashboardLocalType {
 	loyers_impayes: string;
 }
 
+export interface LocalDashboardMonthlyRentType {
+	month: number;
+	paid: string;
+	unpaid: string;
+}
+
 export interface LocalDashboardResponse {
 	year: number;
 	total_benefice_ht: string;
 	total_en_location: number;
 	total_libres: number;
+	monthly_rents: LocalDashboardMonthlyRentType[];
 	locaux: LocalDashboardLocalType[];
 }
 

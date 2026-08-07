@@ -128,20 +128,24 @@ const PlanningMonthClient: React.FC<SessionProps> = ({ session }) => {
 
 	const rows = data ? buildRows(data.apartments, year, month, lastDay) : [];
 
-	const monthRevenue = data
-		? Object.values(data.apartments).reduce(
-				(sum, apt) => sum + apt.reservations.reduce((s, r) => s + Number(r.amount), 0),
-				0,
-			)
-		: 0;
-	const nightCount = data
-		? Object.values(data.apartments).reduce(
-				(sum, apt) => sum + apt.reservations.reduce((s, r) => s + (r.nights ?? 0), 0),
-				0,
-			)
-		: 0;
 	const totalSlots = rows.length * lastDay;
 	const occupiedSlots = rows.reduce((s, r) => s + r.cells.filter(Boolean).length, 0);
+	const monthRevenue =
+		data?.month_revenue ??
+		(data
+			? Object.values(data.apartments).reduce(
+					(sum, apt) =>
+						sum +
+						apt.reservations.reduce((reservationSum, reservation) => {
+							const checkIn = new Date(`${reservation.check_in}T00:00:00`);
+							return checkIn.getFullYear() === year && checkIn.getMonth() + 1 === month
+								? reservationSum + Number(reservation.amount)
+								: reservationSum;
+						}, 0),
+					0,
+				)
+			: 0);
+	const nightCount = data?.occupied_nights ?? occupiedSlots;
 	const occupationPct = totalSlots > 0 ? ((occupiedSlots / totalSlots) * 100).toFixed(1) : '0.0';
 	const fmt = (val: number) => val.toLocaleString('fr-MA');
 

@@ -46,6 +46,8 @@ const mockPlanningData = {
 	year: 2025,
 	month: 6,
 	last_day: 30,
+	month_revenue: 15000,
+	occupied_nights: 3,
 	apartments: {
 		'APT-1': {
 			id: 1,
@@ -181,14 +183,15 @@ describe('PlanningMonthClient', () => {
 		it('renders revenue KPI', () => {
 			render(<PlanningMonthClient session={mockSession} />);
 			expect(screen.getByText('Revenus du mois')).toBeInTheDocument();
-			expect(screen.getByText('20.000 MAD')).toBeInTheDocument();
+			expect(screen.getByText('15.000 MAD')).toBeInTheDocument();
 		});
 
 		it('renders nights KPI', () => {
 			render(<PlanningMonthClient session={mockSession} />);
 			expect(screen.getByText('Nuitées')).toBeInTheDocument();
-			// '4' may appear in multiple places (day numbers); verify at least one
-			expect(screen.getAllByText('4').length).toBeGreaterThanOrEqual(1);
+			// Uses the occupied nights returned by the synchronized API, not the
+			// reservation's complete duration.
+			expect(screen.getAllByText('3').length).toBeGreaterThanOrEqual(1);
 		});
 
 		it('renders occupation KPI', () => {
@@ -249,6 +252,8 @@ describe('PlanningMonthClient', () => {
 					year: 2025,
 					month: 6,
 					last_day: 30,
+					month_revenue: 0,
+					occupied_nights: 0,
 					apartments: {},
 				},
 				isLoading: false,
@@ -258,6 +263,3 @@ describe('PlanningMonthClient', () => {
 		});
 	});
 });
-
-
-

@@ -92,6 +92,8 @@ export interface PlanningMonthType {
 	year: number;
 	month: number;
 	last_day: number;
+	month_revenue: number;
+	occupied_nights: number;
 	apartments: Record<string, PlanningApartmentType>;
 }
 

@@ -19,6 +19,13 @@ const eslintConfig = defineConfig([
 		'coverage',
 		'.pytest_cache/**',
 	]),
+	{
+		settings: {
+			react: {
+				version: '19.2.8',
+			},
+		},
+	},
 ]);
 
 export default eslintConfig;

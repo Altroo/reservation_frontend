@@ -4,10 +4,11 @@ import '@testing-library/jest-dom';
 
 // Mock next/navigation
 const mockPush = jest.fn();
+const mockBack = jest.fn();
 jest.mock('next/navigation', () => ({
 	useRouter: () => ({
 		push: mockPush,
-		back: jest.fn(),
+		back: mockBack,
 		forward: jest.fn(),
 		refresh: jest.fn(),
 		replace: jest.fn(),
@@ -194,7 +195,7 @@ describe('BuildingViewClient', () => {
 		it('navigates back to list on back button click', () => {
 			render(<BuildingViewClient session={mockSession} id={1} />);
 			fireEvent.click(screen.getByText('Liste des résidences'));
-			expect(mockPush).toHaveBeenCalledWith('/dashboard/buildings');
+			expect(mockBack).toHaveBeenCalledTimes(1);
 		});
 
 		it('navigates to edit page on Modifier click', () => {

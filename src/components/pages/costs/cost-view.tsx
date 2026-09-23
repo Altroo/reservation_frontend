@@ -181,7 +181,7 @@ const CostViewClient: React.FC<Props> = ({ session, id }) => {
 							<Button
 								variant="outlined"
 								startIcon={<ArrowBackIcon />}
-								onClick={() => router.push(COSTS_LIST)}
+								onClick={() => router.back()}
 								sx={{ width: isMobile ? '100%' : 'auto' }}
 							>
 								{t.costs.costsList}

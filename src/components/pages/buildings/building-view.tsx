@@ -184,7 +184,7 @@ const BuildingViewClient: React.FC<SessionProps & { id: number }> = ({ session, 
 							<Button
 								variant="outlined"
 								startIcon={<ArrowBackIcon />}
-								onClick={() => router.push(BUILDINGS_LIST)}
+								onClick={() => router.back()}
 								sx={{ whiteSpace: 'nowrap' }}
 							>
 								{t.buildings.residencesList}

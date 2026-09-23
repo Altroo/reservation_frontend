@@ -29,6 +29,7 @@ import type { ReservationClass } from '@/models/classes';
 import Styles from '@/styles/dashboard/dashboard.module.sass';
 import NavigationBar from '@/components/layouts/navigationBar/navigationBar';
 import PaginatedDataGrid from '@/components/shared/paginatedDataGrid/paginatedDataGrid';
+import { useDataGridPagination } from '@/components/shared/paginatedDataGrid/useDataGridPagination';
 import ActionModals from '@/components/htmlElements/modals/actionModal/actionModals';
 import { Protected } from '@/components/layouts/protected/protected';
 import MobileActionsMenu from '@/components/shared/mobileActionsMenu/mobileActionsMenu';
@@ -81,7 +82,7 @@ const ReservationsListClient: React.FC<SessionProps> = ({ session }) => {
 
 	const { data: apartments } = useGetApartmentsQuery(undefined, { skip: !token });
 
-	const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 });
+	const [paginationModel, setPaginationModel] = useDataGridPagination();
 	const [searchTerm, setSearchTerm] = useState('');
 	const [filterModel, setFilterModel] = useState<GridFilterModel>({
 		items: [],

@@ -330,7 +330,7 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 					<Button
 						variant="outlined"
 						startIcon={<ArrowBackIcon />}
-						onClick={() => router.push(LOCAUX_LIST)}
+						onClick={() => router.back()}
 						sx={{ whiteSpace: 'nowrap' }}
 					>
 						{t.locaux.localsList}

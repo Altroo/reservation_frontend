@@ -210,7 +210,7 @@ const LocalViewClient: React.FC<Props> = ({ session, id }) => {
 							<Button
 								variant="outlined"
 								startIcon={<ArrowBackIcon />}
-								onClick={() => router.push(LOCAUX_LIST)}
+								onClick={() => router.back()}
 								sx={{ width: isMobile ? '100%' : 'auto' }}
 							>
 								{t.locaux.localsList}

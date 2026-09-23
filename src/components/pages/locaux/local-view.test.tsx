@@ -4,10 +4,11 @@ import '@testing-library/jest-dom';
 
 // Mock next/navigation
 const mockPush = jest.fn();
+const mockBack = jest.fn();
 jest.mock('next/navigation', () => ({
 	useRouter: () => ({
 		push: mockPush,
-		back: jest.fn(),
+		back: mockBack,
 		forward: jest.fn(),
 		refresh: jest.fn(),
 		replace: jest.fn(),
@@ -314,7 +315,7 @@ describe('LocalViewClient', () => {
 		it('navigates back to list on back button click', () => {
 			render(<LocalViewClient session={mockSession} id={5} />);
 			fireEvent.click(screen.getByText('Liste des locaux'));
-			expect(mockPush).toHaveBeenCalledWith('/dashboard/locaux');
+			expect(mockBack).toHaveBeenCalledTimes(1);
 		});
 
 		it('navigates to edit page on Modifier click', () => {

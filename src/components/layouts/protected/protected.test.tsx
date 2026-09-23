@@ -1,4 +1,3 @@
-import React from 'react';
 import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { Protected } from './protected';
@@ -10,13 +9,19 @@ jest.mock('@/utils/hooks', () => ({
 	// eslint-disable-next-line @typescript-eslint/no-require-imports
 	useLanguage: () => ({ language: 'fr', setLanguage: jest.fn(), t: require('@/translations').translations.fr }),
 }));
-
 import { usePermission, useAppSelector } from '@/utils/hooks';
 
 describe('Protected component', () => {
 	it('renders children when is_staff is true (default permission)', () => {
 		(useAppSelector as jest.Mock).mockReturnValue({ id: 1 });
-		(usePermission as jest.Mock).mockReturnValue({ is_staff: true, can_view: false, can_create: false, can_edit: false, can_delete: false, can_access_hilton_reports: true });
+		(usePermission as jest.Mock).mockReturnValue({
+			is_staff: true,
+			can_view: false,
+			can_create: false,
+			can_edit: false,
+			can_delete: false,
+			can_access_hilton_reports: true,
+		});
 
 		render(
 			<Protected>
@@ -30,7 +35,14 @@ describe('Protected component', () => {
 
 	it('renders access denied message when is_staff is false (default permission)', () => {
 		(useAppSelector as jest.Mock).mockReturnValue({ id: 1 });
-		(usePermission as jest.Mock).mockReturnValue({ is_staff: false, can_view: false, can_create: false, can_edit: false, can_delete: false, can_access_hilton_reports: false });
+		(usePermission as jest.Mock).mockReturnValue({
+			is_staff: false,
+			can_view: false,
+			can_create: false,
+			can_edit: false,
+			can_delete: false,
+			can_access_hilton_reports: false,
+		});
 
 		render(
 			<Protected>
@@ -45,7 +57,14 @@ describe('Protected component', () => {
 
 	it('renders children when specific permission is granted', () => {
 		(useAppSelector as jest.Mock).mockReturnValue({ id: 1 });
-		(usePermission as jest.Mock).mockReturnValue({ is_staff: false, can_view: true, can_create: false, can_edit: false, can_delete: false, can_access_hilton_reports: false });
+		(usePermission as jest.Mock).mockReturnValue({
+			is_staff: false,
+			can_view: true,
+			can_create: false,
+			can_edit: false,
+			can_delete: false,
+			can_access_hilton_reports: false,
+		});
 
 		render(
 			<Protected permission="can_view">
@@ -59,7 +78,14 @@ describe('Protected component', () => {
 
 	it('renders access denied when specific permission is not granted', () => {
 		(useAppSelector as jest.Mock).mockReturnValue({ id: 1 });
-		(usePermission as jest.Mock).mockReturnValue({ is_staff: false, can_view: false, can_create: false, can_edit: false, can_delete: false, can_access_hilton_reports: false });
+		(usePermission as jest.Mock).mockReturnValue({
+			is_staff: false,
+			can_view: false,
+			can_create: false,
+			can_edit: false,
+			can_delete: false,
+			can_access_hilton_reports: false,
+		});
 
 		render(
 			<Protected permission="can_edit">
@@ -73,7 +99,14 @@ describe('Protected component', () => {
 
 	it('renders children when Hilton reports permission is granted', () => {
 		(useAppSelector as jest.Mock).mockReturnValue({ id: 1 });
-		(usePermission as jest.Mock).mockReturnValue({ is_staff: false, can_view: false, can_create: false, can_edit: false, can_delete: false, can_access_hilton_reports: true });
+		(usePermission as jest.Mock).mockReturnValue({
+			is_staff: false,
+			can_view: false,
+			can_create: false,
+			can_edit: false,
+			can_delete: false,
+			can_access_hilton_reports: true,
+		});
 
 		render(
 			<Protected permission="can_access_hilton_reports">

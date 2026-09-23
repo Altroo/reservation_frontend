@@ -1,6 +1,8 @@
 'use client';
 
-import React, { isValidElement, useMemo, useState } from 'react';
+import { runAsyncWithErrorHandler } from '@/utils/runWithCleanup';
+import { runWithCleanup } from '@/utils/runWithCleanup';
+import { isValidElement, useState, type FC, type ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
 import {
 	Alert,
@@ -65,12 +67,12 @@ import { useInitAccessToken } from '@/contexts/InitContext';
 import Styles from '@/styles/dashboard/dashboard.module.sass';
 
 interface InfoRowProps {
-	icon: React.ReactNode;
+	icon: ReactNode;
 	label: string;
-	value: string | number | null | undefined | React.ReactNode;
+	value: string | number | null | undefined | ReactNode;
 }
 
-const InfoRow: React.FC<InfoRowProps> = ({ icon, label, value }) => {
+const InfoRow: FC<InfoRowProps> = ({ icon, label, value }) => {
 	const theme = useTheme();
 	const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 	const displayValue =
@@ -122,7 +124,7 @@ interface Props extends SessionProps {
 	id: number;
 }
 
-const LocalViewClient: React.FC<Props> = ({ session, id }) => {
+const LocalViewClient: FC<Props> = ({ session, id }) => {
 	const router = useRouter();
 	const { t } = useLanguage();
 	const token = useInitAccessToken(session);
@@ -131,10 +133,7 @@ const LocalViewClient: React.FC<Props> = ({ session, id }) => {
 	const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
 	const { data: local, isLoading, error } = useGetLocalQuery({ id }, { skip: !token });
-	const axiosError = useMemo(
-		() => (error ? (error as ResponseDataInterface<ApiErrorResponseType>) : undefined),
-		[error],
-	);
+	const axiosError = error ? (error as ResponseDataInterface<ApiErrorResponseType>) : undefined;
 
 	const [deleteLocal] = useDeleteLocalMutation();
 	const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -143,35 +142,43 @@ const LocalViewClient: React.FC<Props> = ({ session, id }) => {
 	const currentYear = new Date().getFullYear();
 	const [loyerYear, setLoyerYear] = useState(currentYear);
 	const { data: yearsData } = useGetLocalYearsQuery(undefined, { skip: !token });
-	const loyerYearOptions = useMemo(() => {
+	const loyerYearOptions = (() => {
 		const yrs = yearsData?.years ?? [];
 		if (!yrs.includes(currentYear)) return [...yrs, currentYear].sort((a, b) => b - a);
 		return [...yrs].sort((a, b) => b - a);
-	}, [yearsData, currentYear]);
+	})();
 	const { data: loyersRaw } = useGetLoyersListQuery({ local: id, annee: loyerYear }, { skip: !token });
-	const loyers = useMemo(() => (Array.isArray(loyersRaw) ? loyersRaw : []) as LoyerListType[], [loyersRaw]);
+	const loyers = (Array.isArray(loyersRaw) ? loyersRaw : []) as LoyerListType[];
 
 	const [toggleLoyerPaid] = useToggleLoyerPaidMutation();
 
 	const handleDelete = async () => {
-		try {
-			await deleteLocal({ id }).unwrap();
-			onSuccess(t.locaux.localDeletedSuccess);
-			router.push(LOCAUX_LIST);
-		} catch (err) {
-			onError(extractApiErrorMessage(err, t.locaux.localDeleteError));
-		} finally {
-			setShowDeleteModal(false);
-		}
+		await runWithCleanup(
+			async () => {
+				try {
+					await deleteLocal({ id }).unwrap();
+					onSuccess(t.locaux.localDeletedSuccess);
+					router.push(LOCAUX_LIST);
+				} catch (err) {
+					onError(extractApiErrorMessage(err, t.locaux.localDeleteError));
+				}
+			},
+			() => {
+				setShowDeleteModal(false);
+			},
+		);
 	};
 
 	const handleTogglePaid = async (loyer: LoyerListType) => {
-		try {
-			await toggleLoyerPaid({ id: loyer.id, paye: !loyer.paye }).unwrap();
-			onSuccess(loyer.paye ? t.locaux.rentMarkedUnpaid : t.locaux.rentMarkedPaid);
-		} catch (err) {
-			onError(extractApiErrorMessage(err, t.locaux.rentUpdateError));
-		}
+		await runAsyncWithErrorHandler(
+			async () => {
+				await toggleLoyerPaid({ id: loyer.id, paye: !loyer.paye }).unwrap();
+				onSuccess(loyer.paye ? t.locaux.rentMarkedUnpaid : t.locaux.rentMarkedPaid);
+			},
+			async (err) => {
+				onError(extractApiErrorMessage(err, t.locaux.rentUpdateError));
+			},
+		);
 	};
 
 	const deleteModalActions = [

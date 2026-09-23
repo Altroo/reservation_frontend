@@ -1,6 +1,8 @@
 'use client';
 
-import React, { useEffect, useMemo, useState } from 'react';
+import { runAsyncWithErrorHandler } from '@/utils/runWithCleanup';
+import { runWithCleanup } from '@/utils/runWithCleanup';
+import { useEffect, useState, type Dispatch, type FC, type ReactNode, type SetStateAction } from 'react';
 import {
 	Alert,
 	Box,
@@ -54,7 +56,11 @@ import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { fr } from 'date-fns/locale';
 import { addDays, format, parseISO } from 'date-fns';
 import type { SessionProps } from '@/types/_initTypes';
-import type { HiltonReportManualLineKind, HiltonReportManualLineType, HiltonReportType } from '@/types/reservationTypes';
+import type {
+	HiltonReportManualLineKind,
+	HiltonReportManualLineType,
+	HiltonReportType,
+} from '@/types/reservationTypes';
 import Styles from '@/styles/dashboard/dashboard.module.sass';
 import NavigationBar from '@/components/layouts/navigationBar/navigationBar';
 import { Protected } from '@/components/layouts/protected/protected';
@@ -126,17 +132,7 @@ const calculateManualTotals = (lines: Array<Pick<ManualLineForm, 'line_type' | '
 		{ cost: 0, adjustment: 0 },
 	);
 
-const StatCard = ({
-	label,
-	value,
-	icon,
-	color,
-}: {
-	label: string;
-	value: string;
-	icon: React.ReactNode;
-	color: string;
-}) => (
+const StatCard = ({ label, value, icon, color }: { label: string; value: string; icon: ReactNode; color: string }) => (
 	<Card
 		elevation={1}
 		sx={{
@@ -178,12 +174,12 @@ const StatCard = ({
 	</Card>
 );
 
-const HiltonReportsClient: React.FC<SessionProps> = ({ session }) => {
+const HiltonReportsClient: FC<SessionProps> = ({ session }) => {
 	const token = useInitAccessToken(session);
 	const { t } = useLanguage();
 	const { onSuccess, onError } = useToast();
 
-	const today = useMemo(() => formatLocalDate(new Date()), []);
+	const today = formatLocalDate(new Date());
 	const [startDate, setStartDate] = useState('');
 	const [endDate, setEndDate] = useState(today);
 	const [notes, setNotes] = useState('');
@@ -204,8 +200,11 @@ const HiltonReportsClient: React.FC<SessionProps> = ({ session }) => {
 
 	useEffect(() => {
 		if (latestReport?.end_date) {
-			setStartDate(latestReport.end_date);
-			setEndDate((current) => (current > latestReport.end_date ? current : nextDate(latestReport.end_date)));
+			const reportEndDate = latestReport.end_date;
+			queueMicrotask(() => {
+				setStartDate(reportEndDate);
+				setEndDate((current) => (current > reportEndDate ? current : nextDate(reportEndDate)));
+			});
 		}
 	}, [latestReport?.end_date]);
 
@@ -234,8 +233,8 @@ const HiltonReportsClient: React.FC<SessionProps> = ({ session }) => {
 	const [updateReport, { isLoading: isUpdating }] = useUpdateHiltonReportMutation();
 	const [deleteReport, { isLoading: isDeleting }] = useDeleteHiltonReportMutation();
 
-	const manualPayloadLines = useMemo(() => sanitizeManualLines(manualLines), [manualLines]);
-	const manualTotals = useMemo(() => calculateManualTotals(manualPayloadLines), [manualPayloadLines]);
+	const manualPayloadLines = sanitizeManualLines(manualLines);
+	const manualTotals = calculateManualTotals(manualPayloadLines);
 	const previewOpeningBalance = toNumber(preview?.opening_balance);
 	const previewGross = toNumber(preview?.gross_revenue);
 	const previewNet = previewOpeningBalance + previewGross - manualTotals.adjustment - manualTotals.cost;
@@ -244,18 +243,15 @@ const HiltonReportsClient: React.FC<SessionProps> = ({ session }) => {
 	);
 	const reportHasContent = manualPayloadLines.length > 0 || previewHasRevenue;
 
-	const lineTypes = useMemo(
-		() => [
-			{ value: 'cost', label: t.hiltonReports.cost },
-			{ value: 'adjustment', label: t.hiltonReports.adjustment },
-			{ value: 'note', label: t.hiltonReports.note },
-		],
-		[t],
-	);
+	const lineTypes = [
+		{ value: 'cost', label: t.hiltonReports.cost },
+		{ value: 'adjustment', label: t.hiltonReports.adjustment },
+		{ value: 'note', label: t.hiltonReports.note },
+	];
 
 	const updateLine = (
 		lines: ManualLineForm[],
-		setLines: React.Dispatch<React.SetStateAction<ManualLineForm[]>>,
+		setLines: Dispatch<SetStateAction<ManualLineForm[]>>,
 		index: number,
 		patch: Partial<ManualLineForm>,
 	) => {
@@ -273,10 +269,7 @@ const HiltonReportsClient: React.FC<SessionProps> = ({ session }) => {
 		);
 	};
 
-	const renderManualLineEditor = (
-		lines: ManualLineForm[],
-		setLines: React.Dispatch<React.SetStateAction<ManualLineForm[]>>,
-	) => (
+	const renderManualLineEditor = (lines: ManualLineForm[], setLines: Dispatch<SetStateAction<ManualLineForm[]>>) => (
 		<Stack spacing={1.5}>
 			{lines.map((line, index) => (
 				<Stack
@@ -365,7 +358,12 @@ const HiltonReportsClient: React.FC<SessionProps> = ({ session }) => {
 				</Stack>
 			))}
 			<Box>
-				<Button variant="outlined" size="small" startIcon={<AddIcon />} onClick={() => setLines([...lines, emptyManualLine()])}>
+				<Button
+					variant="outlined"
+					size="small"
+					startIcon={<AddIcon />}
+					onClick={() => setLines([...lines, emptyManualLine()])}
+				>
 					{t.hiltonReports.addLine}
 				</Button>
 			</Box>
@@ -377,27 +375,30 @@ const HiltonReportsClient: React.FC<SessionProps> = ({ session }) => {
 			onError(t.hiltonReports.emptyReportError);
 			return;
 		}
-		try {
-			const payload = {
-				...(hasReports ? {} : { start_date: startDate }),
-				end_date: endDate,
-				notes,
-				cash_register_total: String(toNumber(cashRegisterTotal)),
-				cost_period_label: costPeriodLabel.trim(),
-				manual_lines: manualPayloadLines,
-			};
-			const created = await createReport(payload).unwrap();
-			setStartDate(created.end_date);
-			setEndDate(nextDate(created.end_date));
-			setNotes('');
-			setCashRegisterTotal('0');
-			setCostPeriodLabel('');
-			setManualLines([]);
-			setViewReport(created);
-			onSuccess(t.hiltonReports.createSuccess);
-		} catch (err) {
-			onError(extractApiErrorMessage(err, t.hiltonReports.createError));
-		}
+		await runAsyncWithErrorHandler(
+			async () => {
+				const payload = {
+					...(hasReports ? {} : { start_date: startDate }),
+					end_date: endDate,
+					notes,
+					cash_register_total: String(toNumber(cashRegisterTotal)),
+					cost_period_label: costPeriodLabel.trim(),
+					manual_lines: manualPayloadLines,
+				};
+				const created = await createReport(payload).unwrap();
+				setStartDate(created.end_date);
+				setEndDate(nextDate(created.end_date));
+				setNotes('');
+				setCashRegisterTotal('0');
+				setCostPeriodLabel('');
+				setManualLines([]);
+				setViewReport(created);
+				onSuccess(t.hiltonReports.createSuccess);
+			},
+			async (err) => {
+				onError(extractApiErrorMessage(err, t.hiltonReports.createError));
+			},
+		);
 	};
 
 	const openEdit = (report: HiltonReportType) => {
@@ -438,14 +439,19 @@ const HiltonReportsClient: React.FC<SessionProps> = ({ session }) => {
 
 	const handleDelete = async () => {
 		if (!deleteReportId) return;
-		try {
-			await deleteReport({ id: deleteReportId }).unwrap();
-			onSuccess(t.hiltonReports.deleteSuccess);
-		} catch (err) {
-			onError(extractApiErrorMessage(err, t.hiltonReports.deleteError));
-		} finally {
-			setDeleteReportId(null);
-		}
+		await runWithCleanup(
+			async () => {
+				try {
+					await deleteReport({ id: deleteReportId }).unwrap();
+					onSuccess(t.hiltonReports.deleteSuccess);
+				} catch (err) {
+					onError(extractApiErrorMessage(err, t.hiltonReports.deleteError));
+				}
+			},
+			() => {
+				setDeleteReportId(null);
+			},
+		);
 	};
 
 	const deleteModalActions = [
@@ -568,7 +574,9 @@ const HiltonReportsClient: React.FC<SessionProps> = ({ session }) => {
 									<Chip
 										size="small"
 										label={lineTypes.find((item) => item.value === line.line_type)?.label ?? line.line_type}
-										color={line.line_type === 'cost' ? 'error' : line.line_type === 'adjustment' ? 'success' : 'default'}
+										color={
+											line.line_type === 'cost' ? 'error' : line.line_type === 'adjustment' ? 'success' : 'default'
+										}
 										variant="outlined"
 									/>
 								</TableCell>
@@ -617,9 +625,7 @@ const HiltonReportsClient: React.FC<SessionProps> = ({ session }) => {
 					)
 					.join('')
 			: `<tr><td class="vertical"></td><td colspan="3">${escapeHtml(t.hiltonReports.noManualLines)}</td></tr>`;
-		const noteRows = notes
-			.map((line) => `<li>${escapeHtml(line.description)}</li>`)
-			.join('');
+		const noteRows = notes.map((line) => `<li>${escapeHtml(line.description)}</li>`).join('');
 		const title = `${t.hiltonReports.reportNumber(report.id)} - ${formatDate(report.end_date)}`;
 		const win = window.open('', '_blank', 'width=980,height=1200');
 		if (!win) return;
@@ -777,419 +783,424 @@ const HiltonReportsClient: React.FC<SessionProps> = ({ session }) => {
 								</Typography>
 							</Box>
 
-						<Card elevation={2} sx={{ borderRadius: 2 }}>
-							<CardContent>
-								<Stack spacing={2.5}>
-									<Typography variant="h6" sx={{ fontWeight: 700 }}>
-										{t.hiltonReports.createReport}
-									</Typography>
-									<Grid container spacing={2}>
-										<Grid size={{ xs: 12, md: 4 }}>
-											<DatePicker
-												label={t.hiltonReports.startDate}
-												value={startDate ? parseISO(startDate) : null}
-												onChange={handleStartDateChange}
-												maxDate={endDate ? addDays(parseISO(endDate), -1) : undefined}
-												disabled={hasReports}
-												slots={{ openPickerIcon: CalendarMonthIcon }}
-												slotProps={{
-													textField: {
-														size: 'small',
-														fullWidth: true,
-														slotProps: {
-															input: {
-																startAdornment: (
-																	<InputAdornment position="start">
-																		<CalendarMonthIcon fontSize="small" />
-																	</InputAdornment>
-																),
+							<Card elevation={2} sx={{ borderRadius: 2 }}>
+								<CardContent>
+									<Stack spacing={2.5}>
+										<Typography variant="h6" sx={{ fontWeight: 700 }}>
+											{t.hiltonReports.createReport}
+										</Typography>
+										<Grid container spacing={2}>
+											<Grid size={{ xs: 12, md: 4 }}>
+												<DatePicker
+													label={t.hiltonReports.startDate}
+													value={startDate ? parseISO(startDate) : null}
+													onChange={handleStartDateChange}
+													maxDate={endDate ? addDays(parseISO(endDate), -1) : undefined}
+													disabled={hasReports}
+													slots={{ openPickerIcon: CalendarMonthIcon }}
+													slotProps={{
+														textField: {
+															size: 'small',
+															fullWidth: true,
+															slotProps: {
+																input: {
+																	startAdornment: (
+																		<InputAdornment position="start">
+																			<CalendarMonthIcon fontSize="small" />
+																		</InputAdornment>
+																	),
+																},
 															},
 														},
-													},
-												}}
-											/>
-										</Grid>
-										<Grid size={{ xs: 12, md: 4 }}>
-											<DatePicker
-												label={t.hiltonReports.endDate}
-												value={endDate ? parseISO(endDate) : null}
-												onChange={handleEndDateChange}
-												minDate={startDate ? parseISO(nextDate(startDate)) : undefined}
-												slots={{ openPickerIcon: CalendarMonthIcon }}
-												slotProps={{
-													textField: {
-														size: 'small',
-														fullWidth: true,
-														slotProps: {
-															input: {
-																startAdornment: (
-																	<InputAdornment position="start">
-																		<CalendarMonthIcon fontSize="small" />
-																	</InputAdornment>
-																),
+													}}
+												/>
+											</Grid>
+											<Grid size={{ xs: 12, md: 4 }}>
+												<DatePicker
+													label={t.hiltonReports.endDate}
+													value={endDate ? parseISO(endDate) : null}
+													onChange={handleEndDateChange}
+													minDate={startDate ? parseISO(nextDate(startDate)) : undefined}
+													slots={{ openPickerIcon: CalendarMonthIcon }}
+													slotProps={{
+														textField: {
+															size: 'small',
+															fullWidth: true,
+															slotProps: {
+																input: {
+																	startAdornment: (
+																		<InputAdornment position="start">
+																			<CalendarMonthIcon fontSize="small" />
+																		</InputAdornment>
+																	),
+																},
 															},
 														},
-													},
-												}}
-											/>
+													}}
+												/>
+											</Grid>
+											<Grid size={{ xs: 12, md: 4 }}>
+												<TextField
+													size="small"
+													label={t.hiltonReports.building}
+													value="Hilton residence"
+													disabled
+													fullWidth
+													slotProps={{
+														input: {
+															startAdornment: (
+																<InputAdornment position="start">
+																	<ApartmentIcon fontSize="small" />
+																</InputAdornment>
+															),
+														},
+													}}
+												/>
+											</Grid>
 										</Grid>
-										<Grid size={{ xs: 12, md: 4 }}>
-											<TextField
-												size="small"
-												label={t.hiltonReports.building}
-												value="Hilton residence"
-												disabled
-												fullWidth
-												slotProps={{
-													input: {
-														startAdornment: (
-															<InputAdornment position="start">
-																<ApartmentIcon fontSize="small" />
-															</InputAdornment>
-														),
-													},
-												}}
-											/>
-										</Grid>
-									</Grid>
 
+										<Grid container spacing={2}>
+											<Grid size={{ xs: 12, md: 6 }}>
+												<TextField
+													size="small"
+													type="number"
+													label={t.hiltonReports.cashRegister}
+													value={cashRegisterTotal}
+													onChange={(event) => setCashRegisterTotal(event.target.value)}
+													fullWidth
+													slotProps={{
+														input: {
+															startAdornment: (
+																<InputAdornment position="start">
+																	<SavingsIcon fontSize="small" />
+																</InputAdornment>
+															),
+															endAdornment: <InputAdornment position="end">MAD</InputAdornment>,
+														},
+														htmlInput: { inputMode: 'decimal', min: 0, step: '0.01' },
+													}}
+												/>
+											</Grid>
+											<Grid size={{ xs: 12, md: 6 }}>
+												<TextField
+													size="small"
+													label={t.hiltonReports.costPeriod}
+													value={costPeriodLabel}
+													onChange={(event) => setCostPeriodLabel(event.target.value)}
+													fullWidth
+													slotProps={{
+														input: {
+															startAdornment: (
+																<InputAdornment position="start">
+																	<CalendarMonthIcon fontSize="small" />
+																</InputAdornment>
+															),
+														},
+													}}
+												/>
+											</Grid>
+										</Grid>
+
+										{startDate && endDate && (
+											<Alert severity={periodIsValid ? 'info' : 'warning'}>
+												{t.hiltonReports.period}: {formatDate(startDate)} - {formatDate(endDate)}
+											</Alert>
+										)}
+										{periodIsValid && !isPreviewFetching && !reportHasContent && (
+											<Alert severity="warning">{t.hiltonReports.emptyReportError}</Alert>
+										)}
+
+										<TextField
+											label={t.common.notes}
+											value={notes}
+											onChange={(event) => setNotes(event.target.value)}
+											multiline
+											minRows={2}
+											fullWidth
+											slotProps={{
+												input: {
+													startAdornment: (
+														<InputAdornment position="start">
+															<NotesIcon fontSize="small" />
+														</InputAdornment>
+													),
+												},
+												htmlInput: { maxLength: 2000 },
+											}}
+										/>
+
+										<Box>
+											<Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 1.5 }}>
+												{t.hiltonReports.manualLines}
+											</Typography>
+											{renderManualLineEditor(manualLines, setManualLines)}
+										</Box>
+
+										{preview && (
+											<Stack spacing={2}>
+												<Divider />
+												<Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
+													{t.hiltonReports.preview}
+												</Typography>
+												{renderTotals()}
+												{renderApartmentTable()}
+											</Stack>
+										)}
+
+										<Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+											<Button
+												variant="contained"
+												startIcon={<SaveIcon />}
+												onClick={handleCreate}
+												disabled={!periodIsValid || !reportHasContent || isCreating}
+											>
+												{t.hiltonReports.createReport}
+											</Button>
+										</Box>
+									</Stack>
+								</CardContent>
+							</Card>
+
+							<Card elevation={2} sx={{ borderRadius: 2 }}>
+								<CardContent>
+									<Stack spacing={2}>
+										<Typography variant="h6" sx={{ fontWeight: 700 }}>
+											{t.hiltonReports.reportHistory}
+										</Typography>
+										<TableContainer component={Paper} variant="outlined">
+											<Table size="small">
+												<TableHead>
+													<TableRow>
+														<TableCell>{t.hiltonReports.period}</TableCell>
+														<TableCell align="right">{t.hiltonReports.cashAmount}</TableCell>
+														<TableCell align="right">{t.hiltonReports.costs}</TableCell>
+														<TableCell align="right">{t.hiltonReports.netTotal}</TableCell>
+														<TableCell>{t.common.createdBy}</TableCell>
+														<TableCell align="right">{t.common.actions}</TableCell>
+													</TableRow>
+												</TableHead>
+												<TableBody>
+													{isLoading ? (
+														<TableRow>
+															<TableCell colSpan={6}>{t.common.loading}</TableCell>
+														</TableRow>
+													) : !reports || reports.length === 0 ? (
+														<TableRow>
+															<TableCell colSpan={6}>{t.hiltonReports.noReports}</TableCell>
+														</TableRow>
+													) : (
+														reports.map((report) => {
+															const isLatest = latestReport?.id === report.id;
+															return (
+																<TableRow key={report.id}>
+																	<TableCell>
+																		{formatDate(report.start_date)} - {formatDate(report.end_date)}
+																	</TableCell>
+																	<TableCell align="right">{formatNumber(report.gross_revenue)} MAD</TableCell>
+																	<TableCell align="right">
+																		{formatNumber(
+																			toNumber(report.manual_cost_total) + toNumber(report.manual_adjustment_total),
+																		)}{' '}
+																		MAD
+																	</TableCell>
+																	<TableCell align="right">{formatNumber(report.net_total)} MAD</TableCell>
+																	<TableCell>{report.created_by_user_name ?? '-'}</TableCell>
+																	<TableCell align="right">
+																		<Tooltip title={t.hiltonReports.printPdf}>
+																			<IconButton size="small" onClick={() => printReport(report)}>
+																				<PrintIcon fontSize="small" />
+																			</IconButton>
+																		</Tooltip>
+																		<Tooltip title={t.hiltonReports.viewReport}>
+																			<IconButton size="small" onClick={() => setViewReport(report)}>
+																				<VisibilityIcon fontSize="small" />
+																			</IconButton>
+																		</Tooltip>
+																		<Tooltip title={t.hiltonReports.editReport}>
+																			<IconButton size="small" onClick={() => openEdit(report)}>
+																				<EditIcon fontSize="small" />
+																			</IconButton>
+																		</Tooltip>
+																		<Tooltip
+																			title={isLatest ? t.hiltonReports.deleteReport : t.hiltonReports.latestOnlyDelete}
+																		>
+																			<span>
+																				<IconButton
+																					size="small"
+																					color="error"
+																					disabled={!isLatest}
+																					onClick={() => setDeleteReportId(report.id)}
+																				>
+																					<DeleteIcon fontSize="small" />
+																				</IconButton>
+																			</span>
+																		</Tooltip>
+																	</TableCell>
+																</TableRow>
+															);
+														})
+													)}
+												</TableBody>
+											</Table>
+										</TableContainer>
+									</Stack>
+								</CardContent>
+							</Card>
+						</Stack>
+					</Protected>
+				</NavigationBar>
+
+				<Dialog open={Boolean(viewReport)} onClose={() => setViewReport(null)} fullWidth maxWidth="md">
+					{viewReport && (
+						<>
+							<DialogTitle>{t.hiltonReports.reportNumber(viewReport.id)}</DialogTitle>
+							<DialogContent>
+								<Stack spacing={2.5} sx={{ pt: 1 }}>
+									<Alert severity="info">
+										{t.hiltonReports.period}: {formatDate(viewReport.start_date)} - {formatDate(viewReport.end_date)}
+									</Alert>
+									{renderTotals(viewReport)}
 									<Grid container spacing={2}>
 										<Grid size={{ xs: 12, md: 6 }}>
-											<TextField
-												size="small"
-												type="number"
+											<StatCard
 												label={t.hiltonReports.cashRegister}
-												value={cashRegisterTotal}
-												onChange={(event) => setCashRegisterTotal(event.target.value)}
-												fullWidth
-												slotProps={{
-													input: {
-														startAdornment: (
-															<InputAdornment position="start">
-																<SavingsIcon fontSize="small" />
-															</InputAdornment>
-														),
-														endAdornment: <InputAdornment position="end">MAD</InputAdornment>,
-													},
-													htmlInput: { inputMode: 'decimal', min: 0, step: '0.01' },
-												}}
+												value={`${formatNumber(viewReport.cash_register_total)} MAD`}
+												icon={<SavingsIcon fontSize="small" />}
+												color="#6d4c41"
 											/>
 										</Grid>
 										<Grid size={{ xs: 12, md: 6 }}>
-											<TextField
-												size="small"
-												label={t.hiltonReports.costPeriod}
-												value={costPeriodLabel}
-												onChange={(event) => setCostPeriodLabel(event.target.value)}
-												fullWidth
-												slotProps={{
-													input: {
-														startAdornment: (
-															<InputAdornment position="start">
-																<CalendarMonthIcon fontSize="small" />
-															</InputAdornment>
-														),
-													},
-												}}
+											<StatCard
+												label={t.hiltonReports.deductions}
+												value={`${formatNumber(viewReport.manual_adjustment_total)} MAD`}
+												icon={<TrendingDownIcon fontSize="small" />}
+												color="#ad1457"
 											/>
 										</Grid>
 									</Grid>
-
-									{startDate && endDate && (
-										<Alert severity={periodIsValid ? 'info' : 'warning'}>
-											{t.hiltonReports.period}: {formatDate(startDate)} - {formatDate(endDate)}
+									<Box>
+										<Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 1 }}>
+											{t.hiltonReports.apartmentsRevenue}
+										</Typography>
+										{renderApartmentTable(viewReport)}
+									</Box>
+									<Box>
+										<Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 1 }}>
+											{t.hiltonReports.manualLines}
+										</Typography>
+										{renderManualLinesTable(viewReport)}
+									</Box>
+									{viewReport.notes && (
+										<Alert severity="info">
+											<Typography variant="body2">{viewReport.notes}</Typography>
 										</Alert>
 									)}
-									{periodIsValid && !isPreviewFetching && !reportHasContent && (
-										<Alert severity="warning">{t.hiltonReports.emptyReportError}</Alert>
-									)}
+								</Stack>
+							</DialogContent>
+							<DialogActions>
+								<Button onClick={() => setViewReport(null)} startIcon={<CloseIcon />}>
+									{t.common.close}
+								</Button>
+								<Button onClick={() => printReport(viewReport)} startIcon={<PrintIcon />}>
+									{t.hiltonReports.printPdf}
+								</Button>
+								<Button onClick={() => openEdit(viewReport)} startIcon={<EditIcon />}>
+									{t.common.edit}
+								</Button>
+							</DialogActions>
+						</>
+					)}
+				</Dialog>
 
+				<Dialog open={Boolean(editReport)} onClose={() => setEditReport(null)} fullWidth maxWidth="md">
+					<DialogTitle>{t.hiltonReports.editReport}</DialogTitle>
+					<DialogContent>
+						<Stack spacing={2} sx={{ pt: 1 }}>
+							{editReport && (
+								<Alert severity="info">
+									{t.hiltonReports.period}: {formatDate(editReport.start_date)} - {formatDate(editReport.end_date)}
+								</Alert>
+							)}
+							<TextField
+								label={t.common.notes}
+								value={editNotes}
+								onChange={(event) => setEditNotes(event.target.value)}
+								multiline
+								minRows={2}
+								fullWidth
+								slotProps={{
+									input: {
+										startAdornment: (
+											<InputAdornment position="start">
+												<NotesIcon fontSize="small" />
+											</InputAdornment>
+										),
+									},
+									htmlInput: { maxLength: 2000 },
+								}}
+							/>
+							<Grid container spacing={2}>
+								<Grid size={{ xs: 12, md: 6 }}>
 									<TextField
-										label={t.common.notes}
-										value={notes}
-										onChange={(event) => setNotes(event.target.value)}
-										multiline
-										minRows={2}
+										size="small"
+										type="number"
+										label={t.hiltonReports.cashRegister}
+										value={editCashRegisterTotal}
+										onChange={(event) => setEditCashRegisterTotal(event.target.value)}
 										fullWidth
 										slotProps={{
 											input: {
 												startAdornment: (
 													<InputAdornment position="start">
-														<NotesIcon fontSize="small" />
+														<SavingsIcon fontSize="small" />
+													</InputAdornment>
+												),
+												endAdornment: <InputAdornment position="end">MAD</InputAdornment>,
+											},
+											htmlInput: { inputMode: 'decimal', min: 0, step: '0.01' },
+										}}
+									/>
+								</Grid>
+								<Grid size={{ xs: 12, md: 6 }}>
+									<TextField
+										size="small"
+										label={t.hiltonReports.costPeriod}
+										value={editCostPeriodLabel}
+										onChange={(event) => setEditCostPeriodLabel(event.target.value)}
+										fullWidth
+										slotProps={{
+											input: {
+												startAdornment: (
+													<InputAdornment position="start">
+														<CalendarMonthIcon fontSize="small" />
 													</InputAdornment>
 												),
 											},
-											htmlInput: { maxLength: 2000 },
 										}}
 									/>
-
-									<Box>
-										<Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 1.5 }}>
-											{t.hiltonReports.manualLines}
-										</Typography>
-										{renderManualLineEditor(manualLines, setManualLines)}
-									</Box>
-
-									{preview && (
-										<Stack spacing={2}>
-											<Divider />
-											<Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
-												{t.hiltonReports.preview}
-											</Typography>
-											{renderTotals()}
-											{renderApartmentTable()}
-										</Stack>
-									)}
-
-									<Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
-										<Button
-											variant="contained"
-											startIcon={<SaveIcon />}
-											onClick={handleCreate}
-											disabled={!periodIsValid || !reportHasContent || isCreating}
-										>
-											{t.hiltonReports.createReport}
-										</Button>
-									</Box>
-								</Stack>
-							</CardContent>
-						</Card>
-
-						<Card elevation={2} sx={{ borderRadius: 2 }}>
-							<CardContent>
-								<Stack spacing={2}>
-									<Typography variant="h6" sx={{ fontWeight: 700 }}>
-										{t.hiltonReports.reportHistory}
-									</Typography>
-									<TableContainer component={Paper} variant="outlined">
-										<Table size="small">
-											<TableHead>
-												<TableRow>
-													<TableCell>{t.hiltonReports.period}</TableCell>
-													<TableCell align="right">{t.hiltonReports.cashAmount}</TableCell>
-													<TableCell align="right">{t.hiltonReports.costs}</TableCell>
-													<TableCell align="right">{t.hiltonReports.netTotal}</TableCell>
-													<TableCell>{t.common.createdBy}</TableCell>
-													<TableCell align="right">{t.common.actions}</TableCell>
-												</TableRow>
-											</TableHead>
-											<TableBody>
-												{isLoading ? (
-													<TableRow>
-														<TableCell colSpan={6}>{t.common.loading}</TableCell>
-													</TableRow>
-												) : !reports || reports.length === 0 ? (
-													<TableRow>
-														<TableCell colSpan={6}>{t.hiltonReports.noReports}</TableCell>
-													</TableRow>
-												) : (
-													reports.map((report) => {
-														const isLatest = latestReport?.id === report.id;
-														return (
-															<TableRow key={report.id}>
-																<TableCell>
-																	{formatDate(report.start_date)} - {formatDate(report.end_date)}
-																</TableCell>
-																<TableCell align="right">{formatNumber(report.gross_revenue)} MAD</TableCell>
-																<TableCell align="right">
-																	{formatNumber(toNumber(report.manual_cost_total) + toNumber(report.manual_adjustment_total))} MAD
-																</TableCell>
-																<TableCell align="right">{formatNumber(report.net_total)} MAD</TableCell>
-																<TableCell>{report.created_by_user_name ?? '-'}</TableCell>
-																<TableCell align="right">
-																	<Tooltip title={t.hiltonReports.printPdf}>
-																		<IconButton size="small" onClick={() => printReport(report)}>
-																			<PrintIcon fontSize="small" />
-																		</IconButton>
-																	</Tooltip>
-																	<Tooltip title={t.hiltonReports.viewReport}>
-																		<IconButton size="small" onClick={() => setViewReport(report)}>
-																			<VisibilityIcon fontSize="small" />
-																		</IconButton>
-																	</Tooltip>
-																	<Tooltip title={t.hiltonReports.editReport}>
-																		<IconButton size="small" onClick={() => openEdit(report)}>
-																			<EditIcon fontSize="small" />
-																		</IconButton>
-																	</Tooltip>
-																	<Tooltip title={isLatest ? t.hiltonReports.deleteReport : t.hiltonReports.latestOnlyDelete}>
-																		<span>
-																			<IconButton
-																				size="small"
-																				color="error"
-																				disabled={!isLatest}
-																				onClick={() => setDeleteReportId(report.id)}
-																			>
-																				<DeleteIcon fontSize="small" />
-																			</IconButton>
-																		</span>
-																	</Tooltip>
-																</TableCell>
-															</TableRow>
-														);
-													})
-												)}
-											</TableBody>
-										</Table>
-									</TableContainer>
-								</Stack>
-							</CardContent>
-						</Card>
-						</Stack>
-					</Protected>
-				</NavigationBar>
-
-			<Dialog open={Boolean(viewReport)} onClose={() => setViewReport(null)} fullWidth maxWidth="md">
-				{viewReport && (
-					<>
-						<DialogTitle>{t.hiltonReports.reportNumber(viewReport.id)}</DialogTitle>
-						<DialogContent>
-							<Stack spacing={2.5} sx={{ pt: 1 }}>
-								<Alert severity="info">
-									{t.hiltonReports.period}: {formatDate(viewReport.start_date)} - {formatDate(viewReport.end_date)}
-								</Alert>
-								{renderTotals(viewReport)}
-								<Grid container spacing={2}>
-									<Grid size={{ xs: 12, md: 6 }}>
-										<StatCard
-											label={t.hiltonReports.cashRegister}
-											value={`${formatNumber(viewReport.cash_register_total)} MAD`}
-											icon={<SavingsIcon fontSize="small" />}
-											color="#6d4c41"
-										/>
-									</Grid>
-									<Grid size={{ xs: 12, md: 6 }}>
-										<StatCard
-											label={t.hiltonReports.deductions}
-											value={`${formatNumber(viewReport.manual_adjustment_total)} MAD`}
-											icon={<TrendingDownIcon fontSize="small" />}
-											color="#ad1457"
-										/>
-									</Grid>
 								</Grid>
-								<Box>
-									<Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 1 }}>
-										{t.hiltonReports.apartmentsRevenue}
-									</Typography>
-									{renderApartmentTable(viewReport)}
-								</Box>
-								<Box>
-									<Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 1 }}>
-										{t.hiltonReports.manualLines}
-									</Typography>
-									{renderManualLinesTable(viewReport)}
-								</Box>
-								{viewReport.notes && (
-									<Alert severity="info">
-										<Typography variant="body2">{viewReport.notes}</Typography>
-									</Alert>
-								)}
-							</Stack>
-						</DialogContent>
-						<DialogActions>
-							<Button onClick={() => setViewReport(null)} startIcon={<CloseIcon />}>
-								{t.common.close}
-							</Button>
-							<Button onClick={() => printReport(viewReport)} startIcon={<PrintIcon />}>
-								{t.hiltonReports.printPdf}
-							</Button>
-							<Button onClick={() => openEdit(viewReport)} startIcon={<EditIcon />}>
-								{t.common.edit}
-							</Button>
-						</DialogActions>
-					</>
+							</Grid>
+							{renderManualLineEditor(editLines, setEditLines)}
+						</Stack>
+					</DialogContent>
+					<DialogActions>
+						<Button onClick={() => setEditReport(null)}>{t.common.cancel}</Button>
+						<Button variant="contained" startIcon={<SaveIcon />} onClick={handleUpdate} disabled={isUpdating}>
+							{t.common.save}
+						</Button>
+					</DialogActions>
+				</Dialog>
+
+				{deleteReportId && (
+					<ActionModals
+						title={t.hiltonReports.deleteReport}
+						body={t.hiltonReports.deleteReportConfirm}
+						actions={deleteModalActions}
+						titleIcon={<DeleteIcon />}
+						titleIconColor="#D32F2F"
+						onClose={() => setDeleteReportId(null)}
+					/>
 				)}
-			</Dialog>
-
-			<Dialog open={Boolean(editReport)} onClose={() => setEditReport(null)} fullWidth maxWidth="md">
-				<DialogTitle>{t.hiltonReports.editReport}</DialogTitle>
-				<DialogContent>
-					<Stack spacing={2} sx={{ pt: 1 }}>
-						{editReport && (
-							<Alert severity="info">
-								{t.hiltonReports.period}: {formatDate(editReport.start_date)} - {formatDate(editReport.end_date)}
-							</Alert>
-						)}
-						<TextField
-							label={t.common.notes}
-							value={editNotes}
-							onChange={(event) => setEditNotes(event.target.value)}
-							multiline
-							minRows={2}
-							fullWidth
-							slotProps={{
-								input: {
-									startAdornment: (
-										<InputAdornment position="start">
-											<NotesIcon fontSize="small" />
-										</InputAdornment>
-									),
-								},
-								htmlInput: { maxLength: 2000 },
-							}}
-						/>
-						<Grid container spacing={2}>
-							<Grid size={{ xs: 12, md: 6 }}>
-								<TextField
-									size="small"
-									type="number"
-									label={t.hiltonReports.cashRegister}
-									value={editCashRegisterTotal}
-									onChange={(event) => setEditCashRegisterTotal(event.target.value)}
-									fullWidth
-									slotProps={{
-										input: {
-											startAdornment: (
-												<InputAdornment position="start">
-													<SavingsIcon fontSize="small" />
-												</InputAdornment>
-											),
-											endAdornment: <InputAdornment position="end">MAD</InputAdornment>,
-										},
-										htmlInput: { inputMode: 'decimal', min: 0, step: '0.01' },
-									}}
-								/>
-							</Grid>
-							<Grid size={{ xs: 12, md: 6 }}>
-								<TextField
-									size="small"
-									label={t.hiltonReports.costPeriod}
-									value={editCostPeriodLabel}
-									onChange={(event) => setEditCostPeriodLabel(event.target.value)}
-									fullWidth
-									slotProps={{
-										input: {
-											startAdornment: (
-												<InputAdornment position="start">
-													<CalendarMonthIcon fontSize="small" />
-												</InputAdornment>
-											),
-										},
-									}}
-								/>
-							</Grid>
-						</Grid>
-						{renderManualLineEditor(editLines, setEditLines)}
-					</Stack>
-				</DialogContent>
-				<DialogActions>
-					<Button onClick={() => setEditReport(null)}>{t.common.cancel}</Button>
-					<Button variant="contained" startIcon={<SaveIcon />} onClick={handleUpdate} disabled={isUpdating}>
-						{t.common.save}
-					</Button>
-				</DialogActions>
-			</Dialog>
-
-			{deleteReportId && (
-				<ActionModals
-					title={t.hiltonReports.deleteReport}
-					body={t.hiltonReports.deleteReportConfirm}
-					actions={deleteModalActions}
-					titleIcon={<DeleteIcon />}
-					titleIconColor="#D32F2F"
-					onClose={() => setDeleteReportId(null)}
-				/>
-			)}
 			</Stack>
 		</LocalizationProvider>
 	);

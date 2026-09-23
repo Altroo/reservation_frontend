@@ -1,6 +1,6 @@
 import { jest } from '@jest/globals';
 import { renderToStaticMarkup } from 'react-dom/server';
-import React from 'react';
+import { type ReactElement } from 'react';
 
 type Session = { user: { pk: number; email: string } } | null;
 
@@ -20,8 +20,8 @@ jest.mock('@/components/pages/settings/hilton-report-settings', () => ({
 	__esModule: true,
 	default: (props: { session?: Session }) => {
 		// eslint-disable-next-line @typescript-eslint/no-require-imports
-		const React = require('react');
-		return React.createElement('div', null, `HILTON_REPORT_SETTINGS:${JSON.stringify(props.session)}`);
+		const { createElement } = require('react');
+		return createElement('div', null, `HILTON_REPORT_SETTINGS:${JSON.stringify(props.session)}`);
 	},
 }));
 
@@ -64,6 +64,6 @@ describe('HiltonReportSettingsPage server component', () => {
 		const Page = require('./page').default as () => Promise<unknown>;
 
 		const result = await Page();
-		expect(renderToStaticMarkup(result as React.ReactElement)).toContain('HILTON_REPORT_SETTINGS');
+		expect(renderToStaticMarkup(result as ReactElement)).toContain('HILTON_REPORT_SETTINGS');
 	});
 });

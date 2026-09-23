@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useMemo, useState } from 'react';
+import { runWithCleanup } from '@/utils/runWithCleanup';
+import { useState, type FC } from 'react';
 import { useRouter } from 'next/navigation';
 import { Box, Button, Chip, Stack, Typography } from '@mui/material';
 import {
@@ -21,7 +22,6 @@ import ActionModals from '@/components/htmlElements/modals/actionModal/actionMod
 import { Protected } from '@/components/layouts/protected/protected';
 import MobileActionsMenu from '@/components/shared/mobileActionsMenu/mobileActionsMenu';
 import DarkTooltip from '@/components/htmlElements/tooltip/darkTooltip/darkTooltip';
-import type { ChipFilterConfig } from '@/components/shared/chipSelectFilter/chipSelectFilterBar';
 import ChipSelectFilterBar from '@/components/shared/chipSelectFilter/chipSelectFilterBar';
 import { createNumericFilterOperators } from '@/components/shared/numericFilter/numericFilterOperator';
 import { extractApiErrorMessage } from '@/utils/helpers';
@@ -37,7 +37,7 @@ import { useInitAccessToken } from '@/contexts/InitContext';
 import type { ChipColor } from '@/utils/rawData';
 import { LOCAL_TYPE_LABEL_KEYS, TYPE_LOCAL_CHIP_COLORS } from '@/utils/rawData';
 
-const LocauxListClient: React.FC<SessionProps> = ({ session }) => {
+const LocauxListClient: FC<SessionProps> = ({ session }) => {
 	const router = useRouter();
 	const { t } = useLanguage();
 	const { onSuccess, onError } = useToast();
@@ -53,7 +53,7 @@ const LocauxListClient: React.FC<SessionProps> = ({ session }) => {
 	const [customFilterParams, setCustomFilterParams] = useState<Record<string, string>>({});
 
 	const { data: locauxRaw, isLoading } = useGetLocauxListQuery({}, { skip: !token });
-	const locaux = useMemo(() => (Array.isArray(locauxRaw) ? locauxRaw : []) as LocalListType[], [locauxRaw]);
+	const locaux = (Array.isArray(locauxRaw) ? locauxRaw : []) as LocalListType[];
 	const { data: buildingsData } = useGetBuildingsQuery(undefined, { skip: !token });
 
 	const [deleteLocal] = useDeleteLocalMutation();
@@ -64,7 +64,7 @@ const LocauxListClient: React.FC<SessionProps> = ({ session }) => {
 	const [selectedIds, setSelectedIds] = useState<number[]>([]);
 	const [showBulkDeleteModal, setShowBulkDeleteModal] = useState(false);
 
-	const filteredLocaux = useMemo(() => {
+	const filteredLocaux = (() => {
 		let result = locaux;
 
 		const typeParam = chipFilterParams['type_local'];
@@ -113,37 +113,47 @@ const LocauxListClient: React.FC<SessionProps> = ({ session }) => {
 		}
 
 		return result;
-	}, [locaux, chipFilterParams, searchTerm, customFilterParams]);
+	})();
 
-	const paginatedData = useMemo(() => {
+	const paginatedData = (() => {
 		const start = paginationModel.page * paginationModel.pageSize;
 		return {
 			count: filteredLocaux.length,
 			results: filteredLocaux.slice(start, start + paginationModel.pageSize),
 		};
-	}, [filteredLocaux, paginationModel]);
+	})();
 
 	const deleteHandler = async () => {
-		try {
-			await deleteLocal({ id: selectedId! }).unwrap();
-			onSuccess(t.locaux.localDeletedSuccess);
-		} catch (err) {
-			onError(extractApiErrorMessage(err, t.locaux.localDeleteError));
-		} finally {
-			setShowDeleteModal(false);
-		}
+		await runWithCleanup(
+			async () => {
+				try {
+					await deleteLocal({ id: selectedId! }).unwrap();
+					onSuccess(t.locaux.localDeletedSuccess);
+				} catch (err) {
+					onError(extractApiErrorMessage(err, t.locaux.localDeleteError));
+				}
+			},
+			() => {
+				setShowDeleteModal(false);
+			},
+		);
 	};
 
 	const bulkDeleteHandler = async () => {
-		try {
-			await bulkDeleteLocaux({ ids: selectedIds }).unwrap();
-			onSuccess(t.locaux.bulkLocauxDeletedSuccess);
-			setSelectedIds([]);
-		} catch (err) {
-			onError(extractApiErrorMessage(err, t.locaux.bulkLocauxDeleteError));
-		} finally {
-			setShowBulkDeleteModal(false);
-		}
+		await runWithCleanup(
+			async () => {
+				try {
+					await bulkDeleteLocaux({ ids: selectedIds }).unwrap();
+					onSuccess(t.locaux.bulkLocauxDeletedSuccess);
+					setSelectedIds([]);
+				} catch (err) {
+					onError(extractApiErrorMessage(err, t.locaux.bulkLocauxDeleteError));
+				}
+			},
+			() => {
+				setShowBulkDeleteModal(false);
+			},
+		);
 	};
 
 	const deleteModalActions = [
@@ -180,44 +190,32 @@ const LocauxListClient: React.FC<SessionProps> = ({ session }) => {
 		},
 	];
 
-	const chipFilters = useMemo<ChipFilterConfig[]>(
-		() => [
-			{
-				key: 'type_local',
-				label: t.common.type,
-				paramName: 'type_local',
-				options: [
-					{ id: 'Bureau', nom: t.rawData.localTypes.office },
-					{ id: 'Magasin', nom: t.rawData.localTypes.shop },
-				],
-			},
-			{
-				key: 'en_location',
-				label: t.common.status,
-				paramName: 'en_location',
-				options: [
-					{ id: 'true', nom: t.common.rented },
-					{ id: 'false', nom: t.common.free },
-				],
-			},
-			{
-				key: 'building',
-				label: t.locaux.residence,
-				paramName: 'building',
-				options: (buildingsData ?? []).map((b) => ({ id: String(b.id), nom: b.nom })),
-			},
-		],
-		[
-			buildingsData,
-			t.common.status,
-			t.common.type,
-			t.locaux.residence,
-			t.common.rented,
-			t.common.free,
-			t.rawData.localTypes.office,
-			t.rawData.localTypes.shop,
-		],
-	);
+	const chipFilters = [
+		{
+			key: 'type_local',
+			label: t.common.type,
+			paramName: 'type_local',
+			options: [
+				{ id: 'Bureau', nom: t.rawData.localTypes.office },
+				{ id: 'Magasin', nom: t.rawData.localTypes.shop },
+			],
+		},
+		{
+			key: 'en_location',
+			label: t.common.status,
+			paramName: 'en_location',
+			options: [
+				{ id: 'true', nom: t.common.rented },
+				{ id: 'false', nom: t.common.free },
+			],
+		},
+		{
+			key: 'building',
+			label: t.locaux.residence,
+			paramName: 'building',
+			options: (buildingsData ?? []).map((b) => ({ id: String(b.id), nom: b.nom })),
+		},
+	];
 
 	const columns: GridColDef[] = [
 		{

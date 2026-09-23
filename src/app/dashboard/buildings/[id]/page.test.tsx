@@ -1,6 +1,6 @@
 import { jest } from '@jest/globals';
 import { renderToStaticMarkup } from 'react-dom/server';
-import React from 'react';
+import { type ReactElement } from 'react';
 
 type Session = { user: { pk: number; email: string } } | null;
 
@@ -20,8 +20,8 @@ jest.mock('@/components/pages/buildings/building-view', () => ({
 	__esModule: true,
 	default: (props: { id?: number }) => {
 		// eslint-disable-next-line @typescript-eslint/no-require-imports
-		const React = require('react');
-		return React.createElement('div', null, `BUILDING_VIEW:${props.id}`);
+		const { createElement } = require('react');
+		return createElement('div', null, `BUILDING_VIEW:${props.id}`);
 	},
 }));
 
@@ -76,6 +76,6 @@ describe('BuildingViewPage server component', () => {
 		const Page = require('./page').default as (props: { params: Promise<{ id: string }> }) => Promise<unknown>;
 
 		const result = await Page({ params: Promise.resolve({ id: '4' }) });
-		expect(renderToStaticMarkup(result as React.ReactElement)).toContain('BUILDING_VIEW:4');
+		expect(renderToStaticMarkup(result as ReactElement)).toContain('BUILDING_VIEW:4');
 	});
 });

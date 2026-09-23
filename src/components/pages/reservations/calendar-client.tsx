@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useMemo, useState } from 'react';
+import { useState, type FC, type MouseEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import {
 	Box,
@@ -89,7 +89,7 @@ interface CalendarContentProps {
 	token: string | undefined;
 }
 
-const CalendarContent: React.FC<CalendarContentProps> = ({ token }) => {
+const CalendarContent: FC<CalendarContentProps> = ({ token }) => {
 	const { t } = useLanguage();
 	const router = useRouter();
 	const now = new Date();
@@ -114,22 +114,17 @@ const CalendarContent: React.FC<CalendarContentProps> = ({ token }) => {
 	} = useGetPlanningQuery({ year, month, ...(buildingId ? { building: buildingId } : {}) }, { skip: !token });
 	const { data: buildingsData } = useGetBuildingsQuery(undefined, { skip: !token });
 
-	const buildingItems: DropDownType[] = useMemo(
-		() => [
-			{ code: t.locaux.allResidences, value: t.locaux.allResidences },
-			...(buildingsData ?? []).map((b) => ({ code: b.nom, value: b.nom })),
-		],
-		[buildingsData, t],
-	);
+	const buildingItems: DropDownType[] = [
+		{ code: t.locaux.allResidences, value: t.locaux.allResidences },
+		...(buildingsData ?? []).map((b) => ({ code: b.nom, value: b.nom })),
+	];
 
 	const lastDay = planning?.last_day ?? new Date(year, month, 0).getDate();
 	const firstWeekday = weekdayIndex(`${year}-${String(month).padStart(2, '0')}-01`);
 
-	const dayMap = useMemo(
-		() =>
-			planning?.apartments ? buildDayMap(planning.apartments, year, month, lastDay) : new Map<number, DayEntry[]>(),
-		[planning, year, month, lastDay],
-	);
+	const dayMap = planning?.apartments
+		? buildDayMap(planning.apartments, year, month, lastDay)
+		: new Map<number, DayEntry[]>();
 
 	const today = new Date();
 	const isToday = (day: number) =>
@@ -146,7 +141,7 @@ const CalendarContent: React.FC<CalendarContentProps> = ({ token }) => {
 		setDialogOpen(true);
 	};
 
-	const handleReservationClick = (e: React.MouseEvent<HTMLElement>, res: ReservationListType) => {
+	const handleReservationClick = (e: MouseEvent<HTMLElement>, res: ReservationListType) => {
 		e.stopPropagation();
 		setMenuReservation(res);
 		setMenuAnchor(e.currentTarget);
@@ -506,7 +501,7 @@ const CalendarContent: React.FC<CalendarContentProps> = ({ token }) => {
 	);
 };
 
-const CalendarClient: React.FC<SessionProps> = ({ session }) => {
+const CalendarClient: FC<SessionProps> = ({ session }) => {
 	const { t } = useLanguage();
 	const token = useInitAccessToken(session);
 

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useMemo, useState } from 'react';
+import { useState, type FC, type ReactNode } from 'react';
 import {
 	Box,
 	Card,
@@ -47,13 +47,13 @@ ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend)
 
 /* ── KPI Card ──────────────────────────────────────────────────────────────── */
 interface KpiProps {
-	icon: React.ReactNode;
+	icon: ReactNode;
 	label: string;
 	value: string;
 	sub?: string;
 	color?: string;
 }
-const KpiCard: React.FC<KpiProps> = ({ icon, label, value, sub, color }) => (
+const KpiCard: FC<KpiProps> = ({ icon, label, value, sub, color }) => (
 	<Card
 		elevation={1}
 		sx={{
@@ -113,7 +113,7 @@ const KpiCard: React.FC<KpiProps> = ({ icon, label, value, sub, color }) => (
 	</Card>
 );
 
-const GainsClient: React.FC<SessionProps> = ({ session }) => {
+const GainsClient: FC<SessionProps> = ({ session }) => {
 	const { t } = useLanguage();
 	const token = useInitAccessToken(session);
 	const currentYear = new Date().getFullYear();
@@ -127,26 +127,23 @@ const GainsClient: React.FC<SessionProps> = ({ session }) => {
 	const { data: yearsData } = useGetReservationYearsQuery(undefined, { skip: !token });
 	const { data: buildingsData } = useGetBuildingsQuery(undefined, { skip: !token });
 
-	const buildingItems: DropDownType[] = useMemo(
-		() => [
-			{ code: t.locaux.allResidences, value: t.locaux.allResidences },
-			...(buildingsData ?? []).map((b) => ({ code: b.nom, value: b.nom })),
-		],
-		[buildingsData, t],
-	);
+	const buildingItems: DropDownType[] = [
+		{ code: t.locaux.allResidences, value: t.locaux.allResidences },
+		...(buildingsData ?? []).map((b) => ({ code: b.nom, value: b.nom })),
+	];
 
-	const yearItems: DropDownType[] = useMemo(
-		() => (yearsData?.years ?? [currentYear]).map((y) => ({ code: String(y), value: String(y) })),
-		[yearsData?.years, currentYear],
-	);
+	const yearItems: DropDownType[] = (yearsData?.years ?? [currentYear]).map((y) => ({
+		code: String(y),
+		value: String(y),
+	}));
 
-	const apartments = useMemo(() => data?.apartments ?? {}, [data?.apartments]);
-	const aptNoms = useMemo(() => Object.keys(apartments), [apartments]);
+	const apartments = data?.apartments ?? {};
+	const aptNoms = Object.keys(apartments);
 
 	const totalYearRevenue = aptNoms.reduce((s, c) => s + apartments[c].year_total, 0);
 
 	// Derived KPI data
-	const { bestApt, bestMonth } = useMemo(() => {
+	const { bestApt, bestMonth } = (() => {
 		let bestAptNom = '';
 		let bestAptTotal = 0;
 		for (const nom of aptNoms) {
@@ -158,7 +155,7 @@ const GainsClient: React.FC<SessionProps> = ({ session }) => {
 
 		let bestMonthIdx = 0;
 		let bestMonthTotal = 0;
-		for (let m = 1; m <= 12; m++) {
+		for (let m = 1; m <= 12; m += 1) {
 			const mTotal = aptNoms.reduce((s, c) => s + (apartments[c].monthly[m]?.total ?? 0), 0);
 			if (mTotal > bestMonthTotal) {
 				bestMonthTotal = mTotal;
@@ -170,10 +167,10 @@ const GainsClient: React.FC<SessionProps> = ({ session }) => {
 			bestApt: bestAptNom ? { nom: bestAptNom, total: bestAptTotal } : null,
 			bestMonth: bestMonthTotal > 0 ? { name: t.rawData.monthNames[bestMonthIdx], total: bestMonthTotal } : null,
 		};
-	}, [apartments, aptNoms, t.rawData.monthNames]);
+	})();
 
 	// Monthly totals for cards
-	const monthlyData = useMemo(() => {
+	const monthlyData = (() => {
 		return Array.from({ length: 12 }, (_, i) => {
 			const month = i + 1;
 			const aptBreakdown: { nom: string; total: number }[] = [];
@@ -186,9 +183,9 @@ const GainsClient: React.FC<SessionProps> = ({ session }) => {
 			aptBreakdown.sort((a, b) => b.total - a.total);
 			return { month, monthTotal, aptBreakdown };
 		});
-	}, [apartments, aptNoms]);
+	})();
 
-	const maxAptGain = useMemo(() => {
+	const maxAptGain = (() => {
 		let max = 0;
 		for (const md of monthlyData) {
 			for (const ab of md.aptBreakdown) {
@@ -196,7 +193,7 @@ const GainsClient: React.FC<SessionProps> = ({ session }) => {
 			}
 		}
 		return max;
-	}, [monthlyData]);
+	})();
 
 	// Stacked bar chart
 	const stackedChartData = {

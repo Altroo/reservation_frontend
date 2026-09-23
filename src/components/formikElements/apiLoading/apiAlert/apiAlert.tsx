@@ -1,4 +1,4 @@
-import React from 'react';
+import { type FC, type ReactNode } from 'react';
 import { Alert, Typography } from '@mui/material';
 import type { SxProps } from '@mui/system';
 import type { Theme } from '@mui/material/styles';
@@ -7,7 +7,7 @@ import { useLanguage } from '@/utils/hooks';
 type Props = {
 	errorDetails?: Record<string, unknown> | null;
 	cssStyle?: SxProps<Theme>;
-	children?: React.ReactNode;
+	children?: ReactNode;
 };
 
 function formatValue(value: unknown): string {
@@ -19,7 +19,7 @@ function formatValue(value: unknown): string {
 	return String(value ?? '');
 }
 
-const ApiAlert: React.FC<Props> = (props: Props) => {
+const ApiAlert: FC<Props> = (props: Props) => {
 	const { t } = useLanguage();
 	const errorDetails = props.errorDetails;
 

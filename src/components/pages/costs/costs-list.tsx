@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useMemo, useState } from 'react';
+import { runWithCleanup } from '@/utils/runWithCleanup';
+import { useState, type FC } from 'react';
 import { useRouter } from 'next/navigation';
 import { Box, Button, Chip, Stack, Typography } from '@mui/material';
 import {
@@ -23,7 +24,6 @@ import ActionModals from '@/components/htmlElements/modals/actionModal/actionMod
 import { Protected } from '@/components/layouts/protected/protected';
 import MobileActionsMenu from '@/components/shared/mobileActionsMenu/mobileActionsMenu';
 import DarkTooltip from '@/components/htmlElements/tooltip/darkTooltip/darkTooltip';
-import type { ChipFilterConfig } from '@/components/shared/chipSelectFilter/chipSelectFilterBar';
 import ChipSelectFilterBar from '@/components/shared/chipSelectFilter/chipSelectFilterBar';
 import { createDateRangeFilterOperator } from '@/components/shared/dateRangeFilter/dateRangeFilterOperator';
 import { createNumericFilterOperators } from '@/components/shared/numericFilter/numericFilterOperator';
@@ -45,7 +45,7 @@ import { useInitAccessToken } from '@/contexts/InitContext';
 import type { CostCategoryChipColor } from '@/utils/rawData';
 import { COST_CATEGORY_CHIP_COLORS, costCategoryItemsList } from '@/utils/rawData';
 
-const CostsListClient: React.FC<SessionProps> = ({ session }) => {
+const CostsListClient: FC<SessionProps> = ({ session }) => {
 	const router = useRouter();
 	const { t } = useLanguage();
 	const { onSuccess, onError } = useToast();
@@ -68,33 +68,30 @@ const CostsListClient: React.FC<SessionProps> = ({ session }) => {
 	const { data: buildingsData } = useGetBuildingsQuery(undefined, { skip: !token });
 	const { data: costs, isLoading } = useGetCostsQuery({ year, month }, { skip: !token });
 
-	const yearItems: DropDownType[] = useMemo(
-		() => (costYears?.years ?? [currentYear]).map((y) => ({ code: String(y), value: String(y) })),
-		[costYears?.years, currentYear],
-	);
+	const yearItems: DropDownType[] = (costYears?.years ?? [currentYear]).map((y) => ({
+		code: String(y),
+		value: String(y),
+	}));
 
-	const monthItems: DropDownType[] = useMemo(
-		() => [
-			{ code: 'all', value: t.common.all },
-			...t.rawData.monthNames.map((name: string, i: number) => ({ code: String(i + 1), value: name })),
-		],
-		[t],
-	);
+	const monthItems: DropDownType[] = [
+		{ code: 'all', value: t.common.all },
+		...t.rawData.monthNames.map((name: string, i: number) => ({ code: String(i + 1), value: name })),
+	];
 
-	const createdByOptions = useMemo(() => {
+	const createdByOptions = (() => {
 		const nameMap = new Map<string, string>();
 		(costs ?? []).forEach((c) => {
 			if (c.created_by_user_name) nameMap.set(c.created_by_user_name, c.created_by_user_name);
 		});
 		return Array.from(nameMap.values()).map((name) => ({ value: name, label: name }));
-	}, [costs]);
-	const buildingNameOptions = useMemo(() => {
+	})();
+	const buildingNameOptions = (() => {
 		const nameMap = new Map<string, string>();
 		(costs ?? []).forEach((c) => {
 			if (c.building_nom) nameMap.set(c.building_nom, c.building_nom);
 		});
 		return Array.from(nameMap.values()).map((name) => ({ value: name, label: name }));
-	}, [costs]);
+	})();
 	const [deleteCost] = useDeleteCostMutation();
 	const [bulkDeleteCosts] = useBulkDeleteCostsMutation();
 
@@ -104,7 +101,7 @@ const CostsListClient: React.FC<SessionProps> = ({ session }) => {
 	const [showBulkDeleteModal, setShowBulkDeleteModal] = useState(false);
 
 	// Client-side filtering
-	const filteredCosts = useMemo(() => {
+	const filteredCosts = (() => {
 		let result = costs ?? [];
 
 		const categoryParam = chipFilterParams['category'];
@@ -175,28 +172,33 @@ const CostsListClient: React.FC<SessionProps> = ({ session }) => {
 		}
 
 		return result;
-	}, [costs, chipFilterParams, searchTerm, customFilterParams]);
+	})();
 
 	// Client-side pagination
-	const paginatedData = useMemo(() => {
+	const paginatedData = (() => {
 		const start = paginationModel.page * paginationModel.pageSize;
 		return {
 			count: filteredCosts.length,
 			results: filteredCosts.slice(start, start + paginationModel.pageSize),
 		};
-	}, [filteredCosts, paginationModel]);
+	})();
 
 	const totalAmount = filteredCosts.reduce((sum, c) => sum + Number(c.amount), 0);
 
 	const deleteHandler = async () => {
-		try {
-			await deleteCost({ id: selectedId! }).unwrap();
-			onSuccess(t.costs.costDeletedSuccess);
-		} catch (err) {
-			onError(extractApiErrorMessage(err, t.costs.costDeleteError));
-		} finally {
-			setShowDeleteModal(false);
-		}
+		await runWithCleanup(
+			async () => {
+				try {
+					await deleteCost({ id: selectedId! }).unwrap();
+					onSuccess(t.costs.costDeletedSuccess);
+				} catch (err) {
+					onError(extractApiErrorMessage(err, t.costs.costDeleteError));
+				}
+			},
+			() => {
+				setShowDeleteModal(false);
+			},
+		);
 	};
 
 	const deleteModalActions = [
@@ -217,15 +219,20 @@ const CostsListClient: React.FC<SessionProps> = ({ session }) => {
 	];
 
 	const bulkDeleteHandler = async () => {
-		try {
-			await bulkDeleteCosts({ ids: selectedIds }).unwrap();
-			onSuccess(t.costs.bulkCostsDeletedSuccess(selectedIds.length));
-			setSelectedIds([]);
-		} catch (err) {
-			onError(extractApiErrorMessage(err, t.costs.bulkCostsDeleteError));
-		} finally {
-			setShowBulkDeleteModal(false);
-		}
+		await runWithCleanup(
+			async () => {
+				try {
+					await bulkDeleteCosts({ ids: selectedIds }).unwrap();
+					onSuccess(t.costs.bulkCostsDeletedSuccess(selectedIds.length));
+					setSelectedIds([]);
+				} catch (err) {
+					onError(extractApiErrorMessage(err, t.costs.bulkCostsDeleteError));
+				}
+			},
+			() => {
+				setShowBulkDeleteModal(false);
+			},
+		);
 	};
 
 	const bulkDeleteModalActions = [
@@ -245,23 +252,20 @@ const CostsListClient: React.FC<SessionProps> = ({ session }) => {
 		},
 	];
 
-	const chipFilters = useMemo<ChipFilterConfig[]>(
-		() => [
-			{
-				key: 'category',
-				label: t.common.category,
-				paramName: 'category',
-				options: costCategoryItemsList.map((c) => ({ id: c.code, nom: c.value })),
-			},
-			{
-				key: 'building',
-				label: t.locaux.residence,
-				paramName: 'building',
-				options: (buildingsData ?? []).map((building) => ({ id: String(building.id), nom: building.nom })),
-			},
-		],
-		[buildingsData, t.common.category, t.locaux.residence],
-	);
+	const chipFilters = [
+		{
+			key: 'category',
+			label: t.common.category,
+			paramName: 'category',
+			options: costCategoryItemsList.map((c) => ({ id: c.code, nom: c.value })),
+		},
+		{
+			key: 'building',
+			label: t.locaux.residence,
+			paramName: 'building',
+			options: (buildingsData ?? []).map((building) => ({ id: String(building.id), nom: building.nom })),
+		},
+	];
 
 	const columns: GridColDef[] = [
 		{
@@ -330,7 +334,12 @@ const CostsListClient: React.FC<SessionProps> = ({ session }) => {
 			headerName: t.locaux.residence,
 			flex: 1,
 			minWidth: 120,
-			filterOperators: createDropdownFilterOperators(buildingNameOptions, t.locaux.allResidences, undefined, t.filters.is),
+			filterOperators: createDropdownFilterOperators(
+				buildingNameOptions,
+				t.locaux.allResidences,
+				undefined,
+				t.filters.is,
+			),
 			renderCell: (params: GridRenderCellParams<CostType>) => (
 				<DarkTooltip title={params.value ?? ''}>
 					<Typography variant="body2" noWrap>

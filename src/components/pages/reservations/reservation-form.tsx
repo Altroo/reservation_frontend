@@ -1,6 +1,8 @@
 'use client';
 
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { runAsyncWithErrorHandler } from '@/utils/runWithCleanup';
+import { runWithCleanup } from '@/utils/runWithCleanup';
+import { useEffect, useRef, useState, type ChangeEvent, type FC, type MouseEvent } from 'react';
 import type { ApiErrorResponseType, ResponseDataInterface, SessionProps } from '@/types/_initTypes';
 import type { ReservationFormValues } from '@/types/reservationTypes';
 import Styles from '@/styles/dashboard/dashboard.module.sass';
@@ -86,7 +88,7 @@ type FormikContentProps = {
 	id?: number;
 };
 
-const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
+const FormikContent: FC<FormikContentProps> = ({ token, id }) => {
 	const { onSuccess, onError } = useToast();
 	const { t } = useLanguage();
 	const isEditMode = id !== undefined;
@@ -123,22 +125,17 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 	const [aptActionLoading, setAptActionLoading] = useState(false);
 
 	const error = isEditMode ? updateError : createError;
-	const axiosError: ResponseDataInterface<ApiErrorResponseType> | undefined = useMemo(
-		() => (error ? (error as ResponseDataInterface<ApiErrorResponseType>) : undefined),
-		[error],
-	);
+	const axiosError: ResponseDataInterface<ApiErrorResponseType> | undefined = error
+		? (error as ResponseDataInterface<ApiErrorResponseType>)
+		: undefined;
 
 	const [isPending, setIsPending] = useState(false);
 	const [openApartmentModal, setOpenApartmentModal] = useState(false);
 
-	const apartmentItems: DropDownType[] = useMemo(
-		() =>
-			(apartments ?? []).map((a) => ({
-				code: a.building_nom ? `${a.nom} - ${a.building_nom}` : a.nom,
-				value: String(a.id),
-			})),
-		[apartments],
-	);
+	const apartmentItems: DropDownType[] = (apartments ?? []).map((a) => ({
+		code: a.building_nom ? `${a.nom} - ${a.building_nom}` : a.nom,
+		value: String(a.id),
+	}));
 
 	const formik = useFormik<ReservationFormValues>({
 		initialValues: {
@@ -158,47 +155,49 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 			setIsPending(true);
 			// eslint-disable-next-line @typescript-eslint/no-unused-vars
 			const { globalError, ...fields } = data;
-			try {
-				if (isEditMode) {
-					await updateReservation({ id: id!, data: fields }).unwrap();
-					onSuccess(t.reservations.reservationUpdatedSuccess);
-					router.push(RESERVATIONS_VIEW(id!));
-				} else {
-					await createReservation(fields).unwrap();
-					onSuccess(t.reservations.reservationAddedSuccess);
-					router.push(RESERVATIONS_LIST);
-				}
-			} catch (e) {
-				setFormikAutoErrors({ e, setFieldError });
-				onError(isEditMode ? t.reservations.reservationUpdateError : t.reservations.reservationAddError);
-			} finally {
-				setIsPending(false);
-			}
+			await runWithCleanup(
+				async () => {
+					try {
+						if (isEditMode) {
+							await updateReservation({ id: id!, data: fields }).unwrap();
+							onSuccess(t.reservations.reservationUpdatedSuccess);
+							router.push(RESERVATIONS_VIEW(id!));
+						} else {
+							await createReservation(fields).unwrap();
+							onSuccess(t.reservations.reservationAddedSuccess);
+							router.push(RESERVATIONS_LIST);
+						}
+					} catch (e) {
+						setFormikAutoErrors({ e, setFieldError });
+						onError(isEditMode ? t.reservations.reservationUpdateError : t.reservations.reservationAddError);
+					}
+				},
+				() => {
+					setIsPending(false);
+				},
+			);
 		},
 	});
 
-	const selectedApartment = useMemo<DropDownType | null>(() => {
+	const selectedApartment = (() => {
 		const v = formik.values.apartment;
 		if (!v || apartmentItems.length === 0) return null;
 		return apartmentItems.find((a) => a.value === String(v)) ?? null;
-	}, [formik.values.apartment, apartmentItems]);
+	})();
 
 	const { data: occupiedRanges } = useGetOccupiedDatesQuery(
 		{ apartment: formik.values.apartment, ...(isEditMode ? { exclude: id } : {}) },
 		{ skip: !token || !formik.values.apartment },
 	);
 
-	const shouldDisableDate = useCallback(
-		(date: Date) => {
-			if (!occupiedRanges || occupiedRanges.length === 0) return false;
-			return occupiedRanges.some((r) => {
-				const start = parseISO(r.check_in);
-				const end = subDays(parseISO(r.check_out), 1);
-				return isWithinInterval(date, { start, end });
-			});
-		},
-		[occupiedRanges],
-	);
+	const shouldDisableDate = (date: Date) => {
+		if (!occupiedRanges || occupiedRanges.length === 0) return false;
+		return occupiedRanges.some((r) => {
+			const start = parseISO(r.check_in);
+			const end = subDays(parseISO(r.check_out), 1);
+			return isWithinInterval(date, { start, end });
+		});
+	};
 
 	const handleEditAptOpen = (aptId: number, aptName: string) => {
 		setEditAptId(aptId);
@@ -211,18 +210,26 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 	const handleEditAptSubmit = async () => {
 		if (!editAptId || !editAptName.trim()) return;
 		setAptActionLoading(true);
-		try {
-			await updateApartment({
-				id: editAptId,
-				data: { nom: editAptName.trim(), building: editAptBuilding === '' ? null : editAptBuilding },
-			}).unwrap();
-			onSuccess(t.reservations.apartmentEditedSuccess);
-			setEditAptId(null);
-		} catch (e) {
-			setEditAptError(extractApiErrorMessage(e, t.reservations.apartmentEditError));
-		} finally {
-			setAptActionLoading(false);
-		}
+		await runWithCleanup(
+			async () => {
+				await runAsyncWithErrorHandler(
+					async () => {
+						await updateApartment({
+							id: editAptId,
+							data: { nom: editAptName.trim(), building: editAptBuilding === '' ? null : editAptBuilding },
+						}).unwrap();
+						onSuccess(t.reservations.apartmentEditedSuccess);
+						setEditAptId(null);
+					},
+					async (e) => {
+						setEditAptError(extractApiErrorMessage(e, t.reservations.apartmentEditError));
+					},
+				);
+			},
+			() => {
+				setAptActionLoading(false);
+			},
+		);
 	};
 
 	const handleDeleteAptOpen = (aptId: number, aptName: string) => {
@@ -233,49 +240,48 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 	const handleDeleteAptConfirm = async () => {
 		if (!deleteAptId) return;
 		setAptActionLoading(true);
-		try {
-			await deleteApartment({ id: deleteAptId }).unwrap();
-			onSuccess(t.reservations.apartmentDeletedSuccess);
-			if (formik.values.apartment === deleteAptId) {
-				await formik.setFieldValue('apartment', '');
-			}
-			setDeleteAptId(null);
-		} catch (e) {
-			onError(extractApiErrorMessage(e, t.reservations.apartmentDeleteError));
-			setDeleteAptId(null);
-		} finally {
-			setAptActionLoading(false);
-		}
+		await runWithCleanup(
+			async () => {
+				try {
+					await deleteApartment({ id: deleteAptId }).unwrap();
+					onSuccess(t.reservations.apartmentDeletedSuccess);
+					if (formik.values.apartment === deleteAptId) {
+						await formik.setFieldValue('apartment', '');
+					}
+					setDeleteAptId(null);
+				} catch (e) {
+					onError(extractApiErrorMessage(e, t.reservations.apartmentDeleteError));
+					setDeleteAptId(null);
+				}
+			},
+			() => {
+				setAptActionLoading(false);
+			},
+		);
 	};
 
-	const paymentSourceItems: DropDownType[] = useMemo(
-		() => (paymentSources ?? []).map((source) => ({ code: source.nom, value: String(source.id) })),
-		[paymentSources],
-	);
+	const paymentSourceItems: DropDownType[] = (paymentSources ?? []).map((source) => ({
+		code: source.nom,
+		value: String(source.id),
+	}));
 
-	const selectedPaymentSource = useMemo<DropDownType | null>(() => {
+	const selectedPaymentSource = (() => {
 		const v = formik.values.payment_source;
 		if (!v) return null;
 		return paymentSourceItems.find((p) => p.code === v) ?? null;
-	}, [formik.values.payment_source, paymentSourceItems]);
+	})();
 
-	const buildingItems: DropDownType[] = useMemo(
-		() => [
-			{ code: 'none', value: t.common.none },
-			...(buildings ?? []).map((building) => ({ code: String(building.id), value: building.nom })),
-		],
-		[buildings, t.common.none],
-	);
+	const buildingItems: DropDownType[] = [
+		{ code: 'none', value: t.common.none },
+		...(buildings ?? []).map((building) => ({ code: String(building.id), value: building.nom })),
+	];
 
-	const selectedBuildingValue = useMemo(() => {
+	const selectedBuildingValue = (() => {
 		if (editAptBuilding === '') return t.common.none;
 		return buildings?.find((building) => building.id === editAptBuilding)?.nom ?? t.common.none;
-	}, [buildings, editAptBuilding, t.common.none]);
+	})();
 
-	const validationEntries = useMemo(
-		() => Object.entries(formik.errors).filter(([k]) => k !== 'globalError') as [string, string][],
-		[formik.errors],
-	);
+	const validationEntries = Object.entries(formik.errors).filter(([k]) => k !== 'globalError') as [string, string][];
 
 	const hasValidationErrors = validationEntries.length > 0;
 	const showValidationAlert = hasValidationErrors && formik.submitCount > 0;
@@ -381,7 +387,7 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 											value={selectedApartment}
 											fullWidth
 											onChange={(_, newVal) => {
-												formik.setFieldValue('apartment', newVal ? Number(newVal.value) : '');
+												void formik.setFieldValue('apartment', newVal ? Number(newVal.value) : '');
 											}}
 											onBlur={formik.handleBlur('apartment')}
 											error={formik.submitCount > 0 && Boolean(formik.errors.apartment)}
@@ -471,7 +477,9 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 											<DatePicker
 												label={t.reservations.checkInRequired}
 												value={formik.values.check_in ? parseISO(formik.values.check_in) : null}
-												onChange={(date) => formik.setFieldValue('check_in', date ? format(date, 'yyyy-MM-dd') : '')}
+												onChange={(date) =>
+													void formik.setFieldValue('check_in', date ? format(date, 'yyyy-MM-dd') : '')
+												}
 												maxDate={formik.values.check_out ? parseISO(formik.values.check_out) : undefined}
 												shouldDisableDate={shouldDisableDate}
 												disabled={isLoading}
@@ -497,7 +505,9 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 											<DatePicker
 												label={t.reservations.checkOutRequired}
 												value={formik.values.check_out ? parseISO(formik.values.check_out) : null}
-												onChange={(date) => formik.setFieldValue('check_out', date ? format(date, 'yyyy-MM-dd') : '')}
+												onChange={(date) =>
+													void formik.setFieldValue('check_out', date ? format(date, 'yyyy-MM-dd') : '')
+												}
 												minDate={formik.values.check_in ? parseISO(formik.values.check_in) : undefined}
 												shouldDisableDate={shouldDisableDate}
 												disabled={isLoading}
@@ -556,16 +566,16 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 												size="small"
 												label={t.reservations.totalAmountMAD}
 												value={formik.values.amount}
-												onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+												onChange={(e: ChangeEvent<HTMLInputElement>) => {
 													if (/^(0|[1-9]\d*)?([.,]\d*)?$/.test(e.target.value))
-														formik.setFieldValue('amount', e.target.value);
+														void formik.setFieldValue('amount', e.target.value);
 												}}
 												onBlur={formik.handleBlur('amount')}
 												error={formik.submitCount > 0 && Boolean(formik.errors.amount)}
 												helperText={formik.submitCount > 0 ? (formik.errors.amount ?? '') : ''}
 												fullWidth
 												disabled={isLoading}
-														startIcon={<CurrencyExchangeIcon fontSize="small" />}
+												startIcon={<CurrencyExchangeIcon fontSize="small" />}
 												slotProps={{ input: { inputProps: { inputMode: 'decimal' } } }}
 											/>
 											<CustomAutoCompleteSelect
@@ -578,7 +588,7 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 												value={selectedPaymentSource}
 												fullWidth
 												onChange={(_, newVal) => {
-													formik.setFieldValue('payment_source', newVal ? newVal.code : '');
+													void formik.setFieldValue('payment_source', newVal ? newVal.code : '');
 												}}
 												onBlur={formik.handleBlur('payment_source')}
 												error={formik.submitCount > 0 && Boolean(formik.errors.payment_source)}
@@ -596,10 +606,10 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 														deleteEntity={({ id: entityId }) => deletePaymentSource({ id: entityId })}
 														onAddSuccess={(newId) => {
 															const createdSource = paymentSources?.find((item) => item.id === newId);
-															formik.setFieldValue('payment_source', createdSource?.nom ?? '');
+															void formik.setFieldValue('payment_source', createdSource?.nom ?? '');
 														}}
 														onDeleteSuccess={() => {
-															formik.setFieldValue('payment_source', '');
+															void formik.setFieldValue('payment_source', '');
 														}}
 													/>
 												}
@@ -659,7 +669,7 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 									active={!isPending}
 									type="submit"
 									startIcon={isEditMode ? <EditIcon /> : <AddIcon />}
-									onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
+									onClick={(e: MouseEvent<HTMLButtonElement>) => {
 										if (showValidationAlert) {
 											e.preventDefault();
 											onError(t.reservations.fixValidationErrors);
@@ -681,7 +691,7 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 				inputTheme={inputTheme}
 				mutationFn={(args) => addApartment(args)}
 				onSuccess={(newId) => {
-					formik.setFieldValue('apartment', newId);
+					void formik.setFieldValue('apartment', newId);
 				}}
 				buildings={buildings}
 			/>
@@ -766,7 +776,7 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 	);
 };
 
-const ReservationFormClient: React.FC<SessionProps & { id?: number }> = ({ session, id }) => {
+const ReservationFormClient: FC<SessionProps & { id?: number }> = ({ session, id }) => {
 	const token = useInitAccessToken(session);
 	const { t } = useLanguage();
 	const title = id !== undefined ? t.reservations.editReservation : t.reservations.newReservation;

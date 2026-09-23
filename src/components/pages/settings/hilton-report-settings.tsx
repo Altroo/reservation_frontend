@@ -1,6 +1,8 @@
 'use client';
 
-import React, { useState } from 'react';
+import { runAsyncWithErrorHandler } from '@/utils/runWithCleanup';
+import { runWithCleanup } from '@/utils/runWithCleanup';
+import { useState, type FC } from 'react';
 import { Alert, Box, InputAdornment, Stack, TextField, Typography, useMediaQuery, useTheme } from '@mui/material';
 import { AccountBalanceWallet as WalletIcon, Edit as EditIcon } from '@mui/icons-material';
 import { useFormik } from 'formik';
@@ -13,16 +15,13 @@ import { useInitAccessToken } from '@/contexts/InitContext';
 import { useLanguage, useToast } from '@/utils/hooks';
 import { extractApiErrorMessage, formatDate } from '@/utils/helpers';
 import type { SessionProps } from '@/types/_initTypes';
-import {
-	useGetHiltonReportSettingsQuery,
-	useUpdateHiltonReportSettingsMutation,
-} from '@/store/services/reservation';
+import { useGetHiltonReportSettingsQuery, useUpdateHiltonReportSettingsMutation } from '@/store/services/reservation';
 
 type FormValues = {
 	carry_forward_balance: string;
 };
 
-const HiltonReportSettingsContent: React.FC<{ token?: string }> = ({ token }) => {
+const HiltonReportSettingsContent: FC<{ token?: string }> = ({ token }) => {
 	const { t } = useLanguage();
 	const { onSuccess, onError } = useToast();
 	const { data: settings, isLoading } = useGetHiltonReportSettingsQuery(undefined, { skip: !token });
@@ -36,26 +35,29 @@ const HiltonReportSettingsContent: React.FC<{ token?: string }> = ({ token }) =>
 		enableReinitialize: true,
 		onSubmit: async (values) => {
 			setIsPending(true);
-			try {
-				await updateSettings({
-					carry_forward_balance: values.carry_forward_balance || '0',
-				}).unwrap();
-				onSuccess(t.settings.hiltonBalanceUpdateSuccess);
-			} catch (err) {
-				onError(extractApiErrorMessage(err, t.settings.hiltonBalanceUpdateError));
-			} finally {
-				setIsPending(false);
-			}
+			await runWithCleanup(
+				async () => {
+					await runAsyncWithErrorHandler(
+						async () => {
+							await updateSettings({
+								carry_forward_balance: values.carry_forward_balance || '0',
+							}).unwrap();
+							onSuccess(t.settings.hiltonBalanceUpdateSuccess);
+						},
+						async (err) => {
+							onError(extractApiErrorMessage(err, t.settings.hiltonBalanceUpdateError));
+						},
+					);
+				},
+				() => {
+					setIsPending(false);
+				},
+			);
 		},
 	});
 
 	return (
-		<Stack
-			direction="column"
-			spacing={2}
-			className={Styles.flexRootStack}
-			sx={{ alignItems: 'center', mt: '32px' }}
-		>
+		<Stack direction="column" spacing={2} className={Styles.flexRootStack} sx={{ alignItems: 'center', mt: '32px' }}>
 			{(isLoading || isUpdating || isPending) && <ApiProgress backdropColor="#FFFFFF" circularColor="#0D070B" />}
 			<h2 className={Styles.pageTitle}>{t.settings.hiltonReportSettings}</h2>
 			<form className={Styles.form} onSubmit={(event) => event.preventDefault()}>
@@ -104,7 +106,7 @@ const HiltonReportSettingsContent: React.FC<{ token?: string }> = ({ token }) =>
 	);
 };
 
-const HiltonReportSettingsClient: React.FC<SessionProps> = ({ session }) => {
+const HiltonReportSettingsClient: FC<SessionProps> = ({ session }) => {
 	const theme = useTheme();
 	const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 	const token = useInitAccessToken(session);

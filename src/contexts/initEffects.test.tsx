@@ -1,4 +1,3 @@
-import React from 'react';
 import { render, waitFor } from '@testing-library/react';
 import { InitEffects } from './initEffects';
 import { useSession } from 'next-auth/react';

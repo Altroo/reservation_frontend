@@ -1,4 +1,4 @@
-import React from 'react';
+import { type ReactNode } from 'react';
 import { render, screen, cleanup, fireEvent, act, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 
@@ -48,12 +48,12 @@ jest.mock('@/utils/routes', () => ({
 
 // Mock Protected
 jest.mock('@/components/layouts/protected/protected', () => ({
-	Protected: ({ children }: { children: React.ReactNode }) => <div data-testid="protected">{children}</div>,
+	Protected: ({ children }: { children: ReactNode }) => <div data-testid="protected">{children}</div>,
 }));
 
 // Mock NavigationBar
 jest.mock('@/components/layouts/navigationBar/navigationBar', () => {
-	const Mock = ({ children }: { children: React.ReactNode }) => <div data-testid="navigation-bar">{children}</div>;
+	const Mock = ({ children }: { children: ReactNode }) => <div data-testid="navigation-bar">{children}</div>;
 	Mock.displayName = 'NavigationBar';
 	return { __esModule: true, default: Mock };
 });
@@ -106,7 +106,6 @@ jest.mock('@/utils/rawData', () => ({
 jest.mock('@/styles/dashboard/dashboard.module.sass', () => ({
 	flexRootStack: 'flexRootStack',
 }));
-
 import ReservationViewClient from './reservation-view';
 import type { AppSession } from '@/types/_initTypes';
 
@@ -220,22 +219,32 @@ describe('ReservationViewClient', () => {
 	describe('Delete action', () => {
 		it('opens delete modal on Supprimer click', async () => {
 			render(<ReservationViewClient session={mockSession} id={42} />);
-			await act(async () => { fireEvent.click(screen.getByText('Supprimer')); });
+			await act(async () => {
+				fireEvent.click(screen.getByText('Supprimer'));
+			});
 			expect(screen.getByTestId('action-modal')).toBeInTheDocument();
 		});
 
 		it('closes delete modal on Annuler', async () => {
 			render(<ReservationViewClient session={mockSession} id={42} />);
-			await act(async () => { fireEvent.click(screen.getByText('Supprimer')); });
-			await act(async () => { fireEvent.click(screen.getByText('Annuler')); });
+			await act(async () => {
+				fireEvent.click(screen.getByText('Supprimer'));
+			});
+			await act(async () => {
+				fireEvent.click(screen.getByText('Annuler'));
+			});
 			expect(screen.queryByTestId('action-modal')).not.toBeInTheDocument();
 		});
 
 		it('deletes and redirects on confirm', async () => {
 			render(<ReservationViewClient session={mockSession} id={42} />);
-			await act(async () => { fireEvent.click(screen.getByText('Supprimer')); });
+			await act(async () => {
+				fireEvent.click(screen.getByText('Supprimer'));
+			});
 			const btns = screen.getAllByText('Supprimer');
-			await act(async () => { fireEvent.click(btns[btns.length - 1]); });
+			await act(async () => {
+				fireEvent.click(btns[btns.length - 1]);
+			});
 			await waitFor(() => {
 				expect(mockDeleteReservation).toHaveBeenCalled();
 				expect(mockOnSuccess).toHaveBeenCalledWith('Réservation supprimée avec succès');
@@ -246,9 +255,13 @@ describe('ReservationViewClient', () => {
 		it('handles delete error', async () => {
 			mockDeleteReservation.mockReturnValueOnce({ unwrap: () => Promise.reject(new Error('fail')) });
 			render(<ReservationViewClient session={mockSession} id={42} />);
-			await act(async () => { fireEvent.click(screen.getByText('Supprimer')); });
+			await act(async () => {
+				fireEvent.click(screen.getByText('Supprimer'));
+			});
 			const btns = screen.getAllByText('Supprimer');
-			await act(async () => { fireEvent.click(btns[btns.length - 1]); });
+			await act(async () => {
+				fireEvent.click(btns[btns.length - 1]);
+			});
 			await waitFor(() => {
 				expect(mockOnError).toHaveBeenCalledWith('Erreur lors de la suppression de la réservation');
 			});
@@ -300,5 +313,3 @@ describe('ReservationViewClient', () => {
 		});
 	});
 });
-
-

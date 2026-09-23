@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
+import { runWithCleanup } from '@/utils/runWithCleanup';
+import { useState, type FC } from 'react';
 import Styles from '@/styles/dashboard/settings/settings.module.sass';
 import { Box, Stack, useMediaQuery, useTheme } from '@mui/material';
 import { useFormik } from 'formik';
@@ -27,7 +28,7 @@ type formikContentType = {
 	token: string | undefined;
 };
 
-const FormikContent: React.FC<formikContentType> = (props: formikContentType) => {
+const FormikContent: FC<formikContentType> = (props: formikContentType) => {
 	const { token } = props;
 	const { onSuccess, onError } = useToast();
 	const { t } = useLanguage();
@@ -52,18 +53,23 @@ const FormikContent: React.FC<formikContentType> = (props: formikContentType) =>
 			setIsPending(true);
 			// eslint-disable-next-line @typescript-eslint/no-unused-vars
 			const { globalError, ...payload } = data;
-			try {
-				const response = await editProfil({ data: payload }).unwrap();
-				if (response) {
-					dispatch(accountEditProfilAction(response));
-					onSuccess(t.settings.profileUpdateSuccess);
-				}
-			} catch (e) {
-				onError(t.settings.profileUpdateError);
-				setFormikAutoErrors({ e, setFieldError });
-			} finally {
-				setIsPending(false);
-			}
+			await runWithCleanup(
+				async () => {
+					try {
+						const response = await editProfil({ data: payload }).unwrap();
+						if (response) {
+							dispatch(accountEditProfilAction(response));
+							onSuccess(t.settings.profileUpdateSuccess);
+						}
+					} catch (e) {
+						onError(t.settings.profileUpdateError);
+						setFormikAutoErrors({ e, setFieldError });
+					}
+				},
+				() => {
+					setIsPending(false);
+				},
+			);
 		},
 	});
 
@@ -94,8 +100,8 @@ const FormikContent: React.FC<formikContentType> = (props: formikContentType) =>
 						cssClasse={Styles.centerAvatar}
 						image={formik.values.avatar}
 						croppedImage={formik.values.avatar_cropped}
-						onChange={(img) => formik.setFieldValue('avatar', img)}
-						onCrop={(cropped) => formik.setFieldValue('avatar_cropped', cropped)}
+						onChange={(img) => void formik.setFieldValue('avatar', img)}
+						onCrop={(cropped) => void formik.setFieldValue('avatar_cropped', cropped)}
 					/>
 					<CustomTextInput
 						id="email"
@@ -152,7 +158,7 @@ const FormikContent: React.FC<formikContentType> = (props: formikContentType) =>
 							{ code: 'F', value: t.rawData.genders.female },
 						]}
 						theme={customDropdownTheme()}
-						onChange={(e) => formik.setFieldValue('gender', e.target.value)}
+						onChange={(e) => void formik.setFieldValue('gender', e.target.value)}
 						value={formik.values.gender}
 						startIcon={<GroupsIcon fontSize="small" />}
 						cssClass={Styles.maxInputWidth}
@@ -172,7 +178,7 @@ const FormikContent: React.FC<formikContentType> = (props: formikContentType) =>
 	);
 };
 
-const EditProfilClient: React.FC<SessionProps> = (props: SessionProps) => {
+const EditProfilClient: FC<SessionProps> = (props: SessionProps) => {
 	const { session } = props;
 	const theme = useTheme();
 	const isMobile = useMediaQuery(theme.breakpoints.down('md'));

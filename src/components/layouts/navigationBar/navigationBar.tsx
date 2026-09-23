@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { runWithCleanup } from '@/utils/runWithCleanup';
+import { useEffect, useRef, useState, type MouseEvent, type ReactNode, type SyntheticEvent } from 'react';
 import { styled, ThemeProvider } from '@mui/material/styles';
 import MuiAppBar, { type AppBarProps as MuiAppBarProps } from '@mui/material/AppBar';
 import {
@@ -95,7 +96,6 @@ import {
 } from '@/store/services/reservation';
 import { setUnreadCount } from '@/store/slices/notificationSlice';
 import { formatDate } from '@/utils/helpers';
-
 import type { NotificationType } from '@/types/reservationTypes';
 import type { TranslationDictionary } from '@/types/languageTypes';
 
@@ -241,7 +241,7 @@ const AppBar = styled(MuiAppBar, {
 
 type Props = {
 	title: string;
-	children: React.ReactNode;
+	children: ReactNode;
 };
 
 const NavigationBar = (props: Props) => {
@@ -253,10 +253,7 @@ const NavigationBar = (props: Props) => {
 		useAppSelector(getProfilState);
 	const { t, language, setLanguage } = useLanguage();
 	const canAccessHiltonReports = is_staff || can_access_hilton_reports;
-	const navigationMenu = useMemo(
-		() => getNavigationMenu(is_staff, canAccessHiltonReports, t),
-		[is_staff, canAccessHiltonReports, t],
-	);
+	const navigationMenu = getNavigationMenu(is_staff, canAccessHiltonReports, t);
 	const dispatch = useAppDispatch();
 	const router = useRouter();
 	const moreVertRef = useRef<HTMLButtonElement>(null);
@@ -276,9 +273,11 @@ const NavigationBar = (props: Props) => {
 
 	useEffect(() => {
 		if (firstPage) {
-			setAllNotifications(firstPage.results);
-			setHasMore(firstPage.next !== null);
-			setNotifPage(1);
+			queueMicrotask(() => {
+				setAllNotifications(firstPage.results);
+				setHasMore(firstPage.next !== null);
+				setNotifPage(1);
+			});
 		}
 	}, [firstPage]);
 
@@ -288,7 +287,7 @@ const NavigationBar = (props: Props) => {
 		}
 	}, [unreadCountData, dispatch]);
 
-	const handleNotifOpen = (e: React.MouseEvent<HTMLElement>) => {
+	const handleNotifOpen = (e: MouseEvent<HTMLElement>) => {
 		setNotifAnchor(e.currentTarget);
 	};
 	const handleNotifClose = () => {
@@ -318,18 +317,21 @@ const NavigationBar = (props: Props) => {
 		}
 	}, [status]);
 
-	const handleLoadMore = useCallback(async () => {
+	const handleLoadMore = async () => {
 		const nextPage = notifPage + 1;
 		setLoadingMore(true);
-		try {
-			const result = await fetchNotifications({ page: nextPage }).unwrap();
-			setAllNotifications((prev) => [...prev, ...result.results]);
-			setHasMore(result.next !== null);
-			setNotifPage(nextPage);
-		} finally {
-			setLoadingMore(false);
-		}
-	}, [notifPage, fetchNotifications]);
+		await runWithCleanup(
+			async () => {
+				const result = await fetchNotifications({ page: nextPage }).unwrap();
+				setAllNotifications((prev) => [...prev, ...result.results]);
+				setHasMore(result.next !== null);
+				setNotifPage(nextPage);
+			},
+			() => {
+				setLoadingMore(false);
+			},
+		);
+	};
 
 	const loading = status === 'loading';
 
@@ -352,7 +354,7 @@ const NavigationBar = (props: Props) => {
 
 	const [userExpanded, setUserExpanded] = useState<string | false>(false);
 
-	const defaultExpanded: string | false = useMemo(() => {
+	const defaultExpanded: string | false = (() => {
 		const exactMatch = Object.entries(navigationMenu).find(([, section]) =>
 			section.items.some((item) => {
 				const normalizedPath = item.path.replace(/^https?:\/\/[^/]+/, '');
@@ -390,7 +392,7 @@ const NavigationBar = (props: Props) => {
 		});
 
 		return bestMatch ? `panel-${bestMatch}` : false;
-	}, [pathname, navigationMenu]);
+	})();
 
 	const expanded = userExpanded !== false ? userExpanded : defaultExpanded;
 
@@ -402,7 +404,7 @@ const NavigationBar = (props: Props) => {
 		}
 	};
 
-	const handleChange = (panel: string) => (_event: React.SyntheticEvent, isExpanded: boolean) => {
+	const handleChange = (panel: string) => (_event: SyntheticEvent, isExpanded: boolean) => {
 		setUserExpanded(isExpanded ? panel : false);
 	};
 

@@ -1,4 +1,4 @@
-import React from 'react';
+import { type ReactNode } from 'react';
 import { render, screen, cleanup } from '@testing-library/react';
 import '@testing-library/jest-dom';
 
@@ -108,11 +108,11 @@ jest.mock('@/components/formikElements/apiLoading/apiProgress/apiProgress', () =
 }));
 
 jest.mock('@/components/layouts/protected/protected', () => ({
-	Protected: ({ children }: { children: React.ReactNode }) => <div data-testid="protected">{children}</div>,
+	Protected: ({ children }: { children: ReactNode }) => <div data-testid="protected">{children}</div>,
 }));
 
 jest.mock('@/components/layouts/navigationBar/navigationBar', () => {
-	const Mock = ({ children }: { children: React.ReactNode }) => <div data-testid="navigation-bar">{children}</div>;
+	const Mock = ({ children }: { children: ReactNode }) => <div data-testid="navigation-bar">{children}</div>;
 	Mock.displayName = 'NavigationBar';
 	return { __esModule: true, default: Mock };
 });
@@ -202,13 +202,12 @@ jest.mock('@mui/x-date-pickers/DatePicker', () => ({
 }));
 
 jest.mock('@mui/x-date-pickers/LocalizationProvider', () => ({
-	LocalizationProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+	LocalizationProvider: ({ children }: { children: ReactNode }) => <>{children}</>,
 }));
 
 jest.mock('@mui/x-date-pickers/AdapterDateFns', () => ({
 	AdapterDateFns: jest.fn(),
 }));
-
 import LocalFormClient from './local-form';
 import type { AppSession } from '@/types/_initTypes';
 
@@ -335,10 +334,7 @@ describe('LocalFormClient', () => {
 
 		it('calls useGetLocalQuery with skip=true (add mode has no id)', () => {
 			render(<LocalFormClient session={mockSession} />);
-			expect(mockUseGetLocalQuery).toHaveBeenCalledWith(
-				expect.anything(),
-				expect.objectContaining({ skip: true }),
-			);
+			expect(mockUseGetLocalQuery).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({ skip: true }));
 		});
 		it('does not render loyers section in add mode', () => {
 			render(<LocalFormClient session={mockSession} />);

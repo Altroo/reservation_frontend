@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import { type FC } from 'react';
 import Image from 'next/image';
 import { Box, Chip, Divider, Paper, Stack, Typography } from '@mui/material';
 import BuildCircleOutlinedIcon from '@mui/icons-material/BuildCircleOutlined';
@@ -9,7 +9,7 @@ import { getWSMaintenanceState } from '@/store/selectors';
 import Logo from '../../../../public/assets/images/reservation-logo.png';
 import DocumentSVG from '../../../../public/assets/images/auth_illu/document.svg';
 
-const Maintenance: React.FC = () => {
+const Maintenance: FC = () => {
 	const { t } = useLanguage();
 	const maintenance = useAppSelector(getWSMaintenanceState);
 

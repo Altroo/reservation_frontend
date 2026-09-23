@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useMemo, useState } from 'react';
+import { runWithCleanup } from '@/utils/runWithCleanup';
+import { useState, type FC, type ReactNode, isValidElement } from 'react';
 import { useRouter } from 'next/navigation';
 import type { ApiErrorResponseType, ResponseDataInterface, SessionProps } from '@/types/_initTypes';
 import { useInitAccessToken } from '@/contexts/InitContext';
@@ -42,16 +43,16 @@ import { useLanguage, useToast } from '@/utils/hooks';
 import { PAYMENT_SOURCE_CHIP_COLORS } from '@/utils/rawData';
 
 interface InfoRowProps {
-	icon: React.ReactNode;
+	icon: ReactNode;
 	label: string;
-	value: string | number | null | undefined | React.ReactNode;
+	value: string | number | null | undefined | ReactNode;
 }
 
-const InfoRow: React.FC<InfoRowProps> = ({ icon, label, value }) => {
+const InfoRow: FC<InfoRowProps> = ({ icon, label, value }) => {
 	const theme = useTheme();
 	const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
-	const displayValue = React.isValidElement(value)
+	const displayValue = isValidElement(value)
 		? value
 		: value === null || value === undefined || String(value).trim() === ''
 			? '-'
@@ -88,7 +89,7 @@ const InfoRow: React.FC<InfoRowProps> = ({ icon, label, value }) => {
 					{label}
 				</Typography>
 				<Box sx={{ flex: 1 }}>
-					{React.isValidElement(displayValue) ? (
+					{isValidElement(displayValue) ? (
 						displayValue
 					) : (
 						<Typography sx={{ color: 'text.primary' }}>{displayValue as string}</Typography>
@@ -103,14 +104,11 @@ interface Props extends SessionProps {
 	id: number;
 }
 
-const ReservationViewClient: React.FC<Props> = ({ session, id }) => {
+const ReservationViewClient: FC<Props> = ({ session, id }) => {
 	const router = useRouter();
 	const token = useInitAccessToken(session);
 	const { data: reservation, isLoading, error } = useGetReservationQuery({ id }, { skip: !token });
-	const axiosError = useMemo(
-		() => (error ? (error as ResponseDataInterface<ApiErrorResponseType>) : undefined),
-		[error],
-	);
+	const axiosError = error ? (error as ResponseDataInterface<ApiErrorResponseType>) : undefined;
 	const theme = useTheme();
 	const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
@@ -120,15 +118,20 @@ const ReservationViewClient: React.FC<Props> = ({ session, id }) => {
 	const [showDeleteModal, setShowDeleteModal] = useState(false);
 
 	const handleDelete = async () => {
-		try {
-			await deleteRecord({ id }).unwrap();
-			onSuccess(t.reservations.reservationDeletedSuccess);
-			router.push(RESERVATIONS_LIST);
-		} catch (err) {
-			onError(extractApiErrorMessage(err, t.reservations.reservationDeleteError));
-		} finally {
-			setShowDeleteModal(false);
-		}
+		await runWithCleanup(
+			async () => {
+				try {
+					await deleteRecord({ id }).unwrap();
+					onSuccess(t.reservations.reservationDeletedSuccess);
+					router.push(RESERVATIONS_LIST);
+				} catch (err) {
+					onError(extractApiErrorMessage(err, t.reservations.reservationDeleteError));
+				}
+			},
+			() => {
+				setShowDeleteModal(false);
+			},
+		);
 	};
 
 	const deleteModalActions = [

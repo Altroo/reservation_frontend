@@ -1,6 +1,7 @@
 'use client';
 
-import React, { isValidElement, useMemo, useState } from 'react';
+import { runWithCleanup } from '@/utils/runWithCleanup';
+import { isValidElement, useState, type FC, type ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
 import {
 	Box,
@@ -53,12 +54,12 @@ import { useInitAccessToken } from '@/contexts/InitContext';
 import Styles from '@/styles/dashboard/dashboard.module.sass';
 
 interface InfoRowProps {
-	icon: React.ReactNode;
+	icon: ReactNode;
 	label: string;
-	value: string | number | null | undefined | React.ReactNode;
+	value: string | number | null | undefined | ReactNode;
 }
 
-const InfoRow: React.FC<InfoRowProps> = ({ icon, label, value }) => {
+const InfoRow: FC<InfoRowProps> = ({ icon, label, value }) => {
 	const theme = useTheme();
 	const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 	const displayValue =
@@ -106,7 +107,7 @@ const InfoRow: React.FC<InfoRowProps> = ({ icon, label, value }) => {
 	);
 };
 
-const BuildingViewClient: React.FC<SessionProps & { id: number }> = ({ session, id }) => {
+const BuildingViewClient: FC<SessionProps & { id: number }> = ({ session, id }) => {
 	const router = useRouter();
 	const { onSuccess, onError } = useToast();
 	const { t } = useLanguage();
@@ -119,28 +120,27 @@ const BuildingViewClient: React.FC<SessionProps & { id: number }> = ({ session, 
 	const { data: locauxRaw } = useGetLocauxListQuery({}, { skip: !token });
 	const [showAddApartmentModal, setShowAddApartmentModal] = useState(false);
 
-	const buildingApartments = useMemo(
-		() => (Array.isArray(apartmentsRaw) ? apartmentsRaw : []).filter((a) => a.building === id),
-		[apartmentsRaw, id],
-	);
-	const buildingLocaux = useMemo(
-		() => (Array.isArray(locauxRaw) ? locauxRaw : []).filter((l) => l.building === id),
-		[locauxRaw, id],
-	);
+	const buildingApartments = (Array.isArray(apartmentsRaw) ? apartmentsRaw : []).filter((a) => a.building === id);
+	const buildingLocaux = (Array.isArray(locauxRaw) ? locauxRaw : []).filter((l) => l.building === id);
 
 	const [showDeleteModal, setShowDeleteModal] = useState(false);
 	const inputTheme = textInputTheme();
 
 	const deleteHandler = async () => {
-		try {
-			await deleteBuilding({ id }).unwrap();
-			onSuccess(t.buildings.residenceDeletedSuccess);
-			router.push(BUILDINGS_LIST);
-		} catch (err) {
-			onError(extractApiErrorMessage(err, t.buildings.residenceDeleteError));
-		} finally {
-			setShowDeleteModal(false);
-		}
+		await runWithCleanup(
+			async () => {
+				try {
+					await deleteBuilding({ id }).unwrap();
+					onSuccess(t.buildings.residenceDeletedSuccess);
+					router.push(BUILDINGS_LIST);
+				} catch (err) {
+					onError(extractApiErrorMessage(err, t.buildings.residenceDeleteError));
+				}
+			},
+			() => {
+				setShowDeleteModal(false);
+			},
+		);
 	};
 
 	const deleteModalActions = [

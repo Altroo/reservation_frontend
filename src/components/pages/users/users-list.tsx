@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
+import { runWithCleanup } from '@/utils/runWithCleanup';
+import { useState, type FC } from 'react';
 import { useRouter } from 'next/navigation';
 import { Avatar, Box, Button, Stack, Typography } from '@mui/material';
 import {
@@ -35,7 +36,7 @@ import {
 } from '@/components/shared/dropdownFilter/dropdownFilter';
 import { createDateRangeFilterOperator } from '@/components/shared/dateRangeFilter/dateRangeFilterOperator';
 
-const UsersListClient: React.FC<SessionProps> = ({ session }: SessionProps) => {
+const UsersListClient: FC<SessionProps> = ({ session }: SessionProps) => {
 	const router = useRouter();
 	const { t } = useLanguage();
 	const { onSuccess, onError } = useToast();
@@ -74,18 +75,23 @@ const UsersListClient: React.FC<SessionProps> = ({ session }: SessionProps) => {
 	const [bulkDeleteUsers] = useBulkDeleteUsersMutation();
 
 	const deleteHandler = async () => {
-		try {
-			await deleteRecord({ id: selectedUserId! }).unwrap();
-			// success toast
-			onSuccess(t.users.userDeletedSuccess);
-			// refresh the page / data
-			refetch();
-		} catch (err) {
-			// error toast
-			onError(extractApiErrorMessage(err, t.users.userDeleteError));
-		} finally {
-			setShowDeleteModal(false);
-		}
+		await runWithCleanup(
+			async () => {
+				try {
+					await deleteRecord({ id: selectedUserId! }).unwrap();
+					// success toast
+					onSuccess(t.users.userDeletedSuccess);
+					// refresh the page / data
+					refetch();
+				} catch (err) {
+					// error toast
+					onError(extractApiErrorMessage(err, t.users.userDeleteError));
+				}
+			},
+			() => {
+				setShowDeleteModal(false);
+			},
+		);
 	};
 
 	const deleteModalActions = [
@@ -109,16 +115,21 @@ const UsersListClient: React.FC<SessionProps> = ({ session }: SessionProps) => {
 	};
 
 	const bulkDeleteHandler = async () => {
-		try {
-			await bulkDeleteUsers({ ids: selectedUserIds }).unwrap();
-			onSuccess(t.users.bulkUsersDeletedSuccess(selectedUserIds.length));
-		} catch (err) {
-			onError(extractApiErrorMessage(err, t.users.bulkUsersDeleteError));
-		} finally {
-			setSelectedUserIds([]);
-			setShowBulkDeleteModal(false);
-			refetch();
-		}
+		await runWithCleanup(
+			async () => {
+				try {
+					await bulkDeleteUsers({ ids: selectedUserIds }).unwrap();
+					onSuccess(t.users.bulkUsersDeletedSuccess(selectedUserIds.length));
+				} catch (err) {
+					onError(extractApiErrorMessage(err, t.users.bulkUsersDeleteError));
+				}
+			},
+			() => {
+				setSelectedUserIds([]);
+				setShowBulkDeleteModal(false);
+				refetch();
+			},
+		);
 	};
 
 	const bulkDeleteModalActions = [
@@ -138,21 +149,15 @@ const UsersListClient: React.FC<SessionProps> = ({ session }: SessionProps) => {
 		},
 	];
 
-	const genderFilterOptions = React.useMemo(
-		() => [
-			{ value: 'Homme', label: t.rawData.genders.male },
-			{ value: 'Femme', label: t.rawData.genders.female },
-		],
-		[t.rawData.genders.male, t.rawData.genders.female],
-	);
+	const genderFilterOptions = [
+		{ value: 'Homme', label: t.rawData.genders.male },
+		{ value: 'Femme', label: t.rawData.genders.female },
+	];
 
-	const TrueFalseFilterOptions = React.useMemo(
-		() => [
-			{ value: 'true', label: t.common.yes },
-			{ value: 'false', label: t.common.no },
-		],
-		[t.common.yes, t.common.no],
-	);
+	const TrueFalseFilterOptions = [
+		{ value: 'true', label: t.common.yes },
+		{ value: 'false', label: t.common.no },
+	];
 
 	const columns: GridColDef[] = [
 		{

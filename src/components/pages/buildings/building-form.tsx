@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useEffect, useRef, useState } from 'react';
+import { runWithCleanup } from '@/utils/runWithCleanup';
+import { useEffect, useRef, useState, type FC } from 'react';
 import { useRouter } from 'next/navigation';
 import { Alert, Box, Card, CardContent, Divider, Stack, Typography } from '@mui/material';
 import {
@@ -40,7 +41,7 @@ type FormikContentProps = {
 	id?: number;
 };
 
-const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
+const FormikContent: FC<FormikContentProps> = ({ token, id }) => {
 	const { onSuccess, onError } = useToast();
 	const { t } = useLanguage();
 	const isEditMode = id !== undefined;
@@ -65,21 +66,26 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 			setIsPending(true);
 			// eslint-disable-next-line @typescript-eslint/no-unused-vars
 			const { globalError, ...fields } = data;
-			try {
-				if (isEditMode) {
-					await updateBuilding({ id: id!, data: fields }).unwrap();
-					onSuccess(t.buildings.residenceUpdatedSuccess);
-				} else {
-					await createBuilding(fields).unwrap();
-					onSuccess(t.buildings.residenceAddedSuccess);
-				}
-				router.push(BUILDINGS_LIST);
-			} catch (e) {
-				setFormikAutoErrors({ e, setFieldError });
-				onError(isEditMode ? t.buildings.residenceUpdateError : t.buildings.residenceAddError);
-			} finally {
-				setIsPending(false);
-			}
+			await runWithCleanup(
+				async () => {
+					try {
+						if (isEditMode) {
+							await updateBuilding({ id: id!, data: fields }).unwrap();
+							onSuccess(t.buildings.residenceUpdatedSuccess);
+						} else {
+							await createBuilding(fields).unwrap();
+							onSuccess(t.buildings.residenceAddedSuccess);
+						}
+						router.push(BUILDINGS_LIST);
+					} catch (e) {
+						setFormikAutoErrors({ e, setFieldError });
+						onError(isEditMode ? t.buildings.residenceUpdateError : t.buildings.residenceAddError);
+					}
+				},
+				() => {
+					setIsPending(false);
+				},
+			);
 		},
 	});
 
@@ -193,7 +199,7 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 	);
 };
 
-const BuildingFormClient: React.FC<SessionProps & { id?: number }> = ({ session, id }) => {
+const BuildingFormClient: FC<SessionProps & { id?: number }> = ({ session, id }) => {
 	const token = useInitAccessToken(session);
 	const { t } = useLanguage();
 	const title = id !== undefined ? t.buildings.editResidence : t.buildings.newResidence;

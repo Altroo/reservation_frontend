@@ -1,4 +1,4 @@
-import React from 'react';
+import { type ReactNode } from 'react';
 import { render, screen, cleanup, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
 
@@ -101,15 +101,11 @@ jest.mock('@/store/services/reservation', () => ({
 
 // Mock layout components
 jest.mock('@/components/layouts/protected/protected', () => ({
-	Protected: ({ children }: { children: React.ReactNode }) => (
-		<div data-testid="protected">{children}</div>
-	),
+	Protected: ({ children }: { children: ReactNode }) => <div data-testid="protected">{children}</div>,
 }));
 
 jest.mock('@/components/layouts/navigationBar/navigationBar', () => {
-	const Mock = ({ children }: { children: React.ReactNode }) => (
-		<div data-testid="navigation-bar">{children}</div>
-	);
+	const Mock = ({ children }: { children: ReactNode }) => <div data-testid="navigation-bar">{children}</div>;
 	Mock.displayName = 'NavigationBar';
 	return { __esModule: true, default: Mock };
 });
@@ -123,9 +119,7 @@ jest.mock('@/components/formikElements/apiLoading/apiProgress/apiProgress', () =
 // Mock ReservationDialog to avoid all its heavy dependencies
 jest.mock('@/components/pages/reservations/reservation-dialog', () => ({
 	__esModule: true,
-	default: ({ open }: { open: boolean }) => (
-		<div data-testid="reservation-dialog" data-open={String(open)} />
-	),
+	default: ({ open }: { open: boolean }) => <div data-testid="reservation-dialog" data-open={String(open)} />,
 }));
 
 // Mock helpers
@@ -139,8 +133,18 @@ jest.mock('@/utils/helpers', () => ({
 
 jest.mock('@/utils/rawData', () => ({
 	MONTH_NAMES: [
-		'Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin',
-		'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre',
+		'Janvier',
+		'Février',
+		'Mars',
+		'Avril',
+		'Mai',
+		'Juin',
+		'Juillet',
+		'Août',
+		'Septembre',
+		'Octobre',
+		'Novembre',
+		'Décembre',
 	],
 	DAY_ABBREVIATIONS: ['L', 'M', 'M', 'J', 'V', 'S', 'D'],
 	PAYMENT_SOURCE_BG: {
@@ -159,10 +163,8 @@ jest.mock('@/utils/routes', () => ({
 jest.mock('@/styles/dashboard/dashboard.module.sass', () => ({
 	flexRootStack: 'flexRootStack',
 }));
-
 import CalendarClient from './calendar-client';
 import type { AppSession } from '@/types/_initTypes';
-
 
 jest.mock('@/utils/hooks', () => ({
 	// eslint-disable-next-line @typescript-eslint/no-require-imports

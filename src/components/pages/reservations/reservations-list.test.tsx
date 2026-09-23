@@ -1,4 +1,4 @@
-import React from 'react';
+import { type ReactNode } from 'react';
 import { render, screen, cleanup, fireEvent, act, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 
@@ -77,7 +77,10 @@ jest.mock('@/store/services/reservation', () => ({
 	useGetReservationsListQuery: () => mockUseGetReservationsListQuery(),
 	useDeleteReservationMutation: jest.fn(() => [mockDeleteReservation, { isLoading: false }]),
 	useBulkDeleteReservationsMutation: jest.fn(() => [mockBulkDeleteReservations, { isLoading: false }]),
-	useGetApartmentsQuery: jest.fn(() => ({ data: [{ id: 1, code: 'APT-01', name: 'Appartement Luxe' }], isLoading: false })),
+	useGetApartmentsQuery: jest.fn(() => ({
+		data: [{ id: 1, code: 'APT-01', name: 'Appartement Luxe' }],
+		isLoading: false,
+	})),
 }));
 
 // Mock routes
@@ -97,7 +100,7 @@ jest.mock('@/components/shared/paginatedDataGrid/paginatedDataGrid', () => ({
 		columns: Array<{
 			field: string;
 			headerName: string;
-			renderCell?: (params: { value: unknown; row: Record<string, unknown>; field: string }) => React.ReactNode;
+			renderCell?: (params: { value: unknown; row: Record<string, unknown>; field: string }) => ReactNode;
 		}>;
 		data?: { results?: Array<Record<string, unknown>> };
 		isLoading?: boolean;
@@ -135,12 +138,12 @@ jest.mock('@/components/shared/paginatedDataGrid/paginatedDataGrid', () => ({
 
 // Mock Protected
 jest.mock('@/components/layouts/protected/protected', () => ({
-	Protected: ({ children }: { children: React.ReactNode }) => <div data-testid="protected">{children}</div>,
+	Protected: ({ children }: { children: ReactNode }) => <div data-testid="protected">{children}</div>,
 }));
 
 // Mock NavigationBar
 jest.mock('@/components/layouts/navigationBar/navigationBar', () => {
-	const Mock = ({ children }: { children: React.ReactNode }) => <div data-testid="navigation-bar">{children}</div>;
+	const Mock = ({ children }: { children: ReactNode }) => <div data-testid="navigation-bar">{children}</div>;
 	Mock.displayName = 'NavigationBar';
 	return { __esModule: true, default: Mock };
 });
@@ -187,7 +190,7 @@ jest.mock('@/components/shared/mobileActionsMenu/mobileActionsMenu', () => ({
 
 jest.mock('@/components/htmlElements/tooltip/darkTooltip/darkTooltip', () => ({
 	__esModule: true,
-	default: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+	default: ({ children }: { children: ReactNode }) => <>{children}</>,
 }));
 
 jest.mock('@/components/shared/dateRangeFilter/dateRangeFilterOperator', () => ({
@@ -223,7 +226,6 @@ jest.mock('@/utils/rawData', () => ({
 jest.mock('@/styles/dashboard/dashboard.module.sass', () => ({
 	flexRootStack: 'flexRootStack',
 }));
-
 import ReservationsListClient from './reservations-list';
 import type { AppSession } from '@/types/_initTypes';
 
@@ -320,23 +322,33 @@ describe('ReservationsListClient', () => {
 
 		it('opens delete modal', async () => {
 			render(<ReservationsListClient session={mockSession} />);
-			await act(async () => { fireEvent.click(screen.getAllByText('Supprimer')[0]); });
+			await act(async () => {
+				fireEvent.click(screen.getAllByText('Supprimer')[0]);
+			});
 			expect(screen.getByTestId('action-modal')).toBeInTheDocument();
 			expect(screen.getByText('Supprimer la réservation')).toBeInTheDocument();
 		});
 
 		it('closes delete modal on Annuler', async () => {
 			render(<ReservationsListClient session={mockSession} />);
-			await act(async () => { fireEvent.click(screen.getAllByText('Supprimer')[0]); });
-			await act(async () => { fireEvent.click(screen.getByText('Annuler')); });
+			await act(async () => {
+				fireEvent.click(screen.getAllByText('Supprimer')[0]);
+			});
+			await act(async () => {
+				fireEvent.click(screen.getByText('Annuler'));
+			});
 			expect(screen.queryByTestId('action-modal')).not.toBeInTheDocument();
 		});
 
 		it('deletes reservation on confirm', async () => {
 			render(<ReservationsListClient session={mockSession} />);
-			await act(async () => { fireEvent.click(screen.getAllByText('Supprimer')[0]); });
+			await act(async () => {
+				fireEvent.click(screen.getAllByText('Supprimer')[0]);
+			});
 			const btns = screen.getAllByText('Supprimer');
-			await act(async () => { fireEvent.click(btns[btns.length - 1]); });
+			await act(async () => {
+				fireEvent.click(btns[btns.length - 1]);
+			});
 			await waitFor(() => {
 				expect(mockDeleteReservation).toHaveBeenCalled();
 				expect(mockOnSuccess).toHaveBeenCalledWith('Réservation supprimée avec succès');
@@ -346,9 +358,13 @@ describe('ReservationsListClient', () => {
 		it('handles delete error', async () => {
 			mockDeleteReservation.mockReturnValueOnce({ unwrap: () => Promise.reject(new Error('fail')) });
 			render(<ReservationsListClient session={mockSession} />);
-			await act(async () => { fireEvent.click(screen.getAllByText('Supprimer')[0]); });
+			await act(async () => {
+				fireEvent.click(screen.getAllByText('Supprimer')[0]);
+			});
 			const btns = screen.getAllByText('Supprimer');
-			await act(async () => { fireEvent.click(btns[btns.length - 1]); });
+			await act(async () => {
+				fireEvent.click(btns[btns.length - 1]);
+			});
 			await waitFor(() => {
 				expect(mockOnError).toHaveBeenCalledWith('Erreur lors de la suppression de la réservation');
 			});
@@ -366,18 +382,23 @@ describe('ReservationsListClient', () => {
 
 	describe('Loading and empty states', () => {
 		it('renders grid when loading', () => {
-			mockUseGetReservationsListQuery.mockReturnValueOnce({ data: { results: [], count: 0, next: null, previous: null }, isLoading: true, refetch: mockRefetch });
+			mockUseGetReservationsListQuery.mockReturnValueOnce({
+				data: { results: [], count: 0, next: null, previous: null },
+				isLoading: true,
+				refetch: mockRefetch,
+			});
 			render(<ReservationsListClient session={mockSession} />);
 			expect(screen.getByTestId('paginated-data-grid')).toBeInTheDocument();
 		});
 
 		it('renders grid when empty', () => {
-			mockUseGetReservationsListQuery.mockReturnValueOnce({ data: { results: [], count: 0, next: null, previous: null }, isLoading: false, refetch: mockRefetch });
+			mockUseGetReservationsListQuery.mockReturnValueOnce({
+				data: { results: [], count: 0, next: null, previous: null },
+				isLoading: false,
+				refetch: mockRefetch,
+			});
 			render(<ReservationsListClient session={mockSession} />);
 			expect(screen.getByTestId('paginated-data-grid')).toBeInTheDocument();
 		});
 	});
 });
-
-
-

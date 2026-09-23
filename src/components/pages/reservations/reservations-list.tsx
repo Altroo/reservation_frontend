@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useMemo, useState } from 'react';
+import { runWithCleanup } from '@/utils/runWithCleanup';
+import { useState, type FC } from 'react';
 import { useRouter } from 'next/navigation';
 import {
 	Box,
@@ -34,7 +35,6 @@ import ActionModals from '@/components/htmlElements/modals/actionModal/actionMod
 import { Protected } from '@/components/layouts/protected/protected';
 import MobileActionsMenu from '@/components/shared/mobileActionsMenu/mobileActionsMenu';
 import DarkTooltip from '@/components/htmlElements/tooltip/darkTooltip/darkTooltip';
-import type { ChipFilterConfig } from '@/components/shared/chipSelectFilter/chipSelectFilterBar';
 import ChipSelectFilterBar from '@/components/shared/chipSelectFilter/chipSelectFilterBar';
 import { extractApiErrorMessage, formatDate } from '@/utils/helpers';
 import { PAYMENT_SOURCE_CHIP_COLORS } from '@/utils/rawData';
@@ -73,7 +73,7 @@ const renderNotesTooltip = (notes: string) => (
 	</Box>
 );
 
-const ReservationsListClient: React.FC<SessionProps> = ({ session }) => {
+const ReservationsListClient: FC<SessionProps> = ({ session }) => {
 	const router = useRouter();
 	const { onSuccess, onError } = useToast();
 	const { t } = useLanguage();
@@ -116,40 +116,50 @@ const ReservationsListClient: React.FC<SessionProps> = ({ session }) => {
 
 	const data = rawData as PaginationResponseType<ReservationClass> | undefined;
 
-	const guestNameOptions = useMemo(() => {
+	const guestNameOptions = (() => {
 		const nameMap = new Map<string, string>();
 		(data?.results ?? []).forEach((r) => {
 			if (r.guest_name) nameMap.set(r.guest_name, r.guest_name);
 		});
 		return Array.from(nameMap.values()).map((name) => ({ value: name, label: name }));
-	}, [data?.results]);
+	})();
 
 	const [deleteReservation] = useDeleteReservationMutation();
 	const [bulkDeleteReservations] = useBulkDeleteReservationsMutation();
 
 	const deleteHandler = async () => {
-		try {
-			await deleteReservation({ id: selectedId! }).unwrap();
-			onSuccess(t.reservations.reservationDeletedSuccess);
-			refetch();
-		} catch (err) {
-			onError(extractApiErrorMessage(err, t.reservations.reservationDeleteError));
-		} finally {
-			setShowDeleteModal(false);
-		}
+		await runWithCleanup(
+			async () => {
+				try {
+					await deleteReservation({ id: selectedId! }).unwrap();
+					onSuccess(t.reservations.reservationDeletedSuccess);
+					refetch();
+				} catch (err) {
+					onError(extractApiErrorMessage(err, t.reservations.reservationDeleteError));
+				}
+			},
+			() => {
+				setShowDeleteModal(false);
+			},
+		);
 	};
 
 	const bulkDeleteHandler = async () => {
-		try {
-			await bulkDeleteReservations({ ids: selectedIds }).unwrap();
-			onSuccess(t.reservations.bulkReservationsDeletedSuccess(selectedIds.length));
-		} catch (err) {
-			onError(extractApiErrorMessage(err, t.reservations.bulkReservationsDeleteError));
-		} finally {
-			setSelectedIds([]);
-			setShowBulkDeleteModal(false);
-			refetch();
-		}
+		await runWithCleanup(
+			async () => {
+				try {
+					await bulkDeleteReservations({ ids: selectedIds }).unwrap();
+					onSuccess(t.reservations.bulkReservationsDeletedSuccess(selectedIds.length));
+				} catch (err) {
+					onError(extractApiErrorMessage(err, t.reservations.bulkReservationsDeleteError));
+				}
+			},
+			() => {
+				setSelectedIds([]);
+				setShowBulkDeleteModal(false);
+				refetch();
+			},
+		);
 	};
 
 	const deleteModalActions = [
@@ -180,34 +190,25 @@ const ReservationsListClient: React.FC<SessionProps> = ({ session }) => {
 		},
 	];
 
-	const chipFilters = React.useMemo<ChipFilterConfig[]>(
-		() => [
-			{
-				key: 'apartment',
-				label: t.reservations.apartment,
-				paramName: 'apartment',
-				options: (apartments ?? []).map((a) => ({ id: String(a.id), nom: a.nom })),
-			},
-			{
-				key: 'payment_source',
-				label: t.reservations.columnSource,
-				paramName: 'payment_source',
-				options: [
-					{ id: 'Booking', nom: 'Booking' },
-					{ id: 'Airbnb', nom: 'Airbnb' },
-					{ id: 'Cash', nom: t.rawData.paymentSources.cash },
-					{ id: 'Bank', nom: t.rawData.paymentSources.bankTransfer },
-				],
-			},
-		],
-		[
-			apartments,
-			t.reservations.apartment,
-			t.reservations.columnSource,
-			t.rawData.paymentSources.bankTransfer,
-			t.rawData.paymentSources.cash,
-		],
-	);
+	const chipFilters = [
+		{
+			key: 'apartment',
+			label: t.reservations.apartment,
+			paramName: 'apartment',
+			options: (apartments ?? []).map((a) => ({ id: String(a.id), nom: a.nom })),
+		},
+		{
+			key: 'payment_source',
+			label: t.reservations.columnSource,
+			paramName: 'payment_source',
+			options: [
+				{ id: 'Booking', nom: 'Booking' },
+				{ id: 'Airbnb', nom: 'Airbnb' },
+				{ id: 'Cash', nom: t.rawData.paymentSources.cash },
+				{ id: 'Bank', nom: t.rawData.paymentSources.bankTransfer },
+			],
+		},
+	];
 
 	const columns: GridColDef[] = [
 		{
@@ -489,7 +490,7 @@ const ReservationsListClient: React.FC<SessionProps> = ({ session }) => {
 												},
 											}}
 										/>
-								{(data?.results ?? []).map((reservation) => (
+										{(data?.results ?? []).map((reservation) => (
 											<Card key={reservation.id} elevation={1}>
 												<CardContent>
 													<Stack spacing={1.5}>
@@ -507,7 +508,10 @@ const ReservationsListClient: React.FC<SessionProps> = ({ session }) => {
 																</DarkTooltip>
 															) : null;
 														})()}
-														<Stack direction="row" sx={{ justifyContent: 'space-between', gap: 1, alignItems: 'flex-start' }}>
+														<Stack
+															direction="row"
+															sx={{ justifyContent: 'space-between', gap: 1, alignItems: 'flex-start' }}
+														>
 															<Stack spacing={1} sx={{ minWidth: 0 }}>
 																<DarkTooltip title={reservation.apartment_nom ?? ''}>
 																	<Chip
@@ -547,10 +551,18 @@ const ReservationsListClient: React.FC<SessionProps> = ({ session }) => {
 															</Typography>
 														</Stack>
 														<Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap' }}>
-															<Button size="small" variant="outlined" onClick={() => router.push(RESERVATIONS_VIEW(reservation.id))}>
+															<Button
+																size="small"
+																variant="outlined"
+																onClick={() => router.push(RESERVATIONS_VIEW(reservation.id))}
+															>
 																{t.common.view}
 															</Button>
-															<Button size="small" variant="outlined" onClick={() => router.push(RESERVATIONS_EDIT(reservation.id))}>
+															<Button
+																size="small"
+																variant="outlined"
+																onClick={() => router.push(RESERVATIONS_EDIT(reservation.id))}
+															>
 																{t.common.edit}
 															</Button>
 															<Button

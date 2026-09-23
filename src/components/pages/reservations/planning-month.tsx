@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useMemo, useState } from 'react';
+import { useState, type FC } from 'react';
 import {
 	Box,
 	Card,
@@ -79,7 +79,7 @@ function buildRows(
 	});
 }
 
-const PlanningMonthClient: React.FC<SessionProps> = ({ session }) => {
+const PlanningMonthClient: FC<SessionProps> = ({ session }) => {
 	const { t } = useLanguage();
 	const token = useInitAccessToken(session);
 	const theme = useTheme();
@@ -92,13 +92,10 @@ const PlanningMonthClient: React.FC<SessionProps> = ({ session }) => {
 
 	const { data: buildingsData } = useGetBuildingsQuery(undefined, { skip: !token });
 
-	const buildingItems: DropDownType[] = useMemo(
-		() => [
-			{ code: t.locaux.allResidences, value: t.locaux.allResidences },
-			...(buildingsData ?? []).map((b) => ({ code: b.nom, value: b.nom })),
-		],
-		[buildingsData, t],
-	);
+	const buildingItems: DropDownType[] = [
+		{ code: t.locaux.allResidences, value: t.locaux.allResidences },
+		...(buildingsData ?? []).map((b) => ({ code: b.nom, value: b.nom })),
+	];
 
 	const prevMonth = () => {
 		if (month === 1) {

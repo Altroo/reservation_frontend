@@ -1,6 +1,6 @@
 import { jest } from '@jest/globals';
 import { renderToStaticMarkup } from 'react-dom/server';
-import React from 'react';
+import { type ReactElement } from 'react';
 
 type Session = { user: { pk: number; email: string } } | null;
 
@@ -20,8 +20,8 @@ jest.mock('@/components/pages/buildings/building-form', () => ({
 	__esModule: true,
 	default: (props: { id?: number }) => {
 		// eslint-disable-next-line @typescript-eslint/no-require-imports
-		const React = require('react');
-		return React.createElement('div', null, `BUILDING_FORM:${props.id ?? 'new'}`);
+		const { createElement } = require('react');
+		return createElement('div', null, `BUILDING_FORM:${props.id ?? 'new'}`);
 	},
 }));
 
@@ -64,6 +64,6 @@ describe('BuildingAddPage server component', () => {
 		const Page = require('./page').default as () => Promise<unknown>;
 
 		const result = await Page();
-		expect(renderToStaticMarkup(result as React.ReactElement)).toContain('BUILDING_FORM:new');
+		expect(renderToStaticMarkup(result as ReactElement)).toContain('BUILDING_FORM:new');
 	});
 });

@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import { runWithCleanup } from '@/utils/runWithCleanup';
+import { useEffect, useState, type FC } from 'react';
 import Styles from '@/styles/dashboard/settings/settings.module.sass';
 import type { SelectChangeEvent } from '@mui/material';
 import {
@@ -28,7 +29,7 @@ import { useLanguage, useToast } from '@/utils/hooks';
 import { Edit as EditIcon } from '@mui/icons-material';
 import type { NotificationPreferenceFormValues, ReminderMinutesValue } from '@/types/reservationTypes';
 
-const FormikContent: React.FC = () => {
+const FormikContent: FC = () => {
 	const { onSuccess, onError } = useToast();
 	const { t } = useLanguage();
 	const reminderOptions: { value: ReminderMinutesValue; label: string }[] = t.settings.reminderOptions as {
@@ -50,20 +51,25 @@ const FormikContent: React.FC = () => {
 		enableReinitialize: true,
 		onSubmit: async (values, { setFieldError }) => {
 			setIsPending(true);
-			try {
-				await updatePreferences({
-					notify_check_in: values.notify_check_in,
-					notify_check_out: values.notify_check_out,
-					notify_unpaid_rents: values.notify_unpaid_rents,
-					reminder_minutes: values.reminder_minutes,
-				}).unwrap();
-				onSuccess(t.settings.notificationUpdateSuccess);
-			} catch (e) {
-				onError(t.settings.notificationUpdateError);
-				setFormikAutoErrors({ e, setFieldError });
-			} finally {
-				setIsPending(false);
-			}
+			await runWithCleanup(
+				async () => {
+					try {
+						await updatePreferences({
+							notify_check_in: values.notify_check_in,
+							notify_check_out: values.notify_check_out,
+							notify_unpaid_rents: values.notify_unpaid_rents,
+							reminder_minutes: values.reminder_minutes,
+						}).unwrap();
+						onSuccess(t.settings.notificationUpdateSuccess);
+					} catch (e) {
+						onError(t.settings.notificationUpdateError);
+						setFormikAutoErrors({ e, setFieldError });
+					}
+				},
+				() => {
+					setIsPending(false);
+				},
+			);
 		},
 	});
 
@@ -103,7 +109,7 @@ const FormikContent: React.FC = () => {
 								control={
 									<Switch
 										checked={formik.values.notify_check_in}
-										onChange={(e) => formik.setFieldValue('notify_check_in', e.target.checked)}
+										onChange={(e) => void formik.setFieldValue('notify_check_in', e.target.checked)}
 									/>
 								}
 								label={t.settings.checkInNotifications}
@@ -112,7 +118,7 @@ const FormikContent: React.FC = () => {
 								control={
 									<Switch
 										checked={formik.values.notify_check_out}
-										onChange={(e) => formik.setFieldValue('notify_check_out', e.target.checked)}
+										onChange={(e) => void formik.setFieldValue('notify_check_out', e.target.checked)}
 									/>
 								}
 								label={t.settings.checkOutNotifications}
@@ -121,7 +127,7 @@ const FormikContent: React.FC = () => {
 								control={
 									<Switch
 										checked={formik.values.notify_unpaid_rents}
-										onChange={(e) => formik.setFieldValue('notify_unpaid_rents', e.target.checked)}
+										onChange={(e) => void formik.setFieldValue('notify_unpaid_rents', e.target.checked)}
 									/>
 								}
 								label={t.settings.unpaidRentReminders}
@@ -132,7 +138,9 @@ const FormikContent: React.FC = () => {
 									labelId="reminder-minutes-label"
 									value={String(formik.values.reminder_minutes)}
 									label={t.settings.reminderDelay}
-									onChange={(e: SelectChangeEvent) => formik.setFieldValue('reminder_minutes', Number(e.target.value))}
+									onChange={(e: SelectChangeEvent) =>
+										void formik.setFieldValue('reminder_minutes', Number(e.target.value))
+									}
 								>
 									{reminderOptions.map((opt) => (
 										<MenuItem key={opt.value} value={String(opt.value)}>
@@ -158,7 +166,7 @@ const FormikContent: React.FC = () => {
 	);
 };
 
-const NotificationsClient: React.FC = () => {
+const NotificationsClient: FC = () => {
 	const theme = useTheme();
 	const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 	const { t } = useLanguage();

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useMemo, useState } from 'react';
+import { useState, type FC, type ReactNode } from 'react';
 import {
 	Box,
 	Card,
@@ -71,7 +71,7 @@ ChartJS.register(
 
 /* ── KPI Card with left accent bar ─────────────────────────────────────────── */
 interface KpiCardProps {
-	icon: React.ReactNode;
+	icon: ReactNode;
 	label: string;
 	value: string;
 	sub?: string;
@@ -79,7 +79,7 @@ interface KpiCardProps {
 	tooltip?: string;
 }
 
-const KpiCard: React.FC<KpiCardProps> = ({ icon, label, value, sub, color, tooltip }) => (
+const KpiCard: FC<KpiCardProps> = ({ icon, label, value, sub, color, tooltip }) => (
 	<Card
 		elevation={2}
 		sx={{
@@ -160,11 +160,11 @@ interface ChartCardProps {
 	title: string;
 	subheader?: string;
 	infoTooltip?: string;
-	children: React.ReactNode;
+	children: ReactNode;
 	height?: number;
 }
 
-const ChartCard: React.FC<ChartCardProps> = ({ title, subheader, infoTooltip, children, height = 300 }) => (
+const ChartCard: FC<ChartCardProps> = ({ title, subheader, infoTooltip, children, height = 300 }) => (
 	<Card elevation={2} sx={{ overflow: 'hidden' }}>
 		<CardHeader
 			title={
@@ -201,7 +201,7 @@ const ChartCard: React.FC<ChartCardProps> = ({ title, subheader, infoTooltip, ch
 	</Card>
 );
 
-const EmptyChart: React.FC<{ message?: string }> = ({ message }) => {
+const EmptyChart: FC<{ message?: string }> = ({ message }) => {
 	const { t } = useLanguage();
 	return (
 		<Box
@@ -239,7 +239,7 @@ const EmptyChart: React.FC<{ message?: string }> = ({ message }) => {
 	);
 };
 
-const ReservationDashboardClient: React.FC<SessionProps> = ({ session }) => {
+const ReservationDashboardClient: FC<SessionProps> = ({ session }) => {
 	const { t } = useLanguage();
 	const token = useInitAccessToken(session);
 	const currentYear = new Date().getFullYear();
@@ -253,18 +253,15 @@ const ReservationDashboardClient: React.FC<SessionProps> = ({ session }) => {
 	const { data: yearsData } = useGetReservationYearsQuery(undefined, { skip: !token });
 	const { data: buildingsData } = useGetBuildingsQuery(undefined, { skip: !token });
 
-	const buildingItems: DropDownType[] = useMemo(
-		() => [
-			{ code: t.locaux.allResidences, value: t.locaux.allResidences },
-			...(buildingsData ?? []).map((b) => ({ code: b.nom, value: b.nom })),
-		],
-		[buildingsData, t],
-	);
+	const buildingItems: DropDownType[] = [
+		{ code: t.locaux.allResidences, value: t.locaux.allResidences },
+		...(buildingsData ?? []).map((b) => ({ code: b.nom, value: b.nom })),
+	];
 
-	const yearItems: DropDownType[] = useMemo(
-		() => (yearsData?.years ?? [currentYear]).map((y) => ({ code: String(y), value: String(y) })),
-		[yearsData?.years, currentYear],
-	);
+	const yearItems: DropDownType[] = (yearsData?.years ?? [currentYear]).map((y) => ({
+		code: String(y),
+		value: String(y),
+	}));
 
 	const totalRevenue = data?.total_revenue ?? 0;
 	const annualCosts = data?.annual_costs ?? 0;

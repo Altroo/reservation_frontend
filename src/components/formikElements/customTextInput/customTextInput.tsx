@@ -1,15 +1,15 @@
-import React, { ForwardedRef, forwardRef } from 'react';
+import { type ChangeEvent, type FocusEvent, type HTMLInputTypeAttribute, type ReactNode, type Ref } from 'react';
 import type { Theme } from '@mui/material/styles';
 import { InputAdornment, ThemeProvider } from '@mui/material';
 import TextField, { type TextFieldProps } from '@mui/material/TextField';
 
 type Props = {
-	type: React.HTMLInputTypeAttribute;
+	type: HTMLInputTypeAttribute;
 	id: string;
 	value: string;
-	onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+	onChange: (e: ChangeEvent<HTMLInputElement>) => void;
 	theme: Theme;
-	onBlur?: (e: React.FocusEvent<HTMLInputElement>) => void;
+	onBlur?: (e: FocusEvent<HTMLInputElement>) => void;
 	cssClass?: string;
 	helperText?: string;
 	error?: boolean;
@@ -20,8 +20,8 @@ type Props = {
 	disabled?: boolean;
 	variant?: 'filled' | 'standard' | 'outlined';
 	onClick?: () => void;
-	startIcon?: React.ReactNode;
-	endIcon?: React.ReactNode;
+	startIcon?: ReactNode;
+	endIcon?: ReactNode;
 	slotProps?: TextFieldProps['slotProps'];
 	name?: string;
 	required?: boolean;
@@ -33,7 +33,7 @@ type Props = {
 	rows?: number;
 };
 
-const CustomTextInput = forwardRef<HTMLInputElement, Props>((props: Props, ref: ForwardedRef<HTMLInputElement>) => {
+const CustomTextInput = ({ ref, ...props }: Props & { ref?: Ref<HTMLInputElement> }) => {
 	const { cssClass, theme, startIcon, endIcon, maxLength, shrink, multiline, rows, autoFocus, ...restOfProps } = props;
 
 	return (
@@ -82,7 +82,7 @@ const CustomTextInput = forwardRef<HTMLInputElement, Props>((props: Props, ref: 
 			/>
 		</ThemeProvider>
 	);
-});
+};
 
 CustomTextInput.displayName = 'CustomTextInput';
 export default CustomTextInput;

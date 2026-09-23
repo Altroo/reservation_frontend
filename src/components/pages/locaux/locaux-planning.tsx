@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useMemo, useState } from 'react';
+import { useState, type FC, type ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
 import {
 	Box,
@@ -53,7 +53,7 @@ import Styles from '@/styles/dashboard/dashboard.module.sass';
 
 interface KpiCardProps {
 	color: string;
-	icon: React.ReactNode;
+	icon: ReactNode;
 	label: string;
 	value: string;
 	tooltip?: string;
@@ -128,7 +128,7 @@ function KpiCard({ color, icon, label, value, tooltip }: KpiCardProps) {
 	);
 }
 
-const LocauxPlanningClient: React.FC<SessionProps> = ({ session }) => {
+const LocauxPlanningClient: FC<SessionProps> = ({ session }) => {
 	const router = useRouter();
 	const { t } = useLanguage();
 	const token = useInitAccessToken(session);
@@ -140,32 +140,26 @@ const LocauxPlanningClient: React.FC<SessionProps> = ({ session }) => {
 	const [buildingId, setBuildingId] = useState<number | ''>('');
 
 	const { data: yearsData } = useGetLocalYearsQuery(undefined, { skip: !token });
-	const availableYears = useMemo(() => {
+	const availableYears = (() => {
 		const yrs = yearsData?.years ?? [];
 		if (!yrs.includes(currentYear)) return [...yrs, currentYear].sort((a, b) => b - a);
 		return [...yrs].sort((a, b) => b - a);
-	}, [yearsData, currentYear]);
+	})();
 
 	const { data: buildingsData } = useGetBuildingsQuery(undefined, { skip: !token });
 
-	const buildingItems: DropDownType[] = useMemo(
-		() => [
-			{ code: t.locaux.allResidences, value: t.locaux.allResidences },
-			...(buildingsData ?? []).map((b) => ({ code: b.nom, value: b.nom })),
-		],
-		[buildingsData, t],
-	);
+	const buildingItems: DropDownType[] = [
+		{ code: t.locaux.allResidences, value: t.locaux.allResidences },
+		...(buildingsData ?? []).map((b) => ({ code: b.nom, value: b.nom })),
+	];
 
-	const yearItems: DropDownType[] = useMemo(
-		() => availableYears.map((y) => ({ code: String(y), value: String(y) })),
-		[availableYears],
-	);
+	const yearItems: DropDownType[] = availableYears.map((y) => ({ code: String(y), value: String(y) }));
 
 	const { data: planningData, isLoading } = useGetLocalPlanningQuery(
 		{ year, ...(buildingId ? { building: buildingId } : {}) },
 		{ skip: !token },
 	);
-	const locaux = useMemo(() => (planningData?.locaux ?? []) as PlanningLocalType[], [planningData]);
+	const locaux = (planningData?.locaux ?? []) as PlanningLocalType[];
 	const [toggleLoyerPaid] = useToggleLoyerPaidMutation();
 
 	const handleTogglePaid = async (id: number, currentPaye: boolean) => {
@@ -173,7 +167,7 @@ const LocauxPlanningClient: React.FC<SessionProps> = ({ session }) => {
 	};
 
 	// Compute KPI stats
-	const stats = useMemo(() => {
+	const stats = (() => {
 		let totalPaid = 0;
 		let totalUnpaid = 0;
 		let paidCount = 0;
@@ -184,15 +178,15 @@ const LocauxPlanningClient: React.FC<SessionProps> = ({ session }) => {
 				if (!data) continue;
 				if (data.paye) {
 					totalPaid += Number(data.montant);
-					paidCount++;
+					paidCount += 1;
 				} else {
 					totalUnpaid += Number(data.montant);
-					unpaidCount++;
+					unpaidCount += 1;
 				}
 			}
 		});
 		return { totalPaid, totalUnpaid, paidCount, unpaidCount };
-	}, [locaux]);
+	})();
 
 	const renderMonthChip = (local: PlanningLocalType, month: number) => {
 		const data = local.months[month];

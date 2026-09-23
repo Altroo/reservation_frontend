@@ -1,4 +1,3 @@
-import React from 'react';
 import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import ApiAlert from './apiAlert';
@@ -38,7 +37,9 @@ describe('ApiAlert', () => {
 		// The message part should contain the default fallback text
 		const message = container.querySelector('.MuiAlert-message');
 		expect(message).toBeInTheDocument();
-		expect(message).toHaveTextContent('Une erreur est survenue. Nous nous excusons pour ce désagrément. Veuillez réessayer ou actualiser la page.');
+		expect(message).toHaveTextContent(
+			'Une erreur est survenue. Nous nous excusons pour ce désagrément. Veuillez réessayer ou actualiser la page.',
+		);
 	});
 
 	it('handles errorDetails with non-array string values', () => {

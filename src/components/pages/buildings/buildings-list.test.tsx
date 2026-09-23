@@ -1,5 +1,5 @@
-import React from 'react';
-import { render, screen, cleanup, fireEvent} from '@testing-library/react';
+import { type ReactNode } from 'react';
+import { render, screen, cleanup, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
 
 // Mock next/navigation
@@ -50,12 +50,12 @@ jest.mock('@/utils/routes', () => ({
 
 // Mock Protected
 jest.mock('@/components/layouts/protected/protected', () => ({
-	Protected: ({ children }: { children: React.ReactNode }) => <div data-testid="protected">{children}</div>,
+	Protected: ({ children }: { children: ReactNode }) => <div data-testid="protected">{children}</div>,
 }));
 
 // Mock NavigationBar
 jest.mock('@/components/layouts/navigationBar/navigationBar', () => {
-	const Mock = ({ children }: { children: React.ReactNode }) => <div data-testid="navigation-bar">{children}</div>;
+	const Mock = ({ children }: { children: ReactNode }) => <div data-testid="navigation-bar">{children}</div>;
 	Mock.displayName = 'NavigationBar';
 	return { __esModule: true, default: Mock };
 });
@@ -64,9 +64,7 @@ jest.mock('@/components/layouts/navigationBar/navigationBar', () => {
 jest.mock('@/components/shared/paginatedDataGrid/paginatedDataGrid', () => ({
 	__esModule: true,
 	default: ({ data, isLoading }: { data: { count: number; results: unknown[] }; isLoading: boolean }) => (
-		<div data-testid="paginated-data-grid">
-			{isLoading ? 'Loading...' : `${data.count} items`}
-		</div>
+		<div data-testid="paginated-data-grid">{isLoading ? 'Loading...' : `${data.count} items`}</div>
 	),
 }));
 
@@ -105,7 +103,7 @@ jest.mock('@/components/shared/mobileActionsMenu/mobileActionsMenu', () => ({
 // Mock DarkTooltip
 jest.mock('@/components/htmlElements/tooltip/darkTooltip/darkTooltip', () => ({
 	__esModule: true,
-	default: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+	default: ({ children }: { children: ReactNode }) => <>{children}</>,
 }));
 
 jest.mock('@/utils/helpers', () => ({
@@ -116,7 +114,6 @@ jest.mock('@/utils/helpers', () => ({
 jest.mock('@/styles/dashboard/dashboard.module.sass', () => ({
 	flexRootStack: 'flexRootStack',
 }));
-
 import BuildingsListClient from './buildings-list';
 import type { AppSession } from '@/types/_initTypes';
 

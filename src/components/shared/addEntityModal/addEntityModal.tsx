@@ -1,4 +1,5 @@
-import React, { useMemo, useState } from 'react';
+import { runAsyncWithErrorHandler } from '@/utils/runWithCleanup';
+import { useState, type FC, type ReactNode } from 'react';
 import { Box, Button, Modal, Typography } from '@mui/material';
 import ApartmentIcon from '@mui/icons-material/Apartment';
 import CustomTextInput from '@/components/formikElements/customTextInput/customTextInput';
@@ -13,14 +14,14 @@ type AddEntityModalProps = {
 	open: boolean;
 	setOpen: (val: boolean) => void;
 	label: string;
-	icon: React.ReactNode;
+	icon: ReactNode;
 	inputTheme: Theme;
 	mutationFn: (args: { data: { nom: string; building?: number | null } }) => Promise<unknown>;
 	onSuccess?: (newEntityId: number) => void;
 	buildings?: { id: number; nom: string }[];
 };
 
-const AddEntityModal: React.FC<AddEntityModalProps> = ({
+const AddEntityModal: FC<AddEntityModalProps> = ({
 	open,
 	setOpen,
 	label,
@@ -36,13 +37,10 @@ const AddEntityModal: React.FC<AddEntityModalProps> = ({
 	const [error, setError] = useState<string | null>(null);
 	const [prevOpen, setPrevOpen] = useState(false);
 
-	const buildingItems: DropDownType[] = useMemo(
-		() => [
-			{ code: 'none', value: t.common.none },
-			...(buildings ?? []).map((b) => ({ code: String(b.id), value: b.nom })),
-		],
-		[buildings, t.common.none],
-	);
+	const buildingItems: DropDownType[] = [
+		{ code: 'none', value: t.common.none },
+		...(buildings ?? []).map((b) => ({ code: String(b.id), value: b.nom })),
+	];
 
 	if (prevOpen !== open) {
 		setPrevOpen(open);
@@ -138,18 +136,61 @@ const AddEntityModal: React.FC<AddEntityModalProps> = ({
 								return;
 							}
 
-							try {
-								const buildingValue = selectedBuilding === '' ? null : selectedBuilding;
-								const result = await mutationFn({
-									data: { nom: newName.trim(), ...(buildings ? { building: buildingValue } : {}) },
-								});
+							await runAsyncWithErrorHandler(
+								async () => {
+									const buildingValue = selectedBuilding === '' ? null : selectedBuilding;
+									const result = await mutationFn({
+										data: { nom: newName.trim(), ...(buildings ? { building: buildingValue } : {}) },
+									});
 
-								// Check if result contains an error (RTK Query pattern)
-								if (result && typeof result === 'object' && 'error' in result) {
-									// Handle RTK Query error response
-									// RTK Query wraps the error in { error: { status: ..., data: { ... } } }
-									const errorWrapper = result.error as { status?: number; data?: ApiErrorResponseType };
-									const payload = errorWrapper?.data || (errorWrapper as ApiErrorResponseType);
+									// Check if result contains an error (RTK Query pattern)
+									if (result && typeof result === 'object' && 'error' in result) {
+										// Handle RTK Query error response
+										// RTK Query wraps the error in { error: { status: ..., data: { ... } } }
+										const errorWrapper = result.error as { status?: number; data?: ApiErrorResponseType };
+										const payload = errorWrapper?.data || (errorWrapper as ApiErrorResponseType);
+
+										// Extract error message from any field in details object
+										if (payload?.details && typeof payload.details === 'object') {
+											const detailsValues = Object.values(payload.details);
+											if (detailsValues.length > 0) {
+												const firstError = detailsValues[0];
+												const errorMsg = Array.isArray(firstError) ? firstError[0] : firstError;
+												setError(errorMsg as string);
+											} else {
+												setError(t.addEntityModal.entityAddError(label));
+											}
+										} else {
+											setError(t.addEntityModal.entityAddError(label));
+										}
+										// Don't close modal on error
+										return;
+									}
+
+									// Success - close modal and update field
+									setOpen(false);
+									setNewName('');
+									setSelectedBuilding('');
+									setError(null);
+
+									// Extract the ID from the result and call onSuccess if provided
+									if (onSuccess && result && typeof result === 'object' && 'data' in result) {
+										const responseData = result.data as { id?: number };
+										const newId = responseData?.id;
+										if (newId) {
+											// Use setTimeout to ensure state update happens after modal closes
+											setTimeout(() => {
+												onSuccess(newId);
+											}, 0);
+										}
+									}
+								},
+								async (e) => {
+									// Handle thrown exceptions (fallback)
+									const payload =
+										(e as { error?: ApiErrorResponseType; data?: ApiErrorResponseType }).error ??
+										(e as { error?: ApiErrorResponseType; data?: ApiErrorResponseType }).data ??
+										(e as ApiErrorResponseType);
 
 									// Extract error message from any field in details object
 									if (payload?.details && typeof payload.details === 'object') {
@@ -164,48 +205,8 @@ const AddEntityModal: React.FC<AddEntityModalProps> = ({
 									} else {
 										setError(t.addEntityModal.entityAddError(label));
 									}
-									// Don't close modal on error
-									return;
-								}
-
-								// Success - close modal and update field
-								setOpen(false);
-								setNewName('');
-								setSelectedBuilding('');
-								setError(null);
-
-								// Extract the ID from the result and call onSuccess if provided
-								if (onSuccess && result && typeof result === 'object' && 'data' in result) {
-									const responseData = result.data as { id?: number };
-									const newId = responseData?.id;
-									if (newId) {
-										// Use setTimeout to ensure state update happens after modal closes
-										setTimeout(() => {
-											onSuccess(newId);
-										}, 0);
-									}
-								}
-							} catch (e) {
-								// Handle thrown exceptions (fallback)
-								const payload =
-									(e as { error?: ApiErrorResponseType; data?: ApiErrorResponseType }).error ??
-									(e as { error?: ApiErrorResponseType; data?: ApiErrorResponseType }).data ??
-									(e as ApiErrorResponseType);
-
-								// Extract error message from any field in details object
-								if (payload?.details && typeof payload.details === 'object') {
-									const detailsValues = Object.values(payload.details);
-									if (detailsValues.length > 0) {
-										const firstError = detailsValues[0];
-										const errorMsg = Array.isArray(firstError) ? firstError[0] : firstError;
-										setError(errorMsg as string);
-									} else {
-										setError(t.addEntityModal.entityAddError(label));
-									}
-								} else {
-									setError(t.addEntityModal.entityAddError(label));
-								}
-							}
+								},
+							);
 						}}
 					>
 						{t.common.add}

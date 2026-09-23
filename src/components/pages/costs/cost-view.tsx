@@ -1,6 +1,7 @@
 'use client';
 
-import React, { isValidElement, useMemo, useState } from 'react';
+import { runWithCleanup } from '@/utils/runWithCleanup';
+import { isValidElement, useState, type FC, type ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
 import type { ApiErrorResponseType, ResponseDataInterface, SessionProps } from '@/types/_initTypes';
 import { useInitAccessToken } from '@/contexts/InitContext';
@@ -42,12 +43,12 @@ import type { CostCategoryChipColor } from '@/utils/rawData';
 import { COST_CATEGORY_CHIP_COLORS } from '@/utils/rawData';
 
 interface InfoRowProps {
-	icon: React.ReactNode;
+	icon: ReactNode;
 	label: string;
-	value: string | number | null | undefined | React.ReactNode;
+	value: string | number | null | undefined | ReactNode;
 }
 
-const InfoRow: React.FC<InfoRowProps> = ({ icon, label, value }) => {
+const InfoRow: FC<InfoRowProps> = ({ icon, label, value }) => {
 	const theme = useTheme();
 	const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 	const displayValue =
@@ -110,16 +111,13 @@ interface Props extends SessionProps {
 	id: number;
 }
 
-const CostViewClient: React.FC<Props> = ({ session, id }) => {
+const CostViewClient: FC<Props> = ({ session, id }) => {
 	const { t } = useLanguage();
 	const router = useRouter();
 	const token = useInitAccessToken(session);
 	const { data: costs, isLoading, error } = useGetCostsQuery({}, { skip: !token });
-	const axiosError = useMemo(
-		() => (error ? (error as ResponseDataInterface<ApiErrorResponseType>) : undefined),
-		[error],
-	);
-	const cost = useMemo(() => (costs ?? []).find((c) => c.id === id), [costs, id]);
+	const axiosError = error ? (error as ResponseDataInterface<ApiErrorResponseType>) : undefined;
+	const cost = (costs ?? []).find((c) => c.id === id);
 	const theme = useTheme();
 	const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
@@ -128,15 +126,20 @@ const CostViewClient: React.FC<Props> = ({ session, id }) => {
 	const [showDeleteModal, setShowDeleteModal] = useState(false);
 
 	const handleDelete = async () => {
-		try {
-			await deleteCost({ id }).unwrap();
-			onSuccess(t.costs.costDeletedSuccess);
-			router.push(COSTS_LIST);
-		} catch (err) {
-			onError(extractApiErrorMessage(err, t.costs.costDeleteError));
-		} finally {
-			setShowDeleteModal(false);
-		}
+		await runWithCleanup(
+			async () => {
+				try {
+					await deleteCost({ id }).unwrap();
+					onSuccess(t.costs.costDeletedSuccess);
+					router.push(COSTS_LIST);
+				} catch (err) {
+					onError(extractApiErrorMessage(err, t.costs.costDeleteError));
+				}
+			},
+			() => {
+				setShowDeleteModal(false);
+			},
+		);
 	};
 
 	const deleteModalActions = [
@@ -283,11 +286,7 @@ const CostViewClient: React.FC<Props> = ({ session, id }) => {
 											<Divider />
 											<InfoRow icon={<CalendarTodayIcon />} label={t.common.date} value={formatDate(cost.date)} />
 											<Divider />
-											<InfoRow
-												icon={<ApartmentIcon />}
-												label={t.locaux.residence}
-												value={cost.building_nom ?? '—'}
-											/>
+											<InfoRow icon={<ApartmentIcon />} label={t.locaux.residence} value={cost.building_nom ?? '—'} />
 										</Stack>
 									</CardContent>
 								</Card>

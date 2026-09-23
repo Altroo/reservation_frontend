@@ -1,12 +1,37 @@
 import {
+	AUTH_BACKGROUND_IMAGES,
+	CHART_COLORS,
+	CHART_OPTS,
+	DAY_ABBREVIATIONS,
+	fields,
 	genderItemsList,
+	ITEM_HEIGHT,
+	ITEM_PADDING_TOP,
 	LOCAL_FIELD_LABELS,
 	LOYER_FIELD_LABELS,
+	MenuProps,
+	MONTH_LABELS,
+	MONTH_NAMES,
+	paymentSourceItemsList,
+	SOURCE_COLORS,
 	TYPE_LOCAL_CHIP_COLORS,
 	typeLocalItemsList,
 } from './rawData';
 
 describe('items lists', () => {
+	it('keeps shared reservation charts and form data available', () => {
+		expect(paymentSourceItemsList).toHaveLength(4);
+		expect(MONTH_LABELS).toHaveLength(12);
+		expect(MONTH_NAMES).toHaveLength(12);
+		expect(DAY_ABBREVIATIONS).toHaveLength(7);
+		expect(CHART_COLORS.booking).toBe(SOURCE_COLORS.Booking);
+		expect(CHART_OPTS.responsive).toBe(true);
+		expect(fields).toEqual(['one', 'two', 'three', 'four', 'five', 'six']);
+		expect(MenuProps.slotProps.paper.style.maxHeight).toBe(ITEM_HEIGHT * 4.5 + ITEM_PADDING_TOP);
+		expect(AUTH_BACKGROUND_IMAGES).toHaveLength(4);
+		expect(AUTH_BACKGROUND_IMAGES.map(({ color }) => color)).toEqual(['#E8F5E9', '#FFF3E0', '#E3F2FD', '#F3E5F5']);
+	});
+
 	describe('genderItemsList', () => {
 		it('has two entries with correct codes and values', () => {
 			expect(genderItemsList).toHaveLength(2);

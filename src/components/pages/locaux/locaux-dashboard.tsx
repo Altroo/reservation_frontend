@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useMemo, useState } from 'react';
+import { useState, type FC, type ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
 import {
 	Box,
@@ -31,16 +31,7 @@ import {
 	TrendingUp as TrendingUpIcon,
 } from '@mui/icons-material';
 import ApartmentIcon from '@mui/icons-material/Apartment';
-import {
-	ArcElement,
-	BarElement,
-	CategoryScale,
-	Chart as ChartJS,
-	Legend,
-	LinearScale,
-	Title,
-	Tooltip,
-} from 'chart.js';
+import { ArcElement, BarElement, CategoryScale, Chart as ChartJS, Legend, LinearScale, Title, Tooltip } from 'chart.js';
 import { Bar, Doughnut } from 'react-chartjs-2';
 import CustomDropDownSelect from '@/components/formikElements/customDropDownSelect/customDropDownSelect';
 import { customDropdownTheme } from '@/utils/themes';
@@ -61,14 +52,14 @@ import Styles from '@/styles/dashboard/dashboard.module.sass';
 ChartJS.register(CategoryScale, LinearScale, BarElement, ArcElement, Title, Tooltip, Legend);
 
 interface KpiCardProps {
-	icon: React.ReactNode;
+	icon: ReactNode;
 	label: string;
 	value: string | number;
 	color: string;
 	tooltip?: string;
 }
 
-const KpiCard: React.FC<KpiCardProps> = ({ icon, label, value, color, tooltip }) => (
+const KpiCard: FC<KpiCardProps> = ({ icon, label, value, color, tooltip }) => (
 	<Card
 		elevation={2}
 		sx={{
@@ -140,12 +131,12 @@ const formatSignedMad = (value: number | string, sign: '+' | '-') =>
 interface ChartCardProps {
 	title: string;
 	subheader: string;
-	children: React.ReactNode;
+	children: ReactNode;
 	infoTooltip?: string;
 	height?: number;
 }
 
-const ChartCard: React.FC<ChartCardProps> = ({ title, subheader, children, infoTooltip, height = 280 }) => (
+const ChartCard: FC<ChartCardProps> = ({ title, subheader, children, infoTooltip, height = 280 }) => (
 	<Card elevation={2} sx={{ height: '100%', overflow: 'hidden' }}>
 		<CardHeader
 			title={
@@ -171,7 +162,7 @@ const ChartCard: React.FC<ChartCardProps> = ({ title, subheader, children, infoT
 	</Card>
 );
 
-const EmptyChart: React.FC = () => {
+const EmptyChart: FC = () => {
 	const { t } = useLanguage();
 	return (
 		<Box
@@ -193,7 +184,7 @@ const EmptyChart: React.FC = () => {
 	);
 };
 
-const LocauxDashboardClient: React.FC<SessionProps> = ({ session }) => {
+const LocauxDashboardClient: FC<SessionProps> = ({ session }) => {
 	const router = useRouter();
 	const { t } = useLanguage();
 	const token = useInitAccessToken(session);
@@ -205,39 +196,33 @@ const LocauxDashboardClient: React.FC<SessionProps> = ({ session }) => {
 	const [buildingId, setBuildingId] = useState<number | ''>('');
 
 	const { data: yearsData } = useGetLocalYearsQuery(undefined, { skip: !token });
-	const availableYears = useMemo(() => {
+	const availableYears = (() => {
 		const yrs = yearsData?.years ?? [];
 		if (!yrs.includes(currentYear)) return [...yrs, currentYear].sort((a, b) => b - a);
 		return [...yrs].sort((a, b) => b - a);
-	}, [yearsData, currentYear]);
+	})();
 
 	const { data: buildingsData } = useGetBuildingsQuery(undefined, { skip: !token });
 
-	const buildingItems: DropDownType[] = useMemo(
-		() => [
-			{ code: t.locaux.allResidences, value: t.locaux.allResidences },
-			...(buildingsData ?? []).map((b) => ({ code: b.nom, value: b.nom })),
-		],
-		[buildingsData, t],
-	);
+	const buildingItems: DropDownType[] = [
+		{ code: t.locaux.allResidences, value: t.locaux.allResidences },
+		...(buildingsData ?? []).map((b) => ({ code: b.nom, value: b.nom })),
+	];
 
-	const yearItems: DropDownType[] = useMemo(
-		() => availableYears.map((y) => ({ code: String(y), value: String(y) })),
-		[availableYears],
-	);
+	const yearItems: DropDownType[] = availableYears.map((y) => ({ code: String(y), value: String(y) }));
 
 	const { data: dashboardData, isLoading } = useGetLocalDashboardQuery(
 		{ year, ...(buildingId ? { building: buildingId } : {}) },
 		{ skip: !token },
 	);
-	const locaux = useMemo(() => (dashboardData?.locaux ?? []) as LocalDashboardLocalType[], [dashboardData]);
+	const locaux = (dashboardData?.locaux ?? []) as LocalDashboardLocalType[];
 	const monthlyRents = dashboardData?.monthly_rents ?? [];
 
-	const monthlyPaid = t.rawData.monthLabels.map(
-		(_, index) => Number(monthlyRents.find((item) => item.month === index + 1)?.paid ?? 0),
+	const monthlyPaid = t.rawData.monthLabels.map((_, index) =>
+		Number(monthlyRents.find((item) => item.month === index + 1)?.paid ?? 0),
 	);
-	const monthlyUnpaid = t.rawData.monthLabels.map(
-		(_, index) => Number(monthlyRents.find((item) => item.month === index + 1)?.unpaid ?? 0),
+	const monthlyUnpaid = t.rawData.monthLabels.map((_, index) =>
+		Number(monthlyRents.find((item) => item.month === index + 1)?.unpaid ?? 0),
 	);
 	const hasMonthlyRentData = [...monthlyPaid, ...monthlyUnpaid].some((amount) => amount > 0);
 
@@ -397,20 +382,45 @@ const LocauxDashboardClient: React.FC<SessionProps> = ({ session }) => {
 										color="#ed6c02"
 										tooltip={t.locaux.freeTooltip}
 									/>
-									</Box>
+								</Box>
 
-									{/* Dashboard charts */}
+								{/* Dashboard charts */}
+								<ChartCard
+									title={t.locaux.monthlyRentCollection}
+									subheader={t.locaux.monthlyRentCollectionSubheader(year)}
+									infoTooltip={t.locaux.monthlyRentCollectionTooltip}
+								>
+									{hasMonthlyRentData ? (
+										<Bar
+											data={monthlyRentChartData}
+											options={{
+												...CHART_OPTS,
+												scales: { x: { stacked: false }, y: { beginAtZero: true } },
+											}}
+										/>
+									) : (
+										<EmptyChart />
+									)}
+								</ChartCard>
+
+								<Box
+									sx={{
+										display: 'grid',
+										gridTemplateColumns: { xs: '1fr', lg: 'minmax(0, 0.8fr) minmax(0, 1.2fr)' },
+										gap: 2,
+									}}
+								>
 									<ChartCard
-										title={t.locaux.monthlyRentCollection}
-										subheader={t.locaux.monthlyRentCollectionSubheader(year)}
-										infoTooltip={t.locaux.monthlyRentCollectionTooltip}
+										title={t.locaux.rentalStatusDistribution}
+										subheader={t.locaux.rentalStatusDistributionSubheader}
 									>
-										{hasMonthlyRentData ? (
-											<Bar
-												data={monthlyRentChartData}
+										{locaux.length > 0 ? (
+											<Doughnut
+												data={rentalStatusChartData}
 												options={{
 													...CHART_OPTS,
-													scales: { x: { stacked: false }, y: { beginAtZero: true } },
+													cutout: '62%',
+													plugins: { legend: { position: 'bottom' } },
 												}}
 											/>
 										) : (
@@ -418,64 +428,17 @@ const LocauxDashboardClient: React.FC<SessionProps> = ({ session }) => {
 										)}
 									</ChartCard>
 
-									<Box
-										sx={{
-											display: 'grid',
-											gridTemplateColumns: { xs: '1fr', lg: 'minmax(0, 0.8fr) minmax(0, 1.2fr)' },
-											gap: 2,
-										}}
-									>
-										<ChartCard
-											title={t.locaux.rentalStatusDistribution}
-											subheader={t.locaux.rentalStatusDistributionSubheader}
-										>
-											{locaux.length > 0 ? (
-												<Doughnut
-													data={rentalStatusChartData}
-													options={{
-														...CHART_OPTS,
-														cutout: '62%',
-														plugins: { legend: { position: 'bottom' } },
-													}}
-												/>
-											) : (
-												<EmptyChart />
-											)}
-										</ChartCard>
-
-										<ChartCard
-											title={t.locaux.profitabilityComparison}
-											subheader={t.locaux.profitabilityComparisonSubheader}
-										>
-											{locaux.some((local) => Number(local.rentabilite) > 0) ? (
-												<Bar
-													data={profitabilityChartData}
-													options={{
-														...CHART_OPTS,
-														indexAxis: 'y',
-														plugins: { legend: { display: false } },
-														scales: { x: { beginAtZero: true } },
-													}}
-												/>
-											) : (
-												<EmptyChart />
-											)}
-										</ChartCard>
-									</Box>
-
 									<ChartCard
-										title={t.locaux.rentBalanceByLocal}
-										subheader={t.locaux.rentBalanceByLocalSubheader}
-										height={Math.max(300, Math.min(520, locaux.length * 32))}
+										title={t.locaux.profitabilityComparison}
+										subheader={t.locaux.profitabilityComparisonSubheader}
 									>
-										{locaux.some(
-											(local) => Number(local.loyers_payes) > 0 || Number(local.loyers_impayes) > 0,
-										) ? (
+										{locaux.some((local) => Number(local.rentabilite) > 0) ? (
 											<Bar
-												data={rentBalanceChartData}
+												data={profitabilityChartData}
 												options={{
 													...CHART_OPTS,
 													indexAxis: 'y',
+													plugins: { legend: { display: false } },
 													scales: { x: { beginAtZero: true } },
 												}}
 											/>
@@ -483,8 +446,28 @@ const LocauxDashboardClient: React.FC<SessionProps> = ({ session }) => {
 											<EmptyChart />
 										)}
 									</ChartCard>
+								</Box>
 
-									{/* Locaux table */}
+								<ChartCard
+									title={t.locaux.rentBalanceByLocal}
+									subheader={t.locaux.rentBalanceByLocalSubheader}
+									height={Math.max(300, Math.min(520, locaux.length * 32))}
+								>
+									{locaux.some((local) => Number(local.loyers_payes) > 0 || Number(local.loyers_impayes) > 0) ? (
+										<Bar
+											data={rentBalanceChartData}
+											options={{
+												...CHART_OPTS,
+												indexAxis: 'y',
+												scales: { x: { beginAtZero: true } },
+											}}
+										/>
+									) : (
+										<EmptyChart />
+									)}
+								</ChartCard>
+
+								{/* Locaux table */}
 								{locaux.length === 0 ? (
 									<Card elevation={2} sx={{ borderRadius: 2 }}>
 										<CardContent sx={{ py: 6, textAlign: 'center' }}>
@@ -580,7 +563,7 @@ const LocauxDashboardClient: React.FC<SessionProps> = ({ session }) => {
 																				textAlign: 'right',
 																			}}
 																		>
-																				{formatSignedMad(local.loyers_payes, '+')}
+																			{formatSignedMad(local.loyers_payes, '+')}
 																		</Typography>
 																		<Typography
 																			variant="caption"
@@ -598,7 +581,7 @@ const LocauxDashboardClient: React.FC<SessionProps> = ({ session }) => {
 																				textAlign: 'right',
 																			}}
 																		>
-																				{formatSignedMad(local.loyers_impayes, '-')}
+																			{formatSignedMad(local.loyers_impayes, '-')}
 																		</Typography>
 																		<Typography
 																			variant="caption"

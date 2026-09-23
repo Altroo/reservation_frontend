@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useMemo, useState } from 'react';
+import { runWithCleanup } from '@/utils/runWithCleanup';
+import { useState, type FC } from 'react';
 import { useRouter } from 'next/navigation';
 import { Box, Button, Stack, Typography } from '@mui/material';
 import {
@@ -33,7 +34,7 @@ import {
 } from '@/store/services/reservation';
 import { useInitAccessToken } from '@/contexts/InitContext';
 
-const BuildingsListClient: React.FC<SessionProps> = ({ session }) => {
+const BuildingsListClient: FC<SessionProps> = ({ session }) => {
 	const router = useRouter();
 	const { onSuccess, onError } = useToast();
 	const { t } = useLanguage();
@@ -48,10 +49,7 @@ const BuildingsListClient: React.FC<SessionProps> = ({ session }) => {
 	const [customFilterParams, setCustomFilterParams] = useState<Record<string, string>>({});
 
 	const { data: buildingsRaw, isLoading } = useGetBuildingsQuery(undefined, { skip: !token });
-	const buildings = useMemo(
-		() => (Array.isArray(buildingsRaw) ? buildingsRaw : []) as BuildingListType[],
-		[buildingsRaw],
-	);
+	const buildings = (Array.isArray(buildingsRaw) ? buildingsRaw : []) as BuildingListType[];
 
 	const [deleteBuilding] = useDeleteBuildingMutation();
 	const [bulkDeleteBuildings] = useBulkDeleteBuildingsMutation();
@@ -61,15 +59,15 @@ const BuildingsListClient: React.FC<SessionProps> = ({ session }) => {
 	const [selectedIds, setSelectedIds] = useState<number[]>([]);
 	const [showBulkDeleteModal, setShowBulkDeleteModal] = useState(false);
 
-	const createdByOptions = useMemo(() => {
+	const createdByOptions = (() => {
 		const names = new Set<string>();
 		buildings.forEach((b) => {
 			if (b.created_by_user_name) names.add(b.created_by_user_name);
 		});
 		return Array.from(names).map((n) => ({ value: n, label: n }));
-	}, [buildings]);
+	})();
 
-	const filteredBuildings = useMemo(() => {
+	const filteredBuildings = (() => {
 		let result = buildings;
 
 		if (searchTerm.trim()) {
@@ -94,37 +92,47 @@ const BuildingsListClient: React.FC<SessionProps> = ({ session }) => {
 		}
 
 		return result;
-	}, [buildings, searchTerm, customFilterParams]);
+	})();
 
-	const paginatedData = useMemo(() => {
+	const paginatedData = (() => {
 		const start = paginationModel.page * paginationModel.pageSize;
 		return {
 			count: filteredBuildings.length,
 			results: filteredBuildings.slice(start, start + paginationModel.pageSize),
 		};
-	}, [filteredBuildings, paginationModel]);
+	})();
 
 	const deleteHandler = async () => {
-		try {
-			await deleteBuilding({ id: selectedId! }).unwrap();
-			onSuccess(t.buildings.residenceDeletedSuccess);
-		} catch (err) {
-			onError(extractApiErrorMessage(err, t.buildings.residenceDeleteError));
-		} finally {
-			setShowDeleteModal(false);
-		}
+		await runWithCleanup(
+			async () => {
+				try {
+					await deleteBuilding({ id: selectedId! }).unwrap();
+					onSuccess(t.buildings.residenceDeletedSuccess);
+				} catch (err) {
+					onError(extractApiErrorMessage(err, t.buildings.residenceDeleteError));
+				}
+			},
+			() => {
+				setShowDeleteModal(false);
+			},
+		);
 	};
 
 	const bulkDeleteHandler = async () => {
-		try {
-			await bulkDeleteBuildings({ ids: selectedIds }).unwrap();
-			onSuccess(t.buildings.bulkResidencesDeletedSuccess);
-			setSelectedIds([]);
-		} catch (err) {
-			onError(extractApiErrorMessage(err, t.buildings.bulkResidencesDeleteError));
-		} finally {
-			setShowBulkDeleteModal(false);
-		}
+		await runWithCleanup(
+			async () => {
+				try {
+					await bulkDeleteBuildings({ ids: selectedIds }).unwrap();
+					onSuccess(t.buildings.bulkResidencesDeletedSuccess);
+					setSelectedIds([]);
+				} catch (err) {
+					onError(extractApiErrorMessage(err, t.buildings.bulkResidencesDeleteError));
+				}
+			},
+			() => {
+				setShowBulkDeleteModal(false);
+			},
+		);
 	};
 
 	const deleteModalActions = [

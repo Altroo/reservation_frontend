@@ -1,4 +1,4 @@
-import React from 'react';
+import { type ChangeEvent, createElement } from 'react';
 import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import AddEntityModal from './addEntityModal';
@@ -9,7 +9,7 @@ const inputTheme = textInputTheme();
 type MockTextInputProps = {
 	id?: string;
 	value?: string;
-	onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
+	onChange?: (e: ChangeEvent<HTMLInputElement>) => void;
 	helperText?: string;
 };
 
@@ -18,16 +18,16 @@ jest.mock('@/components/formikElements/customTextInput/customTextInput', () => {
 		__esModule: true,
 		default: (props: MockTextInputProps) => {
 			const id = props.id ?? 'mock-input';
-			return React.createElement(
+			return createElement(
 				'div',
 				null,
-				React.createElement('input', {
+				createElement('input', {
 					'data-testid': id,
 					value: props.value ?? '',
-					onChange: (e: React.ChangeEvent<HTMLInputElement>) => props.onChange?.(e),
+					onChange: (e: ChangeEvent<HTMLInputElement>) => props.onChange?.(e),
 					role: 'textbox',
 				}),
-				React.createElement('span', { 'data-testid': `${id}-helper` }, props.helperText ?? ''),
+				createElement('span', { 'data-testid': `${id}-helper` }, props.helperText ?? ''),
 			);
 		},
 	};
@@ -213,7 +213,9 @@ describe('AddEntityModal', () => {
 	});
 
 	it('displays server field error from payload.details.nom when mutation rejects (backend standard)', async () => {
-		const payload = { error: { details: { nom: ['Un objet Catégorie avec ce champ Nom de la catégorie existe déjà.'] } } };
+		const payload = {
+			error: { details: { nom: ['Un objet Catégorie avec ce champ Nom de la catégorie existe déjà.'] } },
+		};
 		const mutationFn = jest.fn().mockRejectedValue(payload);
 
 		render(
@@ -237,7 +239,9 @@ describe('AddEntityModal', () => {
 		});
 
 		await waitFor(() => {
-			expect(screen.getByTestId(`${inputId}-helper`).textContent).toContain('Un objet Catégorie avec ce champ Nom de la catégorie existe déjà.');
+			expect(screen.getByTestId(`${inputId}-helper`).textContent).toContain(
+				'Un objet Catégorie avec ce champ Nom de la catégorie existe déjà.',
+			);
 		});
 
 		expect(setOpen).not.toHaveBeenCalledWith(false);

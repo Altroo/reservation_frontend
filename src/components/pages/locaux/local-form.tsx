@@ -1,6 +1,8 @@
 'use client';
 
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { runAsyncWithErrorHandler } from '@/utils/runWithCleanup';
+import { runWithCleanup } from '@/utils/runWithCleanup';
+import { useEffect, useRef, useState, type ChangeEvent, type FC } from 'react';
 import { useRouter } from 'next/navigation';
 import {
 	Alert,
@@ -102,7 +104,7 @@ type FormikContentProps = {
 	id?: number;
 };
 
-const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
+const FormikContent: FC<FormikContentProps> = ({ token, id }) => {
 	const { t } = useLanguage();
 	const { onSuccess, onError } = useToast();
 	const isEditMode = id !== undefined;
@@ -137,13 +139,13 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 	const currentYear = new Date().getFullYear();
 	const [loyerYear, setLoyerYear] = useState(currentYear);
 	const { data: yearsData } = useGetLocalYearsQuery(undefined, { skip: !token || !isEditMode });
-	const loyerYearOptions = useMemo(() => {
+	const loyerYearOptions = (() => {
 		const yrs = yearsData?.years ?? [];
 		if (!yrs.includes(currentYear)) return [...yrs, currentYear].sort((a, b) => b - a);
 		return [...yrs].sort((a, b) => b - a);
-	}, [yearsData, currentYear]);
+	})();
 	const { data: loyersRaw } = useGetLoyersListQuery({ local: id!, annee: loyerYear }, { skip: !token || !isEditMode });
-	const loyers = useMemo(() => (Array.isArray(loyersRaw) ? loyersRaw : []) as LoyerListType[], [loyersRaw]);
+	const loyers = (Array.isArray(loyersRaw) ? loyersRaw : []) as LoyerListType[];
 
 	const [toggleLoyerPaid] = useToggleLoyerPaidMutation();
 	const [deleteLoyerMut] = useDeleteLoyerMutation();
@@ -152,18 +154,18 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 	const [showDeleteLoyerModal, setShowDeleteLoyerModal] = useState(false);
 	const [selectedLoyerId, setSelectedLoyerId] = useState<number | null>(null);
 
-	const managedTypeItems: DropDownType[] = useMemo(
-		() => (localTypes ?? []).map((type) => ({ code: type.nom, value: String(type.id) })),
-		[localTypes],
-	);
+	const managedTypeItems: DropDownType[] = (localTypes ?? []).map((type) => ({
+		code: type.nom,
+		value: String(type.id),
+	}));
 
-	const typeItems: DropDownType[] = useMemo(() => {
+	const typeItems: DropDownType[] = (() => {
 		if (managedTypeItems.length > 0) {
 			return managedTypeItems;
 		}
 
 		return typeLocalItemsList.map((item) => ({ code: item.code, value: item.value }));
-	}, [managedTypeItems]);
+	})();
 
 	const formik = useFormik<LocalFormValues>({
 		initialValues: {
@@ -188,32 +190,34 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 			// eslint-disable-next-line @typescript-eslint/no-unused-vars
 			const { globalError, ...fields } = data;
 			const payload = { ...fields, building: fields.building === '' ? null : fields.building };
-			try {
-				if (isEditMode) {
-					await updateLocal({ id: id!, data: payload as typeof fields }).unwrap();
-					onSuccess(t.locaux.localUpdatedSuccess);
-					router.push(LOCAUX_LIST);
-				} else {
-					const result = (await createLocal(payload as typeof fields).unwrap()) as { id: number };
-					onSuccess(t.locaux.localAddedSuccess);
-					router.push(LOCAUX_EDIT(result.id));
-				}
-			} catch (e) {
-				setFormikAutoErrors({ e, setFieldError });
-				onError(isEditMode ? t.locaux.localUpdateError : t.locaux.localAddError);
-			} finally {
-				setIsPending(false);
-			}
+			await runWithCleanup(
+				async () => {
+					try {
+						if (isEditMode) {
+							await updateLocal({ id: id!, data: payload as typeof fields }).unwrap();
+							onSuccess(t.locaux.localUpdatedSuccess);
+							router.push(LOCAUX_LIST);
+						} else {
+							const result = (await createLocal(payload as typeof fields).unwrap()) as { id: number };
+							onSuccess(t.locaux.localAddedSuccess);
+							router.push(LOCAUX_EDIT(result.id));
+						}
+					} catch (e) {
+						setFormikAutoErrors({ e, setFieldError });
+						onError(isEditMode ? t.locaux.localUpdateError : t.locaux.localAddError);
+					}
+				},
+				() => {
+					setIsPending(false);
+				},
+			);
 		},
 	});
 
 	const selectedType = typeItems.find((type) => type.code === formik.values.type_local) ?? null;
 	const selectedManagedType = managedTypeItems.find((type) => type.code === formik.values.type_local) ?? null;
 
-	const buildingItems: DropDownType[] = useMemo(
-		() => (buildingsData ?? []).map((b) => ({ code: b.nom, value: String(b.id) })),
-		[buildingsData],
-	);
+	const buildingItems: DropDownType[] = (buildingsData ?? []).map((b) => ({ code: b.nom, value: String(b.id) }));
 	const selectedBuilding = buildingItems.find((b) => b.value === String(formik.values.building)) ?? null;
 
 	// Building handlers
@@ -226,15 +230,20 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 	const handleEditBuildingSubmit = async () => {
 		if (!editBuildingId || !editBuildingName.trim()) return;
 		setBuildingActionLoading(true);
-		try {
-			await updateBuilding({ id: editBuildingId, data: { nom: editBuildingName.trim() } }).unwrap();
-			onSuccess(t.locaux.residenceEditedSuccess);
-			setEditBuildingId(null);
-		} catch (e) {
-			setEditBuildingError(extractApiErrorMessage(e, t.locaux.residenceEditError));
-		} finally {
-			setBuildingActionLoading(false);
-		}
+		await runWithCleanup(
+			async () => {
+				try {
+					await updateBuilding({ id: editBuildingId, data: { nom: editBuildingName.trim() } }).unwrap();
+					onSuccess(t.locaux.residenceEditedSuccess);
+					setEditBuildingId(null);
+				} catch (e) {
+					setEditBuildingError(extractApiErrorMessage(e, t.locaux.residenceEditError));
+				}
+			},
+			() => {
+				setBuildingActionLoading(false);
+			},
+		);
 	};
 
 	const handleDeleteBuildingOpen = (bId: number, bName: string) => {
@@ -245,19 +254,24 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 	const handleDeleteBuildingConfirm = async () => {
 		if (!deleteBuildingId) return;
 		setBuildingActionLoading(true);
-		try {
-			await deleteBuilding({ id: deleteBuildingId }).unwrap();
-			onSuccess(t.locaux.residenceDeletedSuccess);
-			if (formik.values.building === deleteBuildingId) {
-				await formik.setFieldValue('building', '');
-			}
-			setDeleteBuildingId(null);
-		} catch (e) {
-			onError(extractApiErrorMessage(e, t.locaux.residenceDeleteImpossible));
-			setDeleteBuildingId(null);
-		} finally {
-			setBuildingActionLoading(false);
-		}
+		await runWithCleanup(
+			async () => {
+				try {
+					await deleteBuilding({ id: deleteBuildingId }).unwrap();
+					onSuccess(t.locaux.residenceDeletedSuccess);
+					if (formik.values.building === deleteBuildingId) {
+						await formik.setFieldValue('building', '');
+					}
+					setDeleteBuildingId(null);
+				} catch (e) {
+					onError(extractApiErrorMessage(e, t.locaux.residenceDeleteImpossible));
+					setDeleteBuildingId(null);
+				}
+			},
+			() => {
+				setBuildingActionLoading(false);
+			},
+		);
 	};
 
 	const validationEntries = Object.entries(formik.errors).filter(([k]) => k !== 'globalError') as [string, string][];
@@ -267,25 +281,33 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 	// Loyer handlers
 
 	const handleTogglePaid = async (loyer: LoyerListType) => {
-		try {
-			await toggleLoyerPaid({ id: loyer.id, paye: !loyer.paye }).unwrap();
-			onSuccess(loyer.paye ? t.locaux.rentMarkedUnpaid : t.locaux.rentMarkedPaid);
-		} catch (err) {
-			onError(extractApiErrorMessage(err, t.locaux.rentUpdateError));
-		}
+		await runAsyncWithErrorHandler(
+			async () => {
+				await toggleLoyerPaid({ id: loyer.id, paye: !loyer.paye }).unwrap();
+				onSuccess(loyer.paye ? t.locaux.rentMarkedUnpaid : t.locaux.rentMarkedPaid);
+			},
+			async (err) => {
+				onError(extractApiErrorMessage(err, t.locaux.rentUpdateError));
+			},
+		);
 	};
 
 	const handleDeleteLoyer = async () => {
 		if (!selectedLoyerId) return;
-		try {
-			await deleteLoyerMut({ id: selectedLoyerId }).unwrap();
-			onSuccess(t.locaux.rentDeletedSuccess);
-		} catch (err) {
-			onError(extractApiErrorMessage(err, t.locaux.rentDeleteError));
-		} finally {
-			setShowDeleteLoyerModal(false);
-			setSelectedLoyerId(null);
-		}
+		await runWithCleanup(
+			async () => {
+				try {
+					await deleteLoyerMut({ id: selectedLoyerId }).unwrap();
+					onSuccess(t.locaux.rentDeletedSuccess);
+				} catch (err) {
+					onError(extractApiErrorMessage(err, t.locaux.rentDeleteError));
+				}
+			},
+			() => {
+				setShowDeleteLoyerModal(false);
+				setSelectedLoyerId(null);
+			},
+		);
 	};
 
 	const openAddLoyer = () => {
@@ -410,7 +432,7 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 											value={selectedType}
 											fullWidth
 											onChange={(_, newVal) => {
-												formik.setFieldValue('type_local', newVal ? newVal.code : '');
+												void formik.setFieldValue('type_local', newVal ? newVal.code : '');
 											}}
 											onBlur={formik.handleBlur('type_local')}
 											error={formik.submitCount > 0 && Boolean(formik.errors.type_local)}
@@ -427,10 +449,10 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 													deleteEntity={({ id: entityId }) => deleteLocalType({ id: entityId })}
 													onAddSuccess={(newId) => {
 														const createdType = localTypes?.find((item) => item.id === newId);
-														formik.setFieldValue('type_local', createdType?.nom ?? '');
+														void formik.setFieldValue('type_local', createdType?.nom ?? '');
 													}}
 													onDeleteSuccess={() => {
-														formik.setFieldValue('type_local', '');
+														void formik.setFieldValue('type_local', '');
 													}}
 												/>
 											}
@@ -446,7 +468,7 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 										value={selectedBuilding}
 										fullWidth
 										onChange={(_, newVal) => {
-											formik.setFieldValue('building', newVal ? Number(newVal.value) : '');
+											void formik.setFieldValue('building', newVal ? Number(newVal.value) : '');
 										}}
 										onBlur={formik.handleBlur('building')}
 										startIcon={<ApartmentIcon fontSize="small" />}
@@ -509,9 +531,9 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 										size="small"
 										label={t.locaux.surfaceUnit}
 										value={formik.values.superficie}
-										onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+										onChange={(e: ChangeEvent<HTMLInputElement>) => {
 											if (/^(0|[1-9]\d*)?([.,]\d*)?$/.test(e.target.value))
-												formik.setFieldValue('superficie', e.target.value);
+												void formik.setFieldValue('superficie', e.target.value);
 										}}
 										onBlur={formik.handleBlur('superficie')}
 										error={formik.submitCount > 0 && Boolean(formik.errors.superficie)}
@@ -553,9 +575,9 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 											size="small"
 											label={`${t.locaux.purchasePriceMAD} *`}
 											value={formik.values.prix_achat}
-											onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+											onChange={(e: ChangeEvent<HTMLInputElement>) => {
 												if (/^(0|[1-9]\d*)?([.,]\d*)?$/.test(e.target.value))
-													formik.setFieldValue('prix_achat', e.target.value);
+													void formik.setFieldValue('prix_achat', e.target.value);
 											}}
 											onBlur={formik.handleBlur('prix_achat')}
 											error={formik.submitCount > 0 && Boolean(formik.errors.prix_achat)}
@@ -571,9 +593,9 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 											size="small"
 											label={`${t.locaux.monthlyRentMAD} *`}
 											value={formik.values.prix_location_mensuel}
-											onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+											onChange={(e: ChangeEvent<HTMLInputElement>) => {
 												if (/^(0|[1-9]\d*)?([.,]\d*)?$/.test(e.target.value))
-													formik.setFieldValue('prix_location_mensuel', e.target.value);
+													void formik.setFieldValue('prix_location_mensuel', e.target.value);
 											}}
 											onBlur={formik.handleBlur('prix_location_mensuel')}
 											error={formik.submitCount > 0 && Boolean(formik.errors.prix_location_mensuel)}
@@ -613,7 +635,7 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 										control={
 											<Switch
 												checked={formik.values.en_location}
-												onChange={(e) => formik.setFieldValue('en_location', e.target.checked)}
+												onChange={(e) => void formik.setFieldValue('en_location', e.target.checked)}
 												color="primary"
 											/>
 										}
@@ -639,7 +661,7 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 												label={t.locaux.rentalStartDate}
 												value={formik.values.date_debut_location ? parseISO(formik.values.date_debut_location) : null}
 												onChange={(date) =>
-													formik.setFieldValue('date_debut_location', date ? format(date, 'yyyy-MM-dd') : '')
+													void formik.setFieldValue('date_debut_location', date ? format(date, 'yyyy-MM-dd') : '')
 												}
 												disabled={isLoading}
 												slotProps={{
@@ -876,7 +898,7 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 					inputTheme={inputTheme}
 					mutationFn={(args) => createBuilding({ nom: args.data.nom })}
 					onSuccess={(newId) => {
-						formik.setFieldValue('building', newId);
+						void formik.setFieldValue('building', newId);
 					}}
 				/>
 
@@ -891,7 +913,7 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 							theme={inputTheme}
 							fullWidth
 							value={editBuildingName}
-							onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+							onChange={(e: ChangeEvent<HTMLInputElement>) => {
 								setEditBuildingName(e.target.value);
 								if (editBuildingError) setEditBuildingError(null);
 							}}
@@ -950,7 +972,7 @@ interface LoyerDialogProps {
 
 const loyerInputTheme = textInputTheme();
 
-const LoyerDialog: React.FC<LoyerDialogProps> = ({ localId, year, loyer, onClose }) => {
+const LoyerDialog: FC<LoyerDialogProps> = ({ localId, year, loyer, onClose }) => {
 	const isEdit = loyer !== null;
 	const { t } = useLanguage();
 	const { onSuccess, onError } = useToast();
@@ -1023,7 +1045,7 @@ const LoyerDialog: React.FC<LoyerDialogProps> = ({ localId, year, loyer, onClose
 							size="small"
 							label={`${t.locaux.monthRequired}`}
 							value={String(loyerFormik.values.mois)}
-							onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+							onChange={(e: ChangeEvent<HTMLInputElement>) =>
 								loyerFormik.setFieldValue('mois', e.target.value ? Number(e.target.value) : '')
 							}
 							onBlur={loyerFormik.handleBlur('mois')}
@@ -1040,7 +1062,7 @@ const LoyerDialog: React.FC<LoyerDialogProps> = ({ localId, year, loyer, onClose
 							size="small"
 							label={`${t.locaux.yearRequired}`}
 							value={String(loyerFormik.values.annee)}
-							onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+							onChange={(e: ChangeEvent<HTMLInputElement>) =>
 								loyerFormik.setFieldValue('annee', e.target.value ? Number(e.target.value) : '')
 							}
 							onBlur={loyerFormik.handleBlur('annee')}
@@ -1057,7 +1079,7 @@ const LoyerDialog: React.FC<LoyerDialogProps> = ({ localId, year, loyer, onClose
 							size="small"
 							label={`${t.locaux.amountMAD} *`}
 							value={loyerFormik.values.montant}
-							onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+							onChange={(e: ChangeEvent<HTMLInputElement>) => {
 								if (/^(0|[1-9]\d*)?([.,]\d*)?$/.test(e.target.value))
 									loyerFormik.setFieldValue('montant', e.target.value);
 							}}
@@ -1133,7 +1155,7 @@ const LoyerDialog: React.FC<LoyerDialogProps> = ({ localId, year, loyer, onClose
 	);
 };
 
-const LocalFormClient: React.FC<SessionProps & { id?: number }> = ({ session, id }) => {
+const LocalFormClient: FC<SessionProps & { id?: number }> = ({ session, id }) => {
 	const token = useInitAccessToken(session);
 	const { t } = useLanguage();
 	const title = id !== undefined ? t.locaux.editLocal : t.locaux.newLocal;

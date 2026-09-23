@@ -1,4 +1,4 @@
-import React from 'react';
+import { type ReactNode } from 'react';
 import { render, screen, cleanup, fireEvent, act, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 
@@ -39,8 +39,17 @@ jest.mock('@/store/services/reservation', () => ({
 	useGetBuildingQuery: (params: unknown, options: unknown) => mockUseGetBuildingQuery(params, options),
 	useDeleteBuildingMutation: () => [mockDeleteBuilding, { isLoading: false }],
 	useAddApartmentMutation: () => [mockAddApartment, { isLoading: false }],
-	useGetApartmentsQuery: () => ({ data: [{ id: 1, nom: 'Apt 1', building: 1 }, { id: 2, nom: 'Apt 2', building: 2 }], isLoading: false }),
-	useGetLocauxListQuery: () => ({ data: [{ id: 10, nom: 'Bureau Centre', building: 1, type_local: 'Bureau' }], isLoading: false }),
+	useGetApartmentsQuery: () => ({
+		data: [
+			{ id: 1, nom: 'Apt 1', building: 1 },
+			{ id: 2, nom: 'Apt 2', building: 2 },
+		],
+		isLoading: false,
+	}),
+	useGetLocauxListQuery: () => ({
+		data: [{ id: 10, nom: 'Bureau Centre', building: 1, type_local: 'Bureau' }],
+		isLoading: false,
+	}),
 }));
 
 // Mock routes
@@ -52,12 +61,12 @@ jest.mock('@/utils/routes', () => ({
 
 // Mock Protected
 jest.mock('@/components/layouts/protected/protected', () => ({
-	Protected: ({ children }: { children: React.ReactNode }) => <div data-testid="protected">{children}</div>,
+	Protected: ({ children }: { children: ReactNode }) => <div data-testid="protected">{children}</div>,
 }));
 
 // Mock NavigationBar
 jest.mock('@/components/layouts/navigationBar/navigationBar', () => {
-	const Mock = ({ children }: { children: React.ReactNode }) => <div data-testid="navigation-bar">{children}</div>;
+	const Mock = ({ children }: { children: ReactNode }) => <div data-testid="navigation-bar">{children}</div>;
 	Mock.displayName = 'NavigationBar';
 	return { __esModule: true, default: Mock };
 });
@@ -65,7 +74,7 @@ jest.mock('@/components/layouts/navigationBar/navigationBar', () => {
 // Mock ApiAlert
 jest.mock('@/components/formikElements/apiLoading/apiAlert/apiAlert', () => ({
 	__esModule: true,
-	default: ({ children }: { children?: React.ReactNode }) => <div data-testid="api-alert">{children}</div>,
+	default: ({ children }: { children?: ReactNode }) => <div data-testid="api-alert">{children}</div>,
 }));
 
 // Mock ActionModals
@@ -113,7 +122,6 @@ jest.mock('@/utils/helpers', () => ({
 jest.mock('@/styles/dashboard/dashboard.module.sass', () => ({
 	flexRootStack: 'flexRootStack',
 }));
-
 import BuildingViewClient from './building-view';
 import type { AppSession } from '@/types/_initTypes';
 

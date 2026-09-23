@@ -1,4 +1,4 @@
-import React from 'react';
+import { type ReactNode } from 'react';
 import { render, screen, cleanup, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
 
@@ -87,10 +87,8 @@ const mockUseGetDashboardStatsQuery = jest.fn<
 >(() => ({ data: mockDashboardData, isLoading: false }));
 
 jest.mock('@/store/services/reservation', () => ({
-	useGetDashboardStatsQuery: (
-		params: { year: number; building?: number },
-		options: { skip: boolean },
-	) => mockUseGetDashboardStatsQuery(params, options),
+	useGetDashboardStatsQuery: (params: { year: number; building?: number }, options: { skip: boolean }) =>
+		mockUseGetDashboardStatsQuery(params, options),
 	useGetReservationYearsQuery: () => {
 		const y = new Date().getFullYear();
 		return { data: { years: [y, y - 1] } };
@@ -105,11 +103,11 @@ jest.mock('@/store/services/reservation', () => ({
 
 // Mock layout components
 jest.mock('@/components/layouts/protected/protected', () => ({
-	Protected: ({ children }: { children: React.ReactNode }) => <div data-testid="protected">{children}</div>,
+	Protected: ({ children }: { children: ReactNode }) => <div data-testid="protected">{children}</div>,
 }));
 
 jest.mock('@/components/layouts/navigationBar/navigationBar', () => {
-	const Mock = ({ children }: { children: React.ReactNode }) => <div data-testid="navigation-bar">{children}</div>;
+	const Mock = ({ children }: { children: ReactNode }) => <div data-testid="navigation-bar">{children}</div>;
 	Mock.displayName = 'NavigationBar';
 	return { __esModule: true, default: Mock };
 });
@@ -137,10 +135,8 @@ jest.mock('@/utils/rawData', () => ({
 jest.mock('@/styles/dashboard/dashboard.module.sass', () => ({
 	flexRootStack: 'flexRootStack',
 }));
-
 import ReservationDashboardClient from './reservation-dashboard';
 import type { AppSession } from '@/types/_initTypes';
-
 
 jest.mock('@/utils/hooks', () => ({
 	// eslint-disable-next-line @typescript-eslint/no-require-imports
@@ -314,5 +310,3 @@ describe('ReservationDashboardClient', () => {
 		});
 	});
 });
-
-

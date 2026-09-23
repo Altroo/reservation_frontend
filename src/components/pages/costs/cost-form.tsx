@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useMemo, useState } from 'react';
+import { runWithCleanup } from '@/utils/runWithCleanup';
+import { useState, type ChangeEvent, type FC } from 'react';
 import { useRouter } from 'next/navigation';
 import { Alert, Box, Button, Card, CardContent, Divider, InputAdornment, Stack, Typography } from '@mui/material';
 import {
@@ -59,7 +60,7 @@ type FormikContentProps = {
 	id?: number;
 };
 
-const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
+const FormikContent: FC<FormikContentProps> = ({ token, id }) => {
 	const { t } = useLanguage();
 	const { onSuccess, onError } = useToast();
 	const isEditMode = id !== undefined;
@@ -80,15 +81,15 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 	const [deleteCostCategory] = useDeleteCostCategoryMutation();
 	const [isPending, setIsPending] = useState(false);
 
-	const buildingItems: DropDownType[] = useMemo(
-		() => (buildingsData ?? []).map((building) => ({ code: building.nom, value: String(building.id) })),
-		[buildingsData],
-	);
+	const buildingItems: DropDownType[] = (buildingsData ?? []).map((building) => ({
+		code: building.nom,
+		value: String(building.id),
+	}));
 
-	const categoryItems: DropDownType[] = useMemo(
-		() => (costCategories ?? []).map((category) => ({ code: category.nom, value: String(category.id) })),
-		[costCategories],
-	);
+	const categoryItems: DropDownType[] = (costCategories ?? []).map((category) => ({
+		code: category.nom,
+		value: String(category.id),
+	}));
 
 	const formik = useFormik<CostFormValues>({
 		initialValues: {
@@ -107,21 +108,26 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 			// eslint-disable-next-line @typescript-eslint/no-unused-vars
 			const { globalError, ...fields } = data;
 			const payload = { ...fields, building: fields.building === '' ? null : fields.building };
-			try {
-				if (isEditMode) {
-					await updateCost({ id: id!, data: payload }).unwrap();
-					onSuccess(t.costs.costUpdatedSuccess);
-				} else {
-					await createCost({ data: payload }).unwrap();
-					onSuccess(t.costs.costAddedSuccess);
-				}
-				router.push(COSTS_LIST);
-			} catch (e) {
-				setFormikAutoErrors({ e, setFieldError });
-				onError(isEditMode ? t.costs.costUpdateError : t.costs.costAddError);
-			} finally {
-				setIsPending(false);
-			}
+			await runWithCleanup(
+				async () => {
+					try {
+						if (isEditMode) {
+							await updateCost({ id: id!, data: payload }).unwrap();
+							onSuccess(t.costs.costUpdatedSuccess);
+						} else {
+							await createCost({ data: payload }).unwrap();
+							onSuccess(t.costs.costAddedSuccess);
+						}
+						router.push(COSTS_LIST);
+					} catch (e) {
+						setFormikAutoErrors({ e, setFieldError });
+						onError(isEditMode ? t.costs.costUpdateError : t.costs.costAddError);
+					}
+				},
+				() => {
+					setIsPending(false);
+				},
+			);
 		},
 	});
 
@@ -176,24 +182,24 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 					<Stack spacing={3}>
 						<Card elevation={2} sx={{ borderRadius: 2 }}>
 							<CardContent sx={{ p: 3 }}>
-									<Stack
-										direction="row"
-										spacing={2}
+								<Stack
+									direction="row"
+									spacing={2}
+									sx={{
+										alignItems: 'center',
+										mb: 2,
+									}}
+								>
+									<NotesIcon color="primary" />
+									<Typography
+										variant="h6"
 										sx={{
-											alignItems: 'center',
-											mb: 2,
+											fontWeight: 700,
 										}}
 									>
-										<NotesIcon color="primary" />
-										<Typography
-											variant="h6"
-											sx={{
-												fontWeight: 700,
-											}}
-										>
-											{t.costs.costDetails}
-										</Typography>
-									</Stack>
+										{t.costs.costDetails}
+									</Typography>
+								</Stack>
 								<Divider sx={{ mb: 3 }} />
 								<Stack spacing={2.5}>
 									<CustomTextInput
@@ -218,9 +224,9 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 											size="small"
 											label={`${t.costs.amountMAD} *`}
 											value={formik.values.amount}
-											onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+											onChange={(e: ChangeEvent<HTMLInputElement>) => {
 												if (/^(0|[1-9]\d*)?([.,]\d*)?$/.test(e.target.value))
-													formik.setFieldValue('amount', e.target.value);
+													void formik.setFieldValue('amount', e.target.value);
 											}}
 											onBlur={formik.handleBlur('amount')}
 											error={formik.submitCount > 0 && Boolean(formik.errors.amount)}
@@ -232,7 +238,7 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 										<DatePicker
 											label={`${t.common.date} *`}
 											value={formik.values.date ? parseISO(formik.values.date) : null}
-											onChange={(date) => formik.setFieldValue('date', date ? format(date, 'yyyy-MM-dd') : '')}
+											onChange={(date) => void formik.setFieldValue('date', date ? format(date, 'yyyy-MM-dd') : '')}
 											disabled={isLoading}
 											slotProps={{
 												textField: {
@@ -264,7 +270,7 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 										value={selectedBuilding}
 										fullWidth
 										onChange={(_, newVal) => {
-											formik.setFieldValue('building', newVal ? Number(newVal.value) : '');
+											void formik.setFieldValue('building', newVal ? Number(newVal.value) : '');
 										}}
 										onBlur={formik.handleBlur('building')}
 										error={formik.submitCount > 0 && Boolean(formik.errors.building)}
@@ -280,10 +286,10 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 												editEntity={({ id: entityId, data }) => updateBuilding({ id: entityId, data })}
 												deleteEntity={({ id: entityId }) => deleteBuilding({ id: entityId })}
 												onAddSuccess={(newId) => {
-													formik.setFieldValue('building', newId);
+													void formik.setFieldValue('building', newId);
 												}}
 												onDeleteSuccess={() => {
-													formik.setFieldValue('building', '');
+													void formik.setFieldValue('building', '');
 												}}
 											/>
 										}
@@ -298,7 +304,7 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 										value={selectedCategory}
 										fullWidth
 										onChange={(_, newVal) => {
-										formik.setFieldValue('category', newVal ? newVal.code : '');
+											void formik.setFieldValue('category', newVal ? newVal.code : '');
 										}}
 										onBlur={formik.handleBlur('category')}
 										error={formik.submitCount > 0 && Boolean(formik.errors.category)}
@@ -315,10 +321,10 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 												deleteEntity={({ id: entityId }) => deleteCostCategory({ id: entityId })}
 												onAddSuccess={(newId) => {
 													const createdCategory = costCategories?.find((item) => item.id === newId);
-													formik.setFieldValue('category', createdCategory?.nom ?? '');
+													void formik.setFieldValue('category', createdCategory?.nom ?? '');
 												}}
 												onDeleteSuccess={() => {
-													formik.setFieldValue('category', '');
+													void formik.setFieldValue('category', '');
 												}}
 											/>
 										}
@@ -344,7 +350,7 @@ const FormikContent: React.FC<FormikContentProps> = ({ token, id }) => {
 	);
 };
 
-const CostFormClient: React.FC<SessionProps & { id?: number }> = ({ session, id }) => {
+const CostFormClient: FC<SessionProps & { id?: number }> = ({ session, id }) => {
 	const token = useInitAccessToken(session);
 	const { t } = useLanguage();
 	const title = id !== undefined ? t.costs.editCost : t.costs.newCost;

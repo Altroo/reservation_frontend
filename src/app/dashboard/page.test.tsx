@@ -1,5 +1,6 @@
 import { jest } from '@jest/globals';
 import { renderToStaticMarkup } from 'react-dom/server';
+import type { ReactElement } from 'react';
 
 type SessionUser = { pk: number; email: string };
 type Session = { user: SessionUser } | null;
@@ -25,8 +26,7 @@ jest.mock('@/utils/routes', () => ({
 
 const CLIENT_MARKER = 'MARKER:ReservationDashboardClient';
 jest.mock('@/components/pages/reservations/reservation-dashboard', () => {
-	const Mock = (props: Record<string, unknown>) =>
-		`${CLIENT_MARKER}:${JSON.stringify(props)}` as unknown;
+	const Mock = (props: Record<string, unknown>) => `${CLIENT_MARKER}:${JSON.stringify(props)}` as unknown;
 	Mock.displayName = 'ReservationDashboardClient';
 	return { __esModule: true, default: Mock };
 });
@@ -67,7 +67,7 @@ describe('DashboardPage server component', () => {
 		});
 
 		const jsx = await Page!();
-		const html = renderToStaticMarkup(jsx as React.ReactElement);
+		const html = renderToStaticMarkup(jsx as ReactElement);
 		expect(html).toContain(CLIENT_MARKER);
 	});
 });

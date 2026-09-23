@@ -1,4 +1,3 @@
-import React from 'react';
 import { render, screen, cleanup, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
 
@@ -35,22 +34,24 @@ jest.mock('@/store/services/reservation', () => ({
 jest.mock('@/components/formikElements/customTextInput/customTextInput', () => ({
 	__esModule: true,
 	default: ({ id, label }: { id: string; label: string }) => (
-		<div data-testid={`input-${id}`}><label>{label}</label></div>
+		<div data-testid={`input-${id}`}>
+			<label>{label}</label>
+		</div>
 	),
 }));
 
 jest.mock('@/components/formikElements/customAutoCompleteSelect/customAutoCompleteSelect', () => ({
 	__esModule: true,
 	default: ({ id, label }: { id: string; label: string }) => (
-		<div data-testid={`autocomplete-${id}`}><label>{label}</label></div>
+		<div data-testid={`autocomplete-${id}`}>
+			<label>{label}</label>
+		</div>
 	),
 }));
 
 jest.mock('@/components/htmlElements/buttons/primaryLoadingButton/primaryLoadingButton', () => ({
 	__esModule: true,
-	default: ({ buttonText }: { buttonText: string }) => (
-		<button data-testid="submit-button">{buttonText}</button>
-	),
+	default: ({ buttonText }: { buttonText: string }) => <button data-testid="submit-button">{buttonText}</button>,
 }));
 
 jest.mock('@/components/formikElements/apiLoading/apiAlert/apiAlert', () => ({
@@ -95,7 +96,6 @@ jest.mock('@/utils/formValidationSchemas', () => ({
 jest.mock('zod-formik-adapter', () => ({
 	toFormikValidationSchema: jest.fn(() => undefined),
 }));
-
 import ReservationDialog from './reservation-dialog';
 
 const baseProps = {
@@ -194,9 +194,7 @@ describe('ReservationDialog', () => {
 
 	describe('Loading state', () => {
 		it('renders dialog content even during apartments loading', () => {
-			jest.mocked(
-				jest.requireMock('@/store/services/reservation').useGetApartmentsQuery,
-			);
+			jest.mocked(jest.requireMock('@/store/services/reservation').useGetApartmentsQuery);
 			// Re-mock apartments to simulate loading
 			render(<ReservationDialog {...baseProps} />);
 			// Dialog should still open and render sections
@@ -213,13 +211,7 @@ describe('ReservationDialog', () => {
 
 	describe('Initial values', () => {
 		it('accepts initialCheckIn and initialCheckOut props without error', () => {
-			render(
-				<ReservationDialog
-					{...baseProps}
-					initialCheckIn="2025-06-01"
-					initialCheckOut="2025-06-05"
-				/>,
-			);
+			render(<ReservationDialog {...baseProps} initialCheckIn="2025-06-01" initialCheckOut="2025-06-05" />);
 			expect(screen.getByText('Nouvelle réservation')).toBeInTheDocument();
 		});
 	});

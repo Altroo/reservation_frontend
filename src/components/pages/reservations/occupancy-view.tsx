@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useMemo, useState } from 'react';
+import { useState, type FC, type ReactNode } from 'react';
 import {
 	Box,
 	Card,
@@ -48,7 +48,7 @@ ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend)
 
 interface KpiCardProps {
 	color: string;
-	icon: React.ReactNode;
+	icon: ReactNode;
 	label: string;
 	value: string;
 	tooltip?: string;
@@ -123,7 +123,7 @@ function KpiCard({ color, icon, label, value, tooltip }: KpiCardProps) {
 	);
 }
 
-const OccupancyClient: React.FC<SessionProps> = ({ session }) => {
+const OccupancyClient: FC<SessionProps> = ({ session }) => {
 	const { t } = useLanguage();
 	const token = useInitAccessToken(session);
 	const currentYear = new Date().getFullYear();
@@ -142,18 +142,15 @@ const OccupancyClient: React.FC<SessionProps> = ({ session }) => {
 	const { data: yearsData } = useGetReservationYearsQuery(undefined, { skip: !token });
 	const { data: buildingsData } = useGetBuildingsQuery(undefined, { skip: !token });
 
-	const buildingItems: DropDownType[] = useMemo(
-		() => [
-			{ code: t.locaux.allResidences, value: t.locaux.allResidences },
-			...(buildingsData ?? []).map((b) => ({ code: b.nom, value: b.nom })),
-		],
-		[buildingsData, t],
-	);
+	const buildingItems: DropDownType[] = [
+		{ code: t.locaux.allResidences, value: t.locaux.allResidences },
+		...(buildingsData ?? []).map((b) => ({ code: b.nom, value: b.nom })),
+	];
 
-	const yearItems: DropDownType[] = useMemo(
-		() => (yearsData?.years ?? [currentYear]).map((y) => ({ code: String(y), value: String(y) })),
-		[yearsData?.years, currentYear],
-	);
+	const yearItems: DropDownType[] = (yearsData?.years ?? [currentYear]).map((y) => ({
+		code: String(y),
+		value: String(y),
+	}));
 
 	const occupancy = data?.occupancy_by_apartment ?? {};
 
@@ -180,7 +177,7 @@ const OccupancyClient: React.FC<SessionProps> = ({ session }) => {
 		revenue: number;
 	}
 
-	const heatmapRows: AptHeatRow[] = useMemo(() => {
+	const heatmapRows: AptHeatRow[] = (() => {
 		if (!planningData) return [];
 		return Object.entries(planningData.apartments).map(([nom, apt]) => {
 			const days: DayCell[] = Array.from({ length: lastDay }, (_, i) => ({ day: i + 1, reservation: null }));
@@ -201,7 +198,7 @@ const OccupancyClient: React.FC<SessionProps> = ({ session }) => {
 			}
 			return { nom, days, occupied, revenue };
 		});
-	}, [planningData, lastDay, year, heatmapMonth]);
+	})();
 
 	const prevHeatmapMonth = () => {
 		if (heatmapMonth === 1) {

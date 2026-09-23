@@ -1,4 +1,4 @@
-import React from 'react';
+import { type RefObject } from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import type { GridApiCommunity } from '@mui/x-data-grid/internals';
 import { createNumericFilterOperators } from './numericFilterOperator';
@@ -7,7 +7,7 @@ import type { GridFilterItem, GridColDef } from '@mui/x-data-grid';
 describe('createNumericFilterOperators', () => {
 	const operators = createNumericFilterOperators();
 	const mockColumn: GridColDef = { field: 'price', headerName: 'Prix' };
-	const mockApiRef = { current: null } as unknown as React.RefObject<GridApiCommunity>;
+	const mockApiRef = { current: null } as unknown as RefObject<GridApiCommunity>;
 
 	test('creates 6 numeric filter operators', () => {
 		expect(operators).toHaveLength(6);

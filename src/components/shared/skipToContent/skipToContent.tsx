@@ -1,9 +1,9 @@
 'use client';
 
-import React from 'react';
+import { type FC } from 'react';
 import { useLanguage } from '@/utils/hooks';
 
-const SkipToContent: React.FC = () => {
+const SkipToContent: FC = () => {
 	const { t } = useLanguage();
 
 	return (

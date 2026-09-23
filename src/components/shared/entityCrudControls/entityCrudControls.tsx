@@ -1,6 +1,7 @@
-"use client";
+'use client';
 
-import React, { useMemo, useState } from 'react';
+import { runWithCleanup } from '@/utils/runWithCleanup';
+import { useState, type FC, type ReactNode } from 'react';
 import { Button, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, Stack } from '@mui/material';
 import { Close as CloseIcon, Delete as DeleteIcon, Edit as EditIcon } from '@mui/icons-material';
 import type { Theme } from '@mui/material/styles';
@@ -13,7 +14,7 @@ import { useLanguage } from '@/utils/hooks';
 
 type EntityCrudControlsProps = {
 	label: string;
-	icon: React.ReactNode;
+	icon: ReactNode;
 	inputTheme: Theme;
 	selectedItem: DropDownType | null;
 	addEntity: (args: { data: { nom: string } }) => Promise<unknown> & { unwrap?: () => Promise<unknown> };
@@ -41,7 +42,7 @@ const getMutationErrorMessage = (error: unknown, fallback: string): string => {
 	return fallback;
 };
 
-const EntityCrudControls: React.FC<EntityCrudControlsProps> = ({
+const EntityCrudControls: FC<EntityCrudControlsProps> = ({
 	label,
 	icon,
 	inputTheme,
@@ -61,11 +62,11 @@ const EntityCrudControls: React.FC<EntityCrudControlsProps> = ({
 	const [deleteOpen, setDeleteOpen] = useState(false);
 	const [actionLoading, setActionLoading] = useState(false);
 
-	const selectedId = useMemo(() => {
+	const selectedId = (() => {
 		if (!selectedItem?.value) return null;
 		const parsed = Number(selectedItem.value);
 		return Number.isFinite(parsed) ? parsed : null;
-	}, [selectedItem]);
+	})();
 
 	const handleEditOpen = () => {
 		if (!selectedItem?.code) return;
@@ -77,36 +78,44 @@ const EntityCrudControls: React.FC<EntityCrudControlsProps> = ({
 	const handleEditSubmit = async () => {
 		if (!selectedId || !editName.trim()) return;
 		setActionLoading(true);
-		try {
-			const request = editEntity({ id: selectedId, data: { nom: editName.trim() } });
-			if (typeof request.unwrap === 'function') {
-				await request.unwrap();
-			} else {
-				await request;
-			}
-			setEditOpen(false);
-		} catch (error) {
-			setEditError(getMutationErrorMessage(error, t.addEntityModal.entityAddError(label)));
-		} finally {
-			setActionLoading(false);
-		}
+		await runWithCleanup(
+			async () => {
+				try {
+					const request = editEntity({ id: selectedId, data: { nom: editName.trim() } });
+					if (typeof request.unwrap === 'function') {
+						await request.unwrap();
+					} else {
+						await request;
+					}
+					setEditOpen(false);
+				} catch (error) {
+					setEditError(getMutationErrorMessage(error, t.addEntityModal.entityAddError(label)));
+				}
+			},
+			() => {
+				setActionLoading(false);
+			},
+		);
 	};
 
 	const handleDeleteConfirm = async () => {
 		if (!selectedId) return;
 		setActionLoading(true);
-		try {
-			const request = deleteEntity({ id: selectedId });
-			if (typeof request.unwrap === 'function') {
-				await request.unwrap();
-			} else {
-				await request;
-			}
-			setDeleteOpen(false);
-			onDeleteSuccess?.();
-		} finally {
-			setActionLoading(false);
-		}
+		await runWithCleanup(
+			async () => {
+				const request = deleteEntity({ id: selectedId });
+				if (typeof request.unwrap === 'function') {
+					await request.unwrap();
+				} else {
+					await request;
+				}
+				setDeleteOpen(false);
+				onDeleteSuccess?.();
+			},
+			() => {
+				setActionLoading(false);
+			},
+		);
 	};
 
 	return (

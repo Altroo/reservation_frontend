@@ -1,4 +1,4 @@
-import React from 'react';
+import { type ReactNode } from 'react';
 import { render, screen, cleanup, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
 
@@ -95,11 +95,11 @@ jest.mock('@/store/services/reservation', () => ({
 
 // Mock layout components
 jest.mock('@/components/layouts/protected/protected', () => ({
-	Protected: ({ children }: { children: React.ReactNode }) => <div data-testid="protected">{children}</div>,
+	Protected: ({ children }: { children: ReactNode }) => <div data-testid="protected">{children}</div>,
 }));
 
 jest.mock('@/components/layouts/navigationBar/navigationBar', () => {
-	const Mock = ({ children }: { children: React.ReactNode }) => <div data-testid="navigation-bar">{children}</div>;
+	const Mock = ({ children }: { children: ReactNode }) => <div data-testid="navigation-bar">{children}</div>;
 	Mock.displayName = 'NavigationBar';
 	return { __esModule: true, default: Mock };
 });
@@ -107,12 +107,28 @@ jest.mock('@/components/layouts/navigationBar/navigationBar', () => {
 // Mock helpers
 jest.mock('@/utils/helpers', () => ({
 	formatDate: (val: string | null) => (val ? new Date(val).toLocaleDateString('fr-FR') : '—'),
-	weekdayIndex: (dateStr: string) => { const d = new Date(dateStr + 'T00:00:00'); return (d.getDay() + 6) % 7; },
+	weekdayIndex: (dateStr: string) => {
+		const d = new Date(dateStr + 'T00:00:00');
+		return (d.getDay() + 6) % 7;
+	},
 	hexToRGB: (hex: string, alpha?: number) => (alpha !== undefined ? `rgba(0,0,0,${alpha})` : 'rgb(0,0,0)'),
 }));
 
 jest.mock('@/utils/rawData', () => ({
-	MONTH_NAMES: ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'],
+	MONTH_NAMES: [
+		'Janvier',
+		'Février',
+		'Mars',
+		'Avril',
+		'Mai',
+		'Juin',
+		'Juillet',
+		'Août',
+		'Septembre',
+		'Octobre',
+		'Novembre',
+		'Décembre',
+	],
 	DAY_ABBREVIATIONS: ['L', 'M', 'M', 'J', 'V', 'S', 'D'],
 	PAYMENT_SOURCE_BG: {
 		Airbnb: '#FF5A1F',
@@ -125,7 +141,6 @@ jest.mock('@/utils/rawData', () => ({
 jest.mock('@/styles/dashboard/dashboard.module.sass', () => ({
 	flexRootStack: 'flexRootStack',
 }));
-
 import PlanningMonthClient from './planning-month';
 import type { AppSession } from '@/types/_initTypes';
 

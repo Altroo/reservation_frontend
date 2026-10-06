@@ -55,7 +55,7 @@ const CostsListClient: FC<SessionProps> = ({ session }) => {
 	const currentMonth = new Date().getMonth() + 1;
 	const [year, setYear] = useState(currentYear);
 	const [month, setMonth] = useState<number | undefined>(currentMonth);
-	const [paginationModel, setPaginationModel] = useDataGridPagination();
+	const [paginationModel, setPaginationModel, sorting] = useDataGridPagination();
 	const [searchTerm, setSearchTerm] = useState('');
 
 	const { data: costYears } = useGetCostYearsQuery(undefined, { skip: !token });
@@ -66,7 +66,7 @@ const CostsListClient: FC<SessionProps> = ({ session }) => {
 	const [chipFilterParams, setChipFilterParams] = useState<Record<string, string>>({});
 	const [customFilterParams, setCustomFilterParams] = useState<Record<string, string>>({});
 	const { data: buildingsData } = useGetBuildingsQuery(undefined, { skip: !token });
-	const { data: costs, isLoading } = useGetCostsQuery({ year, month }, { skip: !token });
+	const { data: costs, isLoading } = useGetCostsQuery({ year, month, ordering: sorting.ordering }, { skip: !token });
 
 	const yearItems: DropDownType[] = (costYears?.years ?? [currentYear]).map((y) => ({
 		code: String(y),
@@ -506,6 +506,7 @@ const CostsListClient: FC<SessionProps> = ({ session }) => {
 							columns={columns}
 							paginationModel={paginationModel}
 							setPaginationModel={setPaginationModel}
+							sorting={sorting}
 							searchTerm={searchTerm}
 							setSearchTerm={setSearchTerm}
 							filterModel={filterModel}

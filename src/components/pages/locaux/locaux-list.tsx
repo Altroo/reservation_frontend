@@ -43,7 +43,7 @@ const LocauxListClient: FC<SessionProps> = ({ session }) => {
 	const { onSuccess, onError } = useToast();
 	const token = useInitAccessToken(session);
 
-	const [paginationModel, setPaginationModel] = useDataGridPagination();
+	const [paginationModel, setPaginationModel, sorting] = useDataGridPagination();
 	const [searchTerm, setSearchTerm] = useState('');
 	const [filterModel, setFilterModel] = useState<GridFilterModel>({
 		items: [],
@@ -52,7 +52,7 @@ const LocauxListClient: FC<SessionProps> = ({ session }) => {
 	const [chipFilterParams, setChipFilterParams] = useState<Record<string, string>>({});
 	const [customFilterParams, setCustomFilterParams] = useState<Record<string, string>>({});
 
-	const { data: locauxRaw, isLoading } = useGetLocauxListQuery({}, { skip: !token });
+	const { data: locauxRaw, isLoading } = useGetLocauxListQuery({ ordering: sorting.ordering }, { skip: !token });
 	const locaux = (Array.isArray(locauxRaw) ? locauxRaw : []) as LocalListType[];
 	const { data: buildingsData } = useGetBuildingsQuery(undefined, { skip: !token });
 
@@ -432,6 +432,7 @@ const LocauxListClient: FC<SessionProps> = ({ session }) => {
 							columns={columns}
 							paginationModel={paginationModel}
 							setPaginationModel={setPaginationModel}
+							sorting={sorting}
 							searchTerm={searchTerm}
 							setSearchTerm={setSearchTerm}
 							filterModel={filterModel}

@@ -82,7 +82,7 @@ const ReservationsListClient: FC<SessionProps> = ({ session }) => {
 
 	const { data: apartments } = useGetApartmentsQuery(undefined, { skip: !token });
 
-	const [paginationModel, setPaginationModel] = useDataGridPagination();
+	const [paginationModel, setPaginationModel, sorting] = useDataGridPagination();
 	const [searchTerm, setSearchTerm] = useState('');
 	const [filterModel, setFilterModel] = useState<GridFilterModel>({
 		items: [],
@@ -107,6 +107,7 @@ const ReservationsListClient: FC<SessionProps> = ({ session }) => {
 			with_pagination: true,
 			page: paginationModel.page + 1,
 			pageSize: paginationModel.pageSize,
+			ordering: sorting.ordering,
 			search: searchTerm,
 			...customFilterParams,
 			...chipFilterParams,
@@ -589,6 +590,7 @@ const ReservationsListClient: FC<SessionProps> = ({ session }) => {
 										columns={columns}
 										paginationModel={paginationModel}
 										setPaginationModel={setPaginationModel}
+										sorting={sorting}
 										searchTerm={searchTerm}
 										setSearchTerm={setSearchTerm}
 										filterModel={filterModel}

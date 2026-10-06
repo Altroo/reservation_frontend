@@ -53,7 +53,26 @@ const baseQueryWithRetry = retry(
 
 export const reservationApi = createApi({
 	reducerPath: 'reservationApi',
-	tagTypes: ['Reservation', 'Apartment', 'PaymentSource', 'Dashboard', 'Planning', 'Balance', 'Cost', 'CostCategory', 'HiltonReport', 'HiltonReportSettings', 'Notification', 'NotificationPreference', 'Local', 'LocalType', 'Loyer', 'LocalDashboard', 'LocalPlanning', 'Building'],
+	tagTypes: [
+		'Reservation',
+		'Apartment',
+		'PaymentSource',
+		'Dashboard',
+		'Planning',
+		'Balance',
+		'Cost',
+		'CostCategory',
+		'HiltonReport',
+		'HiltonReportSettings',
+		'Notification',
+		'NotificationPreference',
+		'Local',
+		'LocalType',
+		'Loyer',
+		'LocalDashboard',
+		'LocalPlanning',
+		'Building',
+	],
 	baseQuery: baseQueryWithRetry,
 	endpoints: (builder) => ({
 		// ── Apartments ──────────────────────────────────────────────────────
@@ -119,7 +138,19 @@ export const reservationApi = createApi({
 				[key: string]: string | number | boolean | undefined;
 			}
 		>({
-			query: ({ with_pagination, page, pageSize, search, payment_source, apartment, year, month, check_in_after, check_in_before, ...rest }) => ({
+			query: ({
+				with_pagination,
+				page,
+				pageSize,
+				search,
+				payment_source,
+				apartment,
+				year,
+				month,
+				check_in_after,
+				check_in_before,
+				...rest
+			}) => ({
 				url: process.env.NEXT_PUBLIC_RESERVATION_LIST,
 				method: 'GET',
 				params: {
@@ -254,11 +285,11 @@ export const reservationApi = createApi({
 			query: () => ({ url: process.env.NEXT_PUBLIC_RESERVATION_COST_YEARS, method: 'GET' }),
 			providesTags: ['Cost'],
 		}),
-		getCosts: builder.query<CostType[], { year?: number; month?: number; building?: number }>({
-			query: ({ year, month, building }) => ({
+		getCosts: builder.query<CostType[], { year?: number; month?: number; building?: number; ordering?: string }>({
+			query: ({ year, month, building, ordering }) => ({
 				url: process.env.NEXT_PUBLIC_RESERVATION_COSTS,
 				method: 'GET',
-				params: { year, month, building },
+				params: { year, month, building, ordering },
 			}),
 			providesTags: ['Cost'],
 		}),
@@ -346,10 +377,7 @@ export const reservationApi = createApi({
 			providesTags: ['HiltonReport'],
 		}),
 
-		previewHiltonReport: builder.query<
-			HiltonReportPreviewType,
-			{ start_date?: string; end_date?: string }
-		>({
+		previewHiltonReport: builder.query<HiltonReportPreviewType, { start_date?: string; end_date?: string }>({
 			query: ({ start_date, end_date }) => ({
 				url: `${process.env.NEXT_PUBLIC_RESERVATION_HILTON_REPORTS}preview/`,
 				method: 'GET',
@@ -367,10 +395,7 @@ export const reservationApi = createApi({
 			invalidatesTags: ['HiltonReport'],
 		}),
 
-		updateHiltonReport: builder.mutation<
-			HiltonReportType,
-			{ id: number; data: HiltonReportFormType }
-		>({
+		updateHiltonReport: builder.mutation<HiltonReportType, { id: number; data: HiltonReportFormType }>({
 			query: ({ id, data }) => ({
 				url: `${process.env.NEXT_PUBLIC_RESERVATION_HILTON_REPORTS}${id}/`,
 				method: 'PUT',
@@ -581,10 +606,7 @@ export const reservationApi = createApi({
 		}),
 
 		// ── Loyers ────────────────────────────────────────────────────────
-		getLoyersList: builder.query<
-			LoyerClass[],
-			{ local?: number; annee?: number; mois?: number; paye?: string }
-		>({
+		getLoyersList: builder.query<LoyerClass[], { local?: number; annee?: number; mois?: number; paye?: string }>({
 			query: ({ local, annee, mois, paye }) => ({
 				url: process.env.NEXT_PUBLIC_LOYER_LIST,
 				method: 'GET',
@@ -666,8 +688,8 @@ export const reservationApi = createApi({
 		}),
 
 		// ── Buildings ────────────────────────────────────────────────────
-		getBuildings: builder.query<BuildingClass[], void>({
-			query: () => ({ url: process.env.NEXT_PUBLIC_BUILDING_LIST, method: 'GET' }),
+		getBuildings: builder.query<BuildingClass[], { ordering?: string } | void>({
+			query: (params) => ({ url: process.env.NEXT_PUBLIC_BUILDING_LIST, method: 'GET', params: params || undefined }),
 			providesTags: ['Building'],
 		}),
 

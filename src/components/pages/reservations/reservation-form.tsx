@@ -703,6 +703,7 @@ const FormikContent: FC<FormikContentProps> = ({ token, id }) => {
 						<CustomTextInput
 							autoFocus
 							id="edit_apartment_name"
+							ai
 							type="text"
 							label={t.reservations.newApartmentName}
 							fullWidth

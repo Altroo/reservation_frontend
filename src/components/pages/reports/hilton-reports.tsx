@@ -308,6 +308,7 @@ const HiltonReportsClient: FC<SessionProps> = ({ session }) => {
 					<TextField
 						size="small"
 						label={t.common.description}
+						name="description"
 						value={line.description}
 						onChange={(event) => updateLine(lines, setLines, index, { description: event.target.value })}
 						fullWidth
@@ -912,6 +913,7 @@ const HiltonReportsClient: FC<SessionProps> = ({ session }) => {
 												<TextField
 													size="small"
 													label={t.hiltonReports.costPeriod}
+													name="cost_period_label"
 													value={costPeriodLabel}
 													onChange={(event) => setCostPeriodLabel(event.target.value)}
 													fullWidth
@@ -939,6 +941,7 @@ const HiltonReportsClient: FC<SessionProps> = ({ session }) => {
 
 										<TextField
 											label={t.common.notes}
+											name="notes"
 											value={notes}
 											onChange={(event) => setNotes(event.target.value)}
 											multiline
@@ -1150,6 +1153,7 @@ const HiltonReportsClient: FC<SessionProps> = ({ session }) => {
 							)}
 							<TextField
 								label={t.common.notes}
+								name="notes"
 								value={editNotes}
 								onChange={(event) => setEditNotes(event.target.value)}
 								multiline
@@ -1192,6 +1196,7 @@ const HiltonReportsClient: FC<SessionProps> = ({ session }) => {
 									<TextField
 										size="small"
 										label={t.hiltonReports.costPeriod}
+										name="cost_period_label"
 										value={editCostPeriodLabel}
 										onChange={(event) => setEditCostPeriodLabel(event.target.value)}
 										fullWidth

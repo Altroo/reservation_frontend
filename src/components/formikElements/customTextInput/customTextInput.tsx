@@ -6,6 +6,7 @@ import { type TextFieldProps } from '@mui/material/TextField';
 import TextField from '@/components/shared/aiTextField/aiTextField';
 
 type Props = {
+	ai?: boolean;
 	type: HTMLInputTypeAttribute;
 	id: string;
 	value: string;
@@ -33,7 +34,6 @@ type Props = {
 	shrink?: boolean;
 	multiline?: boolean;
 	rows?: number;
-	aiInline?: boolean;
 };
 
 const CustomTextInput = ({ ref, ...props }: Props & { ref?: Ref<HTMLInputElement> }) => {

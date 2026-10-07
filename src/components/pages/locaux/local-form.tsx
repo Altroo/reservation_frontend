@@ -411,7 +411,7 @@ const FormikContent: FC<FormikContentProps> = ({ token, id }) => {
 										<CustomTextInput
 											theme={inputTheme}
 											id="nom"
-											aiInline
+											ai
 											type="text"
 											size="small"
 											label={`${t.common.name} *`}

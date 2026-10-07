@@ -624,6 +624,13 @@ const HiltonReportsClient: FC<SessionProps> = ({ session }) => {
 		}
 		const tx = (text: string) => translated[text] ?? text;
 		const label = (fr: string, en: string) => (language === 'fr' ? fr : en);
+		const printLocale = language === 'fr' ? 'fr-FR' : 'en-GB';
+		const printDate = (value: string) =>
+			new Intl.DateTimeFormat(printLocale, { day: '2-digit', month: 'short', year: 'numeric' }).format(parseISO(value));
+		const printNumber = (value: string | number | null | undefined) =>
+			new Intl.NumberFormat(printLocale, { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(
+				toNumber(value),
+			);
 		const revenueRows = report.apartment_revenues.filter((row) => toNumber(row.total_amount) > 0);
 		const deductions = report.manual_lines.filter((line) => line.line_type === 'adjustment');
 		const costs = report.manual_lines.filter((line) => line.line_type === 'cost');
@@ -635,9 +642,9 @@ const HiltonReportsClient: FC<SessionProps> = ({ session }) => {
 			return `
 				<tr>
 					<td>${escapeHtml(revenue?.apartment_nom ?? '')}</td>
-					<td class="amount">${revenue ? `${formatNumber(revenue.total_amount)} DH` : ''}</td>
+					<td class="amount">${revenue ? `${printNumber(revenue.total_amount)} DH` : ''}</td>
 					<td>${escapeHtml(tx(deduction?.description ?? ''))}</td>
-					<td class="amount">${deduction ? `${formatNumber(deduction.amount)} DH` : ''}</td>
+					<td class="amount">${deduction ? `${printNumber(deduction.amount)} DH` : ''}</td>
 				</tr>
 			`;
 		}).join('');
@@ -646,17 +653,17 @@ const HiltonReportsClient: FC<SessionProps> = ({ session }) => {
 					.map(
 						(line, index) => `
 							<tr>
-								${index === 0 ? `<td class="vertical" rowspan="${costs.length}">${escapeHtml(tx(report.cost_period_label || '') || `${formatDate(report.start_date)} - ${formatDate(report.end_date)}`)}</td>` : ''}
+								${index === 0 ? `<td class="vertical" rowspan="${costs.length}">${escapeHtml(tx(report.cost_period_label || '') || `${printDate(report.start_date)} - ${printDate(report.end_date)}`)}</td>` : ''}
 								<td>${escapeHtml(tx(line.description))}</td>
 								<td class="center">${line.operations_count ?? '-'}</td>
-								<td class="amount">${formatNumber(line.amount)} MAD</td>
+								<td class="amount">${printNumber(line.amount)} MAD</td>
 							</tr>
 						`,
 					)
 					.join('')
 			: `<tr><td class="vertical"></td><td colspan="3">${escapeHtml(t.hiltonReports.noManualLines)}</td></tr>`;
 		const noteRows = notes.map((line) => `<li>${escapeHtml(tx(line.description))}</li>`).join('');
-		const title = `${t.hiltonReports.reportNumber(report.id)} - ${formatDate(report.end_date)}`;
+		const title = `${t.hiltonReports.reportNumber(report.id)} - ${printDate(report.end_date)}`;
 		win.document.open();
 		win.document.write(`
 			<!doctype html>
@@ -730,12 +737,12 @@ const HiltonReportsClient: FC<SessionProps> = ({ session }) => {
 							<div></div>
 						</section>
 						<section class="dates">
-							<div>${label('Du', 'From')} <span class="from">${formatDate(report.start_date)}</span></div>
-							<div>${label('Au', 'To')} <span class="to">${formatDate(report.end_date)}</span></div>
+							<div>${label('Du', 'From')} <span class="from">${printDate(report.start_date)}</span></div>
+							<div>${label('Au', 'To')} <span class="to">${printDate(report.end_date)}</span></div>
 						</section>
 						<section class="balance-line">
 							<div>${label('Solde à reporter :', 'Balance brought forward:')}</div>
-							<div class="value">${formatNumber(report.opening_balance)} MAD</div>
+							<div class="value">${printNumber(report.opening_balance)} MAD</div>
 						</section>
 						<table class="summary">
 							<thead>
@@ -750,22 +757,22 @@ const HiltonReportsClient: FC<SessionProps> = ({ session }) => {
 								${summaryRows}
 								<tr class="total-row">
 									<td>TOTAL</td>
-									<td class="amount">${formatNumber(report.cash_revenue_total)} DH</td>
+									<td class="amount">${printNumber(report.cash_revenue_total)} DH</td>
 									<td></td>
-									<td class="amount">${formatNumber(report.manual_adjustment_total)} DH</td>
+									<td class="amount">${printNumber(report.manual_adjustment_total)} DH</td>
 								</tr>
 							</tbody>
 						</table>
 						<table class="cash-register">
 							<tr>
 								<td>${label('Caisse Hilton :', 'Hilton cash balance:')}</td>
-								<td class="amount">${formatNumber(report.cash_register_total)} MAD</td>
+								<td class="amount">${printNumber(report.cash_register_total)} MAD</td>
 							</tr>
 						</table>
 						<section class="final-balance">
 							<div>${label('Solde au', 'Balance as at')}</div>
-							<div>${formatDate(report.end_date)}</div>
-							<div class="value">${formatNumber(report.net_total)} MAD</div>
+							<div>${printDate(report.end_date)}</div>
+							<div class="value">${printNumber(report.net_total)} MAD</div>
 						</section>
 						<div class="cost-title">${label('DÉPENSES', 'COSTS')}</div>
 						<table class="costs">
@@ -781,7 +788,7 @@ const HiltonReportsClient: FC<SessionProps> = ({ session }) => {
 								${costRows}
 								<tr class="total-row">
 									<td colspan="3" class="center">Total</td>
-									<td class="amount">${formatNumber(report.manual_cost_total)} MAD</td>
+									<td class="amount">${printNumber(report.manual_cost_total)} MAD</td>
 								</tr>
 							</tbody>
 						</table>

@@ -1,9 +1,10 @@
 import { isAiTextField } from './aiTextFields';
 describe('AI text eligibility', () => {
-	it.each(['description', 'notes', 'cost_period_label'])('enables reviewed writing field %s', (name) =>
+	it.each(['description', 'notes'])('enables reviewed writing field %s', (name) =>
 		expect(isAiTextField(name, 'text')).toBe(true),
 	);
 	it.each([
+		'cost_period_label',
 		'barcode',
 		'barCode',
 		'code_barre',

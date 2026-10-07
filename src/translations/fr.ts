@@ -1,6 +1,28 @@
 import type { TranslationDictionary } from '@/types/languageTypes';
 
 export const fr: TranslationDictionary = {
+	aiAssistant: {
+		translate: 'Traduire',
+		fixGrammar: 'Corriger la grammaire',
+		professionalize: 'Rendre professionnel',
+		translateToFrench: 'Français',
+		translateToEnglish: 'Anglais',
+		chooseLanguage: 'Choisissez la langue dans laquelle vous souhaitez traduire le texte.',
+		previewTitle: "Suggestion de l'assistant IA",
+		original: 'Texte original',
+		suggestion: 'Suggestion',
+		useSuggestion: 'Utiliser la suggestion',
+		tryAgain: 'Réessayer',
+		cancel: 'Annuler',
+		emptyText: 'Saisissez un texte avant d’utiliser l’assistant.',
+		requestError: 'L’assistant IA n’a pas pu traiter ce texte.',
+		alreadyCorrect: 'Le texte est déjà correct.',
+		alreadyProfessional: 'Le texte est déjà rédigé de manière professionnelle.',
+
+		fieldChanged: 'Le champ a changé depuis cette demande. Relancez l’assistant pour utiliser le texte actuel.',
+		suggestionTooLong: 'Cette suggestion dépasse la longueur autorisée pour ce champ.',
+		textTooLong: 'L’assistant accepte au maximum 5 000 caractères à la fois.',
+	},
 	common: {
 		yes: 'Oui',
 		no: 'Non',
@@ -534,7 +556,8 @@ export const fr: TranslationDictionary = {
 		preview: 'Aperçu',
 		createSuccess: 'Rapport créé avec succès',
 		createError: 'Erreur lors de la création du rapport',
-		emptyReportError: 'Ajoutez au moins une réservation Hilton ou une ligne manuelle complète avant de créer le rapport.',
+		emptyReportError:
+			'Ajoutez au moins une réservation Hilton ou une ligne manuelle complète avant de créer le rapport.',
 		updateSuccess: 'Rapport mis à jour avec succès',
 		updateError: 'Erreur lors de la mise à jour du rapport',
 		deleteReport: 'Supprimer le rapport',

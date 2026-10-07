@@ -1,6 +1,28 @@
 import type { TranslationDictionary } from '@/types/languageTypes';
 
 export const en: TranslationDictionary = {
+	aiAssistant: {
+		translate: 'Translate',
+		fixGrammar: 'Fix grammar',
+		professionalize: 'Make professional',
+		translateToFrench: 'French',
+		translateToEnglish: 'English',
+		chooseLanguage: 'Choose the language into which you want to translate the text.',
+		previewTitle: 'AI assistant suggestion',
+		original: 'Original text',
+		suggestion: 'Suggestion',
+		useSuggestion: 'Use suggestion',
+		tryAgain: 'Try again',
+		cancel: 'Cancel',
+		emptyText: 'Enter text before using the assistant.',
+		requestError: 'The AI assistant could not process this text.',
+		alreadyCorrect: 'The text is already correct.',
+		alreadyProfessional: 'The text is already professionally written.',
+
+		fieldChanged: 'This field has changed. Retry to use its current text.',
+		suggestionTooLong: 'This suggestion exceeds the maximum length for this field.',
+		textTooLong: 'The assistant accepts up to 5,000 characters at a time.',
+	},
 	common: {
 		yes: 'Yes',
 		no: 'No',

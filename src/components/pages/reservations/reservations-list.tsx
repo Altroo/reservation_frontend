@@ -3,18 +3,8 @@
 import { runWithCleanup } from '@/utils/runWithCleanup';
 import { useState, type FC } from 'react';
 import { useRouter } from 'next/navigation';
-import {
-	Box,
-	Button,
-	Card,
-	CardContent,
-	Chip,
-	InputAdornment,
-	Stack,
-	TextField,
-	Typography,
-	useMediaQuery,
-} from '@mui/material';
+import { Box, Button, Card, CardContent, Chip, InputAdornment, Stack, Typography, useMediaQuery } from '@mui/material';
+import TextField from '@/components/shared/aiTextField/aiTextField';
 import {
 	Add as AddIcon,
 	Close as CloseIcon,

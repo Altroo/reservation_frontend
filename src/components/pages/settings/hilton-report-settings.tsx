@@ -3,7 +3,8 @@
 import { runAsyncWithErrorHandler } from '@/utils/runWithCleanup';
 import { runWithCleanup } from '@/utils/runWithCleanup';
 import { useState, type FC } from 'react';
-import { Alert, Box, InputAdornment, Stack, TextField, Typography, useMediaQuery, useTheme } from '@mui/material';
+import { Alert, Box, InputAdornment, Stack, Typography, useMediaQuery, useTheme } from '@mui/material';
+import TextField from '@/components/shared/aiTextField/aiTextField';
 import { AccountBalanceWallet as WalletIcon, Edit as EditIcon } from '@mui/icons-material';
 import { useFormik } from 'formik';
 import Styles from '@/styles/dashboard/settings/settings.module.sass';

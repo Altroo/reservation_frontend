@@ -1,6 +1,28 @@
 export type Language = 'fr' | 'en';
 
 export type TranslationDictionary = {
+	aiAssistant: {
+		translate: string;
+		fixGrammar: string;
+		professionalize: string;
+		translateToFrench: string;
+		translateToEnglish: string;
+		chooseLanguage: string;
+		previewTitle: string;
+		original: string;
+		suggestion: string;
+		useSuggestion: string;
+		tryAgain: string;
+		cancel: string;
+		emptyText: string;
+		requestError: string;
+		alreadyCorrect: string;
+		alreadyProfessional: string;
+
+		fieldChanged: string;
+		suggestionTooLong: string;
+		textTooLong: string;
+	};
 	common: {
 		yes: string;
 		no: string;

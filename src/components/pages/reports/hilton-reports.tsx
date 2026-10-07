@@ -1,4 +1,5 @@
 'use client';
+import { useTranslateTextsMutation } from '@/store/services/aiAssistant';
 
 import { runAsyncWithErrorHandler } from '@/utils/runWithCleanup';
 import { runWithCleanup } from '@/utils/runWithCleanup';
@@ -27,10 +28,10 @@ import {
 	TableContainer,
 	TableHead,
 	TableRow,
-	TextField,
 	Tooltip,
 	Typography,
 } from '@mui/material';
+import TextField from '@/components/shared/aiTextField/aiTextField';
 import {
 	Add as AddIcon,
 	Apartment as ApartmentIcon,
@@ -176,7 +177,8 @@ const StatCard = ({ label, value, icon, color }: { label: string; value: string;
 
 const HiltonReportsClient: FC<SessionProps> = ({ session }) => {
 	const token = useInitAccessToken(session);
-	const { t } = useLanguage();
+	const { t, language } = useLanguage();
+	const [translateTexts] = useTranslateTextsMutation();
 	const { onSuccess, onError } = useToast();
 
 	const today = formatLocalDate(new Date());
@@ -591,9 +593,36 @@ const HiltonReportsClient: FC<SessionProps> = ({ session }) => {
 		</TableContainer>
 	);
 
-	const printReport = (report: HiltonReportType) => {
+	const printReport = async (report: HiltonReportType) => {
 		if (typeof window === 'undefined') return;
-
+		const win = window.open('', '_blank', 'width=980,height=1200');
+		if (!win) return;
+		win.document.body.textContent = language === 'fr' ? 'Préparation du PDF en cours…' : 'Preparing PDF…';
+		const translated: Record<string, string> = {};
+		try {
+			if (process.env.NEXT_PUBLIC_AI_ASSISTANT_ENABLED === 'true') {
+				const texts = [
+					...new Set(
+						[report.cost_period_label, ...report.manual_lines.map((line) => line.description)].filter(
+							(text): text is string => Boolean(text?.trim()),
+						),
+					),
+				];
+				for (let start = 0; start < texts.length; start += 10) {
+					const batch = texts.slice(start, start + 10);
+					const response = await translateTexts({ texts: batch, target_language: language }).unwrap();
+					batch.forEach((text, index) => {
+						translated[text] = response.translations[index];
+					});
+				}
+			}
+		} catch (error) {
+			win.close();
+			onError(extractApiErrorMessage(error, t.errors.errorOccurred));
+			return;
+		}
+		const tx = (text: string) => translated[text] ?? text;
+		const label = (fr: string, en: string) => (language === 'fr' ? fr : en);
 		const revenueRows = report.apartment_revenues.filter((row) => toNumber(row.total_amount) > 0);
 		const deductions = report.manual_lines.filter((line) => line.line_type === 'adjustment');
 		const costs = report.manual_lines.filter((line) => line.line_type === 'cost');
@@ -606,7 +635,7 @@ const HiltonReportsClient: FC<SessionProps> = ({ session }) => {
 				<tr>
 					<td>${escapeHtml(revenue?.apartment_nom ?? '')}</td>
 					<td class="amount">${revenue ? `${formatNumber(revenue.total_amount)} DH` : ''}</td>
-					<td>${escapeHtml(deduction?.description ?? '')}</td>
+					<td>${escapeHtml(tx(deduction?.description ?? ''))}</td>
 					<td class="amount">${deduction ? `${formatNumber(deduction.amount)} DH` : ''}</td>
 				</tr>
 			`;
@@ -616,8 +645,8 @@ const HiltonReportsClient: FC<SessionProps> = ({ session }) => {
 					.map(
 						(line, index) => `
 							<tr>
-								${index === 0 ? `<td class="vertical" rowspan="${costs.length}">${escapeHtml(report.cost_period_label || `${formatDate(report.start_date)} - ${formatDate(report.end_date)}`)}</td>` : ''}
-								<td>${escapeHtml(line.description)}</td>
+								${index === 0 ? `<td class="vertical" rowspan="${costs.length}">${escapeHtml(tx(report.cost_period_label || '') || `${formatDate(report.start_date)} - ${formatDate(report.end_date)}`)}</td>` : ''}
+								<td>${escapeHtml(tx(line.description))}</td>
 								<td class="center">${line.operations_count ?? '-'}</td>
 								<td class="amount">${formatNumber(line.amount)} MAD</td>
 							</tr>
@@ -625,11 +654,9 @@ const HiltonReportsClient: FC<SessionProps> = ({ session }) => {
 					)
 					.join('')
 			: `<tr><td class="vertical"></td><td colspan="3">${escapeHtml(t.hiltonReports.noManualLines)}</td></tr>`;
-		const noteRows = notes.map((line) => `<li>${escapeHtml(line.description)}</li>`).join('');
+		const noteRows = notes.map((line) => `<li>${escapeHtml(tx(line.description))}</li>`).join('');
 		const title = `${t.hiltonReports.reportNumber(report.id)} - ${formatDate(report.end_date)}`;
-		const win = window.open('', '_blank', 'width=980,height=1200');
-		if (!win) return;
-
+		win.document.open();
 		win.document.write(`
 			<!doctype html>
 			<html>
@@ -684,9 +711,9 @@ const HiltonReportsClient: FC<SessionProps> = ({ session }) => {
 						<section class="header">
 							<div class="company">
 								<div>Sté IMMOBILIERE NECTAR S.A.R.L</div>
-								<div>Capital : 2.000.000,00 DH - Siège à TANGER ,</div>
+								<div>${label('Capital : 2.000.000,00 DH - Siège à TANGER ,', 'Capital: 2,000,000.00 DH - Registered office in TANGER,')}</div>
 								<div>148 , Av. Med V imm Nectar -</div>
-								<div>Tél : +212 773 86 35 85 Fixe : +212 531 06 84 87</div>
+								<div>${label('Tél : +212 773 86 35 85 Fixe : +212 531 06 84 87', 'Phone: +212 773 86 35 85 Landline: +212 531 06 84 87')}</div>
 								<div>E-mail : Nectarimmobiliere@gmail.com</div>
 								<div>R.C : 23851 TANGER -ICE 000534755000065</div>
 							</div>
@@ -695,24 +722,24 @@ const HiltonReportsClient: FC<SessionProps> = ({ session }) => {
 								<div class="logo-name">Nectar Immobiliere</div>
 							</div>
 						</section>
-						<h1>CAISSE - GESTION DES APPARTEMENTS RH - C.CENTER</h1>
+						<h1>${label('CAISSE - GESTION DES APPARTEMENTS RH - C.CENTER', 'CASH REPORT - RH - C.CENTER APARTMENTS')}</h1>
 						<section class="meta">
-							<div>The Number report :</div>
+							<div>${label('N° de rapport :', 'Report number:')}</div>
 							<div class="number">${report.id}</div>
 							<div></div>
 						</section>
 						<section class="dates">
-							<div>From <span class="from">${formatDate(report.start_date)}</span></div>
-							<div>To <span class="to">${formatDate(report.end_date)}</span></div>
+							<div>${label('Du', 'From')} <span class="from">${formatDate(report.start_date)}</span></div>
+							<div>${label('Au', 'To')} <span class="to">${formatDate(report.end_date)}</span></div>
 						</section>
 						<section class="balance-line">
-							<div>Balance to carry forward :</div>
+							<div>${label('Solde à reporter :', 'Balance brought forward:')}</div>
 							<div class="value">${formatNumber(report.opening_balance)} MAD</div>
 						</section>
 						<table class="summary">
 							<thead>
 								<tr>
-									<th>N° APPARTEMENT</th>
+									<th>${label('N° APPARTEMENT', 'APARTMENT NO.')}</th>
 									<th>+</th>
 									<th>${escapeHtml(t.hiltonReports.deductions)}</th>
 									<th>-</th>
@@ -730,23 +757,23 @@ const HiltonReportsClient: FC<SessionProps> = ({ session }) => {
 						</table>
 						<table class="cash-register">
 							<tr>
-								<td>The cash register of Hilton :</td>
+								<td>${label('Caisse Hilton :', 'Hilton cash balance:')}</td>
 								<td class="amount">${formatNumber(report.cash_register_total)} MAD</td>
 							</tr>
 						</table>
 						<section class="final-balance">
-							<div>Balance until</div>
+							<div>${label('Solde au', 'Balance as at')}</div>
 							<div>${formatDate(report.end_date)}</div>
 							<div class="value">${formatNumber(report.net_total)} MAD</div>
 						</section>
-						<div class="cost-title">COSTS</div>
+						<div class="cost-title">${label('DÉPENSES', 'COSTS')}</div>
 						<table class="costs">
 							<thead>
 								<tr>
 									<th>Date</th>
-									<th>Operation</th>
-									<th>nombre_ops</th>
-									<th>total_depenses</th>
+									<th>${label('Opération', 'Operation')}</th>
+									<th>${label('Nombre d’opérations', 'Number of operations')}</th>
+									<th>${label('Total des dépenses', 'Total expenses')}</th>
 								</tr>
 							</thead>
 							<tbody>
@@ -757,7 +784,7 @@ const HiltonReportsClient: FC<SessionProps> = ({ session }) => {
 								</tr>
 							</tbody>
 						</table>
-						<div class="additional">Additional charges :</div>
+						<div class="additional">${label('Charges complémentaires :', 'Additional charges:')}</div>
 						${noteRows ? `<ul class="additional-list">${noteRows}</ul>` : ''}
 					</main>
 				</body>

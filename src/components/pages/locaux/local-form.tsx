@@ -407,10 +407,11 @@ const FormikContent: FC<FormikContentProps> = ({ token, id }) => {
 								</Stack>
 								<Divider sx={{ mb: 3 }} />
 								<Stack spacing={2.5}>
-									<Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+									<Stack spacing={2.5}>
 										<CustomTextInput
 											theme={inputTheme}
 											id="nom"
+											aiInline
 											type="text"
 											size="small"
 											label={`${t.common.name} *`}
@@ -422,41 +423,43 @@ const FormikContent: FC<FormikContentProps> = ({ token, id }) => {
 											fullWidth
 											startIcon={<BusinessIcon fontSize="small" />}
 										/>
-										<CustomAutoCompleteSelect
-											id="type_local"
-											size="small"
-											noOptionsText={t.locaux.noTypeFound}
-											label={`${t.common.type} *`}
-											items={typeItems}
-											theme={inputTheme}
-											value={selectedType}
-											fullWidth
-											onChange={(_, newVal) => {
-												void formik.setFieldValue('type_local', newVal ? newVal.code : '');
-											}}
-											onBlur={formik.handleBlur('type_local')}
-											error={formik.submitCount > 0 && Boolean(formik.errors.type_local)}
-											helperText={formik.submitCount > 0 ? ((formik.errors.type_local as string) ?? '') : ''}
-											startIcon={<BusinessIcon fontSize="small" />}
-											endIcon={
-												<EntityCrudControls
-													label={t.common.type.toLowerCase()}
-													icon={<BusinessIcon fontSize="small" />}
-													inputTheme={inputTheme}
-													selectedItem={selectedManagedType}
-													addEntity={(args) => createLocalType(args)}
-													editEntity={({ id: entityId, data }) => updateLocalType({ id: entityId, data })}
-													deleteEntity={({ id: entityId }) => deleteLocalType({ id: entityId })}
-													onAddSuccess={(newId) => {
-														const createdType = localTypes?.find((item) => item.id === newId);
-														void formik.setFieldValue('type_local', createdType?.nom ?? '');
-													}}
-													onDeleteSuccess={() => {
-														void formik.setFieldValue('type_local', '');
-													}}
-												/>
-											}
-										/>
+										<Box sx={{ width: { xs: '100%', sm: 360 } }}>
+											<CustomAutoCompleteSelect
+												id="type_local"
+												size="small"
+												noOptionsText={t.locaux.noTypeFound}
+												label={`${t.common.type} *`}
+												items={typeItems}
+												theme={inputTheme}
+												value={selectedType}
+												fullWidth
+												onChange={(_, newVal) => {
+													void formik.setFieldValue('type_local', newVal ? newVal.code : '');
+												}}
+												onBlur={formik.handleBlur('type_local')}
+												error={formik.submitCount > 0 && Boolean(formik.errors.type_local)}
+												helperText={formik.submitCount > 0 ? ((formik.errors.type_local as string) ?? '') : ''}
+												startIcon={<BusinessIcon fontSize="small" />}
+												endIcon={
+													<EntityCrudControls
+														label={t.common.type.toLowerCase()}
+														icon={<BusinessIcon fontSize="small" />}
+														inputTheme={inputTheme}
+														selectedItem={selectedManagedType}
+														addEntity={(args) => createLocalType(args)}
+														editEntity={({ id: entityId, data }) => updateLocalType({ id: entityId, data })}
+														deleteEntity={({ id: entityId }) => deleteLocalType({ id: entityId })}
+														onAddSuccess={(newId) => {
+															const createdType = localTypes?.find((item) => item.id === newId);
+															void formik.setFieldValue('type_local', createdType?.nom ?? '');
+														}}
+														onDeleteSuccess={() => {
+															void formik.setFieldValue('type_local', '');
+														}}
+													/>
+												}
+											/>
+										</Box>
 									</Stack>
 									<CustomAutoCompleteSelect
 										id="building"

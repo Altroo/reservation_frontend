@@ -39,6 +39,7 @@ type AiAssistantControlProps = {
 	context: string;
 	disabled?: boolean;
 	compact?: boolean;
+	inline?: boolean;
 	maxLength?: number;
 };
 
@@ -84,6 +85,7 @@ const EnabledAiAssistantControl: FC<AiAssistantControlProps> = ({
 	context,
 	disabled = false,
 	compact = false,
+	inline = false,
 	maxLength,
 }) => {
 	const { t } = useLanguage();
@@ -190,33 +192,62 @@ const EnabledAiAssistantControl: FC<AiAssistantControlProps> = ({
 				</>
 			) : (
 				<Box>
-					<Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', gap: 0.5 }}>
+					<Stack
+						direction="row"
+						spacing={0.5}
+						sx={{
+							flexWrap: inline ? 'nowrap' : 'wrap',
+							'& .MuiButton-root': {
+								whiteSpace: 'nowrap',
+								textTransform: 'none',
+								fontSize: '0.75rem',
+								minWidth: 0,
+								px: 0.75,
+							},
+						}}
+					>
 						<Button
 							size="small"
 							variant="text"
 							startIcon={<LanguageIcon />}
+							aria-label={t.aiAssistant.translate}
+							title={t.aiAssistant.translate}
 							disabled={controlsDisabled}
 							onClick={() => setTranslationDialogOpen(true)}
 						>
-							{t.aiAssistant.translate}
+							<Box component="span" sx={{ display: inline ? { xs: 'none', sm: 'inline' } : 'inline' }}>
+								{t.aiAssistant.translate}
+							</Box>
 						</Button>
 						<Button
 							size="small"
 							variant="text"
 							startIcon={<SpellcheckIcon />}
+							aria-label={t.aiAssistant.fixGrammar}
+							title={t.aiAssistant.fixGrammar}
 							disabled={controlsDisabled}
 							onClick={() => void run('fix_grammar')}
 						>
-							{t.aiAssistant.fixGrammar}
+							<Box component="span" sx={{ display: inline ? { xs: 'none', sm: 'inline' } : 'inline' }}>
+								{t.aiAssistant.fixGrammar}
+							</Box>
 						</Button>
 						<Button
 							size="small"
 							variant="text"
 							startIcon={<WorkOutlineIcon />}
+							aria-label={t.aiAssistant.professionalize}
+							title={t.aiAssistant.professionalize}
 							disabled={controlsDisabled}
 							onClick={() => void run('professionalize')}
 						>
-							{isLoading ? <CircularProgress size={18} /> : t.aiAssistant.professionalize}
+							{isLoading ? (
+								<CircularProgress size={18} />
+							) : (
+								<Box component="span" sx={{ display: inline ? { xs: 'none', sm: 'inline' } : 'inline' }}>
+									{t.aiAssistant.professionalize}
+								</Box>
+							)}
 						</Button>
 					</Stack>
 					{menu}

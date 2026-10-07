@@ -33,6 +33,7 @@ type Props = {
 	shrink?: boolean;
 	multiline?: boolean;
 	rows?: number;
+	aiInline?: boolean;
 };
 
 const CustomTextInput = ({ ref, ...props }: Props & { ref?: Ref<HTMLInputElement> }) => {

@@ -10,6 +10,7 @@ describe('AI text eligibility', () => {
 		'numero_contrat',
 		'montant',
 		'stock',
+		'superficie',
 		'email',
 		'rib',
 		'client_cin',

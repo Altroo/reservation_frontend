@@ -260,25 +260,25 @@ const PlanningMonthClient: FC<SessionProps> = ({ session }) => {
 											label: t.reservations.monthRevenue,
 											value: `${fmt(monthRevenue)} MAD`,
 											icon: <MoneyIcon fontSize="small" />,
-											color: '#1976d2',
+											color: 'var(--app-blue-text, #1976d2)',
 										},
 										{
 											label: t.reservations.nightStays,
 											value: nightCount.toString(),
 											icon: <HotelIcon fontSize="small" />,
-											color: '#ed6c02',
+											color: 'var(--app-amber-text, #ed6c02)',
 										},
 										{
 											label: t.reservations.occupation,
 											value: `${occupationPct}%`,
 											icon: <PieIcon fontSize="small" />,
-											color: '#2e7d32',
+											color: 'var(--app-green-text, #2e7d32)',
 										},
 										{
 											label: t.reservations.daysInMonth,
 											value: lastDay.toString(),
 											icon: <CalendarIcon fontSize="small" />,
-											color: '#9c27b0',
+											color: 'var(--app-violet-text, #9c27b0)',
 										},
 									].map(({ label, value, icon, color }) => (
 										<Card

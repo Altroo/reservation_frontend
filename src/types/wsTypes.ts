@@ -1,4 +1,9 @@
-import { WSMaintenanceAction, WSUserAvatarAction, WSNotificationAction, WSReconnectedAction } from '@/store/actions/wsActions';
+import {
+	WSMaintenanceAction,
+	WSUserAvatarAction,
+	WSNotificationAction,
+	WSReconnectedAction,
+} from '@/store/actions/wsActions';
 
 /*
 "message": {
@@ -9,15 +14,21 @@ import { WSMaintenanceAction, WSUserAvatarAction, WSNotificationAction, WSReconn
 
 export interface WSMaintenanceBootstrap {
 	maintenance: boolean;
+	version?: string;
 }
 
-export type WSAction = ReturnType<typeof WSUserAvatarAction> | ReturnType<typeof WSMaintenanceAction> | ReturnType<typeof WSNotificationAction> | ReturnType<typeof WSReconnectedAction>;
+export type WSAction =
+	| ReturnType<typeof WSUserAvatarAction>
+	| ReturnType<typeof WSMaintenanceAction>
+	| ReturnType<typeof WSNotificationAction>
+	| ReturnType<typeof WSReconnectedAction>;
 
 type WSMessage = {
 	type: string;
 	pk?: number;
 	avatar?: string;
 	maintenance?: boolean;
+	version?: string;
 	id?: number;
 	reservation_id?: number | null;
 	title?: string;

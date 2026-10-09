@@ -38,7 +38,7 @@ import {
 	Title,
 	Tooltip,
 } from 'chart.js';
-import { Bar, Doughnut, Line } from 'react-chartjs-2';
+import { Bar, Doughnut, Line } from '@/components/shared/themedCharts/themedCharts';
 import {
 	useGetBuildingsQuery,
 	useGetDashboardStatsQuery,
@@ -211,10 +211,10 @@ const EmptyChart: FC<{ message?: string }> = ({ message }) => {
 				justifyContent: 'center',
 				alignItems: 'center',
 				height: '100%',
-				bgcolor: 'grey.50',
+				bgcolor: 'var(--app-inset, #fafafa)',
 				borderRadius: 2,
 				border: '1px dashed',
-				borderColor: 'grey.300',
+				borderColor: 'var(--app-strong-border, #e0e0e0)',
 			}}
 		>
 			<Typography
@@ -448,14 +448,14 @@ const ReservationDashboardClient: FC<SessionProps> = ({ session }) => {
 										icon={<MoneyIcon fontSize="small" />}
 										label={t.analytics.totalRevenue}
 										value={`${fmt(totalRevenue)} MAD`}
-										color="#1976d2"
+										color="var(--app-blue-text, #1976d2)"
 										tooltip={t.analytics.totalRevenueTooltip}
 									/>
 									<KpiCard
 										icon={<CalendarIcon fontSize="small" />}
 										label={t.analytics.reservationCount}
 										value={totalReservations.toString()}
-										color="#ed6c02"
+										color="var(--app-amber-text, #ed6c02)"
 										tooltip={t.analytics.reservationCountTooltip}
 									/>
 									<KpiCard
@@ -463,14 +463,14 @@ const ReservationDashboardClient: FC<SessionProps> = ({ session }) => {
 										label={t.analytics.occupation}
 										value={`${globalOccupancy}%`}
 										sub={t.analytics.nightsOccupied(totalOccupied)}
-										color="#2e7d32"
+										color="var(--app-green-text, #2e7d32)"
 										tooltip={t.analytics.occupationTooltip}
 									/>
 									<KpiCard
 										icon={<TrendingUpIcon fontSize="small" />}
 										label={t.analytics.avgRevenuePerRes}
 										value={totalReservations > 0 ? `${fmt(Math.round(totalRevenue / totalReservations))} MAD` : '—'}
-										color="#9c27b0"
+										color="var(--app-violet-text, #9c27b0)"
 										tooltip={t.analytics.avgRevenueTooltip}
 									/>
 									<KpiCard
@@ -478,7 +478,7 @@ const ReservationDashboardClient: FC<SessionProps> = ({ session }) => {
 										label={t.analytics.bestMonth}
 										value={bestMonthName}
 										sub={bestMonthRevenue > 0 ? `${fmt(bestMonthRevenue)} MAD` : undefined}
-										color="#f57c00"
+										color="var(--app-amber-text, #f57c00)"
 										tooltip={t.analytics.bestMonthTooltip}
 									/>
 								</Box>
@@ -495,14 +495,14 @@ const ReservationDashboardClient: FC<SessionProps> = ({ session }) => {
 										icon={<TrendingDownIcon fontSize="small" />}
 										label={t.analytics.annualCosts}
 										value={`${fmt(annualCosts)} MAD`}
-										color="#d32f2f"
+										color="var(--app-rose-text, #d32f2f)"
 										tooltip={t.analytics.annualCostsTooltip}
 									/>
 									<KpiCard
 										icon={<SavingsIcon fontSize="small" />}
 										label={t.analytics.netProfit}
 										value={`${fmt(netProfit)} MAD`}
-										color={netProfit >= 0 ? '#2e7d32' : '#d32f2f'}
+										color={netProfit >= 0 ? 'var(--app-green-text, #2e7d32)' : 'var(--app-rose-text, #d32f2f)'}
 										tooltip={t.analytics.netProfitTooltip}
 									/>
 								</Box>

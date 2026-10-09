@@ -32,7 +32,7 @@ import {
 } from '@mui/icons-material';
 import ApartmentIcon from '@mui/icons-material/Apartment';
 import { ArcElement, BarElement, CategoryScale, Chart as ChartJS, Legend, LinearScale, Title, Tooltip } from 'chart.js';
-import { Bar, Doughnut } from 'react-chartjs-2';
+import { Bar, Doughnut } from '@/components/shared/themedCharts/themedCharts';
 import CustomDropDownSelect from '@/components/formikElements/customDropDownSelect/customDropDownSelect';
 import { customDropdownTheme } from '@/utils/themes';
 import type { DropDownType } from '@/types/accountTypes';
@@ -172,9 +172,9 @@ const EmptyChart: FC = () => {
 				justifyContent: 'center',
 				height: '100%',
 				border: '1px dashed',
-				borderColor: 'grey.300',
+				borderColor: 'var(--app-strong-border, #e0e0e0)',
 				borderRadius: 2,
-				bgcolor: 'grey.50',
+				bgcolor: 'var(--app-inset, #fafafa)',
 			}}
 		>
 			<Typography variant="body2" color="text.secondary">
@@ -365,21 +365,21 @@ const LocauxDashboardClient: FC<SessionProps> = ({ session }) => {
 										icon={<AttachMoneyIcon fontSize="small" />}
 										label={t.locaux.profitHTYear(year)}
 										value={`${Number(dashboardData?.total_benefice_ht ?? 0).toLocaleString('fr-MA')} MAD`}
-										color="#2e7d32"
+										color="var(--app-green-text, #2e7d32)"
 										tooltip={t.locaux.totalPaidMinusUnpaid}
 									/>
 									<KpiCard
 										icon={<HomeWorkIcon fontSize="small" />}
 										label={t.locaux.inRentalCount}
 										value={dashboardData?.total_en_location ?? 0}
-										color="#1976d2"
+										color="var(--app-blue-text, #1976d2)"
 										tooltip={t.locaux.inRentalTooltip}
 									/>
 									<KpiCard
 										icon={<HomeIcon fontSize="small" />}
 										label={t.locaux.freeCount}
 										value={dashboardData?.total_libres ?? 0}
-										color="#ed6c02"
+										color="var(--app-amber-text, #ed6c02)"
 										tooltip={t.locaux.freeTooltip}
 									/>
 								</Box>

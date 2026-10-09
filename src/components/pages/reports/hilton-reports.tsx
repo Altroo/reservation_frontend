@@ -491,7 +491,7 @@ const HiltonReportsClient: FC<SessionProps> = ({ session }) => {
 						label={t.hiltonReports.balanceToCarryForward}
 						value={`${formatNumber(opening)} MAD`}
 						icon={<SavingsIcon fontSize="small" />}
-						color="#1976d2"
+						color="var(--app-blue-text, #1976d2)"
 					/>
 				</Grid>
 				<Grid size={{ xs: 12, sm: 6, md: 3 }}>
@@ -507,7 +507,7 @@ const HiltonReportsClient: FC<SessionProps> = ({ session }) => {
 						label={t.hiltonReports.costs}
 						value={`${formatNumber(expenseTotal)} MAD`}
 						icon={<TrendingDownIcon fontSize="small" />}
-						color="#d32f2f"
+						color="var(--app-rose-text, #d32f2f)"
 					/>
 				</Grid>
 				<Grid size={{ xs: 12, sm: 6, md: 3 }}>

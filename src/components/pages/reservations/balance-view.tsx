@@ -257,28 +257,28 @@ const BalanceClient: FC<SessionProps> = ({ session }) => {
 									}}
 								>
 									<KpiCard
-										color="#1565c0"
+										color="var(--app-blue-text, #1565c0)"
 										icon={<AccountBalanceWalletIcon />}
 										label={t.reservations.totalBalance}
 										value={`${fmt(totalBalance)} MAD`}
 										tooltip={t.reservations.totalBalanceTooltip}
 									/>
 									<KpiCard
-										color="#2e7d32"
+										color="var(--app-green-text, #2e7d32)"
 										icon={<CheckCircleOutlinedIcon />}
 										label={t.reservations.amountReturned}
 										value={`${fmt(totalReturned)} MAD`}
 										tooltip={t.reservations.amountReturnedTooltip}
 									/>
 									<KpiCard
-										color="#d32f2f"
+										color="var(--app-rose-text, #d32f2f)"
 										icon={<HighlightOffIcon />}
 										label={t.reservations.amountNotReturned}
 										value={`${fmt(totalNotReturned)} MAD`}
 										tooltip={t.reservations.amountNotReturnedTooltip}
 									/>
 									<KpiCard
-										color="#6a1b9a"
+										color="var(--app-violet-text, #6a1b9a)"
 										icon={<HomeWorkIcon />}
 										label={t.reservations.apartmentCount}
 										value={`${aptNoms.length}`}
@@ -306,7 +306,7 @@ const BalanceClient: FC<SessionProps> = ({ session }) => {
 													<TableRow sx={{ bgcolor: 'primary.main' }}>
 														<TableCell
 															sx={{
-																color: 'white',
+																color: 'primary.contrastText',
 																fontWeight: 700,
 																position: 'sticky',
 																left: 0,
@@ -316,18 +316,22 @@ const BalanceClient: FC<SessionProps> = ({ session }) => {
 														>
 															{t.reservations.apartment}
 														</TableCell>
-														<TableCell sx={{ color: 'white', fontWeight: 700 }}>
+														<TableCell sx={{ color: 'primary.contrastText', fontWeight: 700 }}>
 															{t.reservations.columnClient}
 														</TableCell>
-														<TableCell sx={{ color: 'white', fontWeight: 600 }}>{t.reservations.arrival}</TableCell>
-														<TableCell sx={{ color: 'white', fontWeight: 600 }}>{t.reservations.departure}</TableCell>
-														<TableCell align="right" sx={{ color: 'white', fontWeight: 700 }}>
+														<TableCell sx={{ color: 'primary.contrastText', fontWeight: 600 }}>
+															{t.reservations.arrival}
+														</TableCell>
+														<TableCell sx={{ color: 'primary.contrastText', fontWeight: 600 }}>
+															{t.reservations.departure}
+														</TableCell>
+														<TableCell align="right" sx={{ color: 'primary.contrastText', fontWeight: 700 }}>
 															{t.reservations.amountLabel}
 														</TableCell>
-														<TableCell sx={{ color: 'white', fontWeight: 600 }}>
+														<TableCell sx={{ color: 'primary.contrastText', fontWeight: 600 }}>
 															{t.reservations.columnSource}
 														</TableCell>
-														<TableCell align="center" sx={{ color: 'white', fontWeight: 700 }}>
+														<TableCell align="center" sx={{ color: 'primary.contrastText', fontWeight: 700 }}>
 															{t.reservations.returned}
 														</TableCell>
 													</TableRow>
@@ -397,7 +401,7 @@ const BalanceClient: FC<SessionProps> = ({ session }) => {
 													<TableRow sx={{ bgcolor: 'primary.main' }}>
 														<TableCell
 															sx={{
-																color: 'white',
+																color: 'primary.contrastText',
 																fontWeight: 700,
 																width: 100,
 																position: 'sticky',
@@ -412,14 +416,18 @@ const BalanceClient: FC<SessionProps> = ({ session }) => {
 															<TableCell
 																key={m}
 																align="right"
-																sx={{ color: 'white', fontWeight: 600, fontSize: '0.75rem' }}
+																sx={{ color: 'primary.contrastText', fontWeight: 600, fontSize: '0.75rem' }}
 															>
 																{m}
 															</TableCell>
 														))}
 														<TableCell
 															align="right"
-															sx={{ color: 'white', fontWeight: 700, borderLeft: '2px solid rgba(255,255,255,0.3)' }}
+															sx={{
+																color: 'primary.contrastText',
+																fontWeight: 700,
+																borderLeft: '2px solid rgba(255,255,255,0.3)',
+															}}
 														>
 															{t.common.total}
 														</TableCell>
@@ -472,9 +480,21 @@ const BalanceClient: FC<SessionProps> = ({ session }) => {
 													})}
 
 													{/* Total row */}
-													<TableRow sx={{ bgcolor: 'primary.light' }}>
+													<TableRow
+														sx={{
+															bgcolor: (theme) =>
+																theme.palette.mode === 'dark' ? 'var(--app-info-bg)' : 'primary.light',
+														}}
+													>
 														<TableCell
-															sx={{ fontWeight: 700, position: 'sticky', left: 0, zIndex: 1, bgcolor: 'primary.light' }}
+															sx={{
+																fontWeight: 700,
+																position: 'sticky',
+																left: 0,
+																zIndex: 1,
+																bgcolor: (theme) =>
+																	theme.palette.mode === 'dark' ? 'var(--app-info-bg)' : 'primary.light',
+															}}
 														>
 															{t.common.total}
 														</TableCell>

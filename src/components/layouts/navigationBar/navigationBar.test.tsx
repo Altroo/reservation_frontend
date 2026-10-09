@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import NavigationBar from './navigationBar';
 import '@testing-library/jest-dom';
@@ -76,6 +76,40 @@ const mockProfileData = {
 };
 
 describe('NavigationBar', () => {
+	it.each([false, true])('shows a direct Changelog link after Settings for staff=%s', (isStaff) => {
+		mockProfileData.is_staff = isStaff;
+		mockPathname = '/dashboard/changelog';
+		render(
+			<Provider store={store}>
+				<NavigationBar title="History">
+					<div>Content</div>
+				</NavigationBar>
+			</Provider>,
+		);
+		const link = screen.getByRole('link', { name: 'Nouveautés' });
+		expect(link).toHaveAttribute('href', '/dashboard/changelog');
+		expect(link).toHaveAttribute('aria-current', 'page');
+		const settings = screen.getByRole('button', { name: 'Paramètres' });
+		expect(settings.compareDocumentPosition(link) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+		expect(
+			screen.getAllByRole('button').filter((button) => button.getAttribute('aria-expanded') === 'true'),
+		).toHaveLength(0);
+	});
+
+	it('closes the mobile drawer when opening Changelog', async () => {
+		mockIsMobile = true;
+		render(
+			<Provider store={store}>
+				<NavigationBar title="History">
+					<div>Content</div>
+				</NavigationBar>
+			</Provider>,
+		);
+		await userEvent.click(screen.getByRole('button', { name: /Ouvrir\/fermer le menu/i }));
+		await userEvent.click(screen.getByRole('link', { name: 'Nouveautés' }));
+		await waitFor(() => expect(screen.queryByRole('link', { name: 'Nouveautés' })).not.toBeInTheDocument());
+	});
+
 	beforeEach(() => {
 		jest.clearAllMocks();
 		mockPathname = '/dashboard';

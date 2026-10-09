@@ -23,7 +23,7 @@ const NoPermission = () => {
 					width: '100%',
 					textAlign: 'center',
 					borderRadius: 3,
-					background: 'linear-gradient(135deg, #f5f7fa 0%, #e8eef5 100%)',
+					background: 'var(--app-empty-bg)',
 				}}
 			>
 				{/* Icon container */}
@@ -32,7 +32,7 @@ const NoPermission = () => {
 						display: 'inline-flex',
 						p: 2,
 						borderRadius: '50%',
-						backgroundColor: 'error.lighter',
+						backgroundColor: 'var(--app-error-bg, #ffebee)',
 						mb: 2,
 					}}
 				>

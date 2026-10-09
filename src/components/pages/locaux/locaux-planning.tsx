@@ -309,28 +309,28 @@ const LocauxPlanningClient: FC<SessionProps> = ({ session }) => {
 									}}
 								>
 									<KpiCard
-										color="#1565c0"
+										color="var(--app-blue-text, #1565c0)"
 										icon={<CalendarMonthIcon />}
 										label={t.locaux.locauxCount}
 										value={`${locaux.length}`}
 										tooltip={t.locaux.locauxCountTooltip}
 									/>
 									<KpiCard
-										color="#2e7d32"
+										color="var(--app-green-text, #2e7d32)"
 										icon={<CheckCircleOutlineIcon />}
 										label={t.locaux.paidRentsCount}
 										value={`${stats.totalPaid.toLocaleString('fr-MA')} MAD`}
 										tooltip={t.locaux.paidRentsTooltip(stats.paidCount, year)}
 									/>
 									<KpiCard
-										color="#d32f2f"
+										color="var(--app-rose-text, #d32f2f)"
 										icon={<HighlightOffIcon />}
 										label={t.locaux.unpaidRentsCount}
 										value={`${stats.totalUnpaid.toLocaleString('fr-MA')} MAD`}
 										tooltip={t.locaux.unpaidRentsTooltip(stats.unpaidCount, year)}
 									/>
 									<KpiCard
-										color="#6a1b9a"
+										color="var(--app-violet-text, #6a1b9a)"
 										icon={<CalendarMonthIcon />}
 										label={t.locaux.paymentRate}
 										value={

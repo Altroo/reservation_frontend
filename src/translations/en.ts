@@ -1,6 +1,22 @@
 import type { TranslationDictionary } from '@/types/languageTypes';
 
 export const en: TranslationDictionary = {
+	changelog: {
+		description: 'Discover new features and improvements to your workspace.',
+		loading: 'Loading updates…',
+		error: 'Updates could not be loaded. Please try again shortly.',
+		empty: 'Upcoming updates will appear here.',
+	},
+	appUpdate: {
+		title: 'An update is available',
+		body: 'Save your work before continuing. The app will reload to apply the update, without reinstalling.',
+		later: 'Later',
+		update: 'Update now',
+		updating: 'Updating…',
+		version: 'New version:',
+		error:
+			'The update is not available yet. Check your connection and try again shortly. Your work has not been reloaded.',
+	},
 	aiAssistant: {
 		translate: 'Translate',
 		fixGrammar: 'Fix grammar',
@@ -92,6 +108,7 @@ export const en: TranslationDictionary = {
 		appName: 'E.B.H Reservation',
 	},
 	navigation: {
+		changelog: 'Changelog',
 		dashboard: 'Dashboard',
 		viewDashboard: 'View dashboard',
 		reservations: 'Reservations',

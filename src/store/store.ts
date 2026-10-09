@@ -1,3 +1,4 @@
+import { changelogApi } from '@/store/services/changelog';
 import { aiAssistantApi } from '@/store/services/aiAssistant';
 import createSagaMiddleware, { type Task } from 'redux-saga';
 import { combineReducers, configureStore, ThunkDispatch } from '@reduxjs/toolkit';
@@ -12,6 +13,7 @@ import { reservationApi } from '@/store/services/reservation';
 
 const rootReducer = combineReducers({
 	[aiAssistantApi.reducerPath]: aiAssistantApi.reducer,
+	[changelogApi.reducerPath]: changelogApi.reducer,
 	_init: _initReducer,
 	account: accountReducer,
 	ws: wsReducer,
@@ -45,6 +47,7 @@ export const makeStore = (): SagaStore => {
 				.prepend(sagaMw)
 				.concat(
 					aiAssistantApi.middleware,
+					changelogApi.middleware,
 					accountApi.middleware,
 					profilApi.middleware,
 					usersApi.middleware,

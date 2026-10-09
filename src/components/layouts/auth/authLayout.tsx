@@ -1,5 +1,7 @@
 'use client';
 
+import { useColorMode } from '@/providers/themeProvider';
+
 import { useState, type ReactNode, type Ref } from 'react';
 import Styles from './authLayout.module.sass';
 import { Box, Stack } from '@mui/material';
@@ -15,6 +17,7 @@ type Props = {
 
 const AuthLayout = ({ ref, ...props }: Props & { ref?: Ref<HTMLAnchorElement> }) => {
 	const { t } = useLanguage();
+	const { mode } = useColorMode();
 	const [authIlluRandom] = useState<AuthBackground>(
 		() => AUTH_BACKGROUND_IMAGES[Math.floor(Math.random() * AUTH_BACKGROUND_IMAGES.length)],
 	);
@@ -27,7 +30,7 @@ const AuthLayout = ({ ref, ...props }: Props & { ref?: Ref<HTMLAnchorElement> })
 					className={Styles.leftBox}
 					sx={{
 						background: `url(${authIlluRandom ? authIlluRandom.image : ''}) bottom left no-repeat scroll ${
-							authIlluRandom && authIlluRandom.color
+							mode === 'dark' ? '#222c3d' : authIlluRandom.color
 						}`,
 						msFilter: `progid:DXImageTransform.Microsoft.AlphaImageLoader(src='${
 							authIlluRandom ? authIlluRandom.image : ''

@@ -32,7 +32,7 @@ import CustomDropDownSelect from '@/components/formikElements/customDropDownSele
 import { customDropdownTheme } from '@/utils/themes';
 import type { DropDownType } from '@/types/accountTypes';
 import { BarElement, CategoryScale, Chart as ChartJS, Legend, LinearScale, Title, Tooltip } from 'chart.js';
-import { Bar } from 'react-chartjs-2';
+import { Bar } from '@/components/shared/themedCharts/themedCharts';
 import type { SessionProps } from '@/types/_initTypes';
 import { useLanguage } from '@/utils/hooks';
 import Styles from '@/styles/dashboard/dashboard.module.sass';
@@ -302,7 +302,7 @@ const GainsClient: FC<SessionProps> = ({ session }) => {
 										icon={<TrendingUpIcon fontSize="small" />}
 										label={t.reservations.totalGain}
 										value={`${fmt(totalYearRevenue)} MAD`}
-										color="#1976d2"
+										color="var(--app-blue-text, #1976d2)"
 									/>
 									<KpiCard
 										icon={<TrophyIcon fontSize="small" />}
@@ -358,10 +358,10 @@ const GainsClient: FC<SessionProps> = ({ session }) => {
 														alignItems: 'center',
 														justifyContent: 'center',
 														height: '100%',
-														bgcolor: 'grey.50',
+														bgcolor: 'var(--app-inset, #fafafa)',
 														borderRadius: 2,
 														border: '1px dashed',
-														borderColor: 'grey.300',
+														borderColor: 'var(--app-strong-border, #e0e0e0)',
 													}}
 												>
 													<Typography
@@ -461,7 +461,7 @@ const GainsClient: FC<SessionProps> = ({ session }) => {
 																				flex: 1,
 																				height: 4,
 																				borderRadius: 2,
-																				bgcolor: 'grey.200',
+																				bgcolor: 'var(--app-soft-border, #eeeeee)',
 																				'& .MuiLinearProgress-bar': {
 																					borderRadius: 2,
 																					background: `linear-gradient(90deg, ${APARTMENT_COLORS[aptNoms.indexOf(ab.nom) % APARTMENT_COLORS.length]}, ${APARTMENT_COLORS[aptNoms.indexOf(ab.nom) % APARTMENT_COLORS.length].replace('0.8', '1')})`,
@@ -506,9 +506,15 @@ const GainsClient: FC<SessionProps> = ({ session }) => {
 											<TableContainer component={Paper} elevation={0}>
 												<Table size="small" sx={{ minWidth: 700 }}>
 													<TableHead>
-														<TableRow sx={{ bgcolor: 'grey.100' }}>
+														<TableRow sx={{ bgcolor: 'var(--app-inset-hover, #f5f5f5)' }}>
 															<TableCell
-																sx={{ fontWeight: 700, position: 'sticky', left: 0, bgcolor: 'grey.100', zIndex: 1 }}
+																sx={{
+																	fontWeight: 700,
+																	position: 'sticky',
+																	left: 0,
+																	bgcolor: 'var(--app-inset-hover, #f5f5f5)',
+																	zIndex: 1,
+																}}
 															>
 																{t.reservations.apartment}
 															</TableCell>
@@ -574,13 +580,19 @@ const GainsClient: FC<SessionProps> = ({ session }) => {
 															);
 														})}
 														{/* Month totals row */}
-														<TableRow sx={{ bgcolor: 'primary.light' }}>
+														<TableRow
+															sx={{
+																bgcolor: (theme) =>
+																	theme.palette.mode === 'dark' ? 'var(--app-info-bg)' : 'primary.light',
+															}}
+														>
 															<TableCell
 																sx={{
 																	fontWeight: 700,
 																	position: 'sticky',
 																	left: 0,
-																	bgcolor: 'primary.light',
+																	bgcolor: (theme) =>
+																		theme.palette.mode === 'dark' ? 'var(--app-info-bg)' : 'primary.light',
 																	zIndex: 1,
 																}}
 															>

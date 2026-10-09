@@ -3,7 +3,7 @@ import * as Types from '../actions';
 import type { InitStateInterface, InitStateToken, MaintenanceGetRootResponseType } from '@/types/_initTypes';
 import { setInitState } from '../slices/_initSlice';
 import type { Session } from 'next-auth';
-import { setWSMaintenance } from '../slices/wsSlice';
+import { setWSMaintenance, setWSServerVersion } from '../slices/wsSlice';
 import { allowAnyInstance } from '@/utils/helpers';
 import { getApi } from '@/utils/apiHelpers';
 import type { AxiosInstance } from 'axios';
@@ -33,11 +33,17 @@ export function* initMaintenanceSaga() {
 		return;
 	}
 
-	const instance: AxiosInstance = yield call(() => allowAnyInstance());
-	const response: MaintenanceGetRootResponseType = yield call(() => getApi(url, instance));
+	try {
+		const instance: AxiosInstance = yield call(() => allowAnyInstance());
+		const response: MaintenanceGetRootResponseType = yield call(() => getApi(url, instance));
 
-	if (response.status === 200) {
-		yield put(setWSMaintenance(response.data.maintenance));
+		if (response.status === 200) {
+			yield put(setWSMaintenance(response.data.maintenance));
+			if (response.data.version !== undefined) yield put(setWSServerVersion(response.data.version));
+		}
+	} catch {
+		// A temporary bootstrap outage must not stop websocket reconnection.
+		return;
 	}
 }
 

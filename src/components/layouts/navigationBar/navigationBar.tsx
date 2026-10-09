@@ -1,8 +1,10 @@
 'use client';
 
+import ThemeToggle from '@/components/shared/themeToggle/themeToggle';
 import { runWithCleanup } from '@/utils/runWithCleanup';
 import { useEffect, useRef, useState, type MouseEvent, type ReactNode, type SyntheticEvent } from 'react';
-import { styled, ThemeProvider } from '@mui/material/styles';
+import { styled } from '@mui/material/styles';
+import { ThemeProvider } from '@/providers/scopedThemeProvider';
 import MuiAppBar, { type AppBarProps as MuiAppBarProps } from '@mui/material/AppBar';
 import {
 	Accordion,
@@ -48,6 +50,7 @@ import {
 	Payments as PaymentsIcon,
 	People as PeopleIcon,
 	Settings as SettingsIcon,
+	History as HistoryIcon,
 } from '@mui/icons-material';
 import { useAppDispatch, useAppSelector, useLanguage } from '@/utils/hooks';
 import { getProfilState, getUnreadNotificationCount } from '@/store/selectors';
@@ -62,6 +65,7 @@ import {
 	COSTS_ADD,
 	COSTS_LIST,
 	DASHBOARD,
+	DASHBOARD_CHANGELOG,
 	DASHBOARD_EDIT_PROFILE,
 	DASHBOARD_HILTON_SETTINGS,
 	DASHBOARD_NOTIFICATIONS,
@@ -247,7 +251,8 @@ type Props = {
 const NavigationBar = (props: Props) => {
 	const theme = useTheme();
 	const isMobile = useMediaQuery(theme.breakpoints.down('md'));
-	const [open, setOpen] = useState(!isMobile);
+	const [mobileOpen, setMobileOpen] = useState(false);
+	const open = !isMobile || mobileOpen;
 	const { data: session, status } = useSession();
 	const { avatar_cropped, first_name, last_name, gender, is_staff, can_access_hilton_reports } =
 		useAppSelector(getProfilState);
@@ -346,7 +351,7 @@ const NavigationBar = (props: Props) => {
 
 	const handleDrawerToggle = () => {
 		if (isMobile) {
-			setOpen(!open);
+			setMobileOpen(!mobileOpen);
 		}
 	};
 
@@ -355,6 +360,7 @@ const NavigationBar = (props: Props) => {
 	const [userExpanded, setUserExpanded] = useState<string | false>(false);
 
 	const defaultExpanded: string | false = (() => {
+		if (pathname === DASHBOARD_CHANGELOG.replace(/^https?:\/\/[^/]+/, '')) return false;
 		const exactMatch = Object.entries(navigationMenu).find(([, section]) =>
 			section.items.some((item) => {
 				const normalizedPath = item.path.replace(/^https?:\/\/[^/]+/, '');
@@ -443,10 +449,11 @@ const NavigationBar = (props: Props) => {
 								</Typography>
 							</Stack>
 							<Stack direction="row" spacing={1}>
+								<ThemeToggle />
 								{!loading && session && (
 									<>
 										<Desktop>
-											<IconButton color="inherit" onClick={handleNotifOpen}>
+											<IconButton color="inherit" aria-label={t.navigation.notifications} onClick={handleNotifOpen}>
 												<Badge badgeContent={unreadCount} color="primary" max={99}>
 													<NotificationsIcon />
 												</Badge>
@@ -645,9 +652,10 @@ const NavigationBar = (props: Props) => {
 														sx={{
 															pl: open ? 9 : 2,
 															minHeight: 48,
-															backgroundColor: normalizePath(item.path) === pathname ? '#F0F0F0' : 'transparent',
+															backgroundColor:
+																normalizePath(item.path) === pathname ? 'var(--app-selected, #F0F0F0)' : 'transparent',
 															'&.Mui-selected': {
-																backgroundColor: '#E0E0E0',
+																backgroundColor: 'var(--app-hover, #E0E0E0)',
 																fontWeight: 600,
 															},
 														}}
@@ -661,6 +669,23 @@ const NavigationBar = (props: Props) => {
 								</Accordion>
 							</Box>
 						))}
+						<ListItem disablePadding>
+							<ListItemButton
+								component={Link}
+								href={DASHBOARD_CHANGELOG}
+								selected={normalizePath(DASHBOARD_CHANGELOG) === pathname}
+								aria-current={normalizePath(DASHBOARD_CHANGELOG) === pathname ? 'page' : undefined}
+								onClick={() => {
+									if (isMobile) setMobileOpen(false);
+								}}
+								sx={{ minHeight: 48, px: 2.5 }}
+							>
+								<ListItemIcon sx={{ minWidth: 0, mr: 3, justifyContent: 'center' }}>
+									<HistoryIcon />
+								</ListItemIcon>
+								<ListItemText primary={t.navigation.changelog} />
+							</ListItemButton>
+						</ListItem>
 					</List>
 				</Drawer>
 				<Popover

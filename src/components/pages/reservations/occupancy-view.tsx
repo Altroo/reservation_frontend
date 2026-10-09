@@ -27,7 +27,7 @@ import CustomDropDownSelect from '@/components/formikElements/customDropDownSele
 import { customDropdownTheme } from '@/utils/themes';
 import type { DropDownType } from '@/types/accountTypes';
 import { BarElement, CategoryScale, Chart as ChartJS, Legend, LinearScale, Title, Tooltip } from 'chart.js';
-import { Bar } from 'react-chartjs-2';
+import { Bar } from '@/components/shared/themedCharts/themedCharts';
 import type { SessionProps } from '@/types/_initTypes';
 import type { ReservationListType } from '@/types/reservationTypes';
 import { useLanguage } from '@/utils/hooks';
@@ -311,14 +311,14 @@ const OccupancyClient: FC<SessionProps> = ({ session }) => {
 								{/* Occupancy KPIs */}
 								<Box sx={{ display: 'grid', gap: 2, gridTemplateColumns: { xs: '1fr 1fr', sm: 'repeat(4, 1fr)' } }}>
 									<KpiCard
-										color="#2e7d32"
+										color="var(--app-green-text, #2e7d32)"
 										icon={<PieChartOutlinedIcon />}
 										label={t.reservations.globalOccupation}
 										value={`${globalOccPct}%`}
 										tooltip={t.reservations.globalOccupationTooltip}
 									/>
 									<KpiCard
-										color="#1565c0"
+										color="var(--app-blue-text, #1565c0)"
 										icon={<AttachMoneyIcon />}
 										label={t.reservations.annualRevenue}
 										value={`${fmt(totalRevenue)} MAD`}
@@ -332,7 +332,7 @@ const OccupancyClient: FC<SessionProps> = ({ session }) => {
 										tooltip={t.reservations.occupiedNightsTooltip(totalAvailable)}
 									/>
 									<KpiCard
-										color="#6a1b9a"
+										color="var(--app-violet-text, #6a1b9a)"
 										icon={<EventAvailableIcon />}
 										label={t.reservations.freeNights}
 										value={fmt(availableNights)}
@@ -383,9 +383,9 @@ const OccupancyClient: FC<SessionProps> = ({ session }) => {
 														justifyContent: 'center',
 														height: '100%',
 														border: '1px dashed',
-														borderColor: 'grey.300',
+														borderColor: 'var(--app-strong-border, #e0e0e0)',
 														borderRadius: 2,
-														bgcolor: 'grey.50',
+														bgcolor: 'var(--app-inset, #fafafa)',
 													}}
 												>
 													<Typography

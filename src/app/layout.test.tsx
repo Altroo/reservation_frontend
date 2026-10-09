@@ -140,6 +140,10 @@ jest.mock('@/utils/getServerTranslations', () => ({
 	getServerTranslations: jest.fn(() => Promise.resolve(require('@/translations').translations.fr)),
 }));
 
+jest.mock('@/components/shared/themeToggle/themeToggle', () => ({
+	AuthThemeToggle: () => null,
+}));
+
 beforeEach(() => {
 	jest.resetModules();
 	jest.clearAllMocks();

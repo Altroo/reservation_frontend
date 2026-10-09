@@ -1,6 +1,11 @@
 import type { EventChannel } from 'redux-saga';
 import { eventChannel } from 'redux-saga';
-import { WSMaintenanceAction, WSUserAvatarAction, WSNotificationAction, WSReconnectedAction } from '@/store/actions/wsActions';
+import {
+	WSMaintenanceAction,
+	WSUserAvatarAction,
+	WSNotificationAction,
+	WSReconnectedAction,
+} from '@/store/actions/wsActions';
 import { WSAction, WSEnvelope } from '@/types/wsTypes';
 import type { NotificationType } from '@/types/reservationTypes';
 
@@ -67,7 +72,7 @@ export function initWebsocket(getToken: () => Promise<string | null>): EventChan
 								}
 							} else if (signalType === 'MAINTENANCE') {
 								if (typeof message.maintenance === 'boolean') {
-									emitter(WSMaintenanceAction(message.maintenance));
+									emitter(WSMaintenanceAction(message.maintenance, message.version));
 								}
 							} else if (signalType === 'NOTIFICATION') {
 								if (typeof message.id === 'number' && typeof message.title === 'string') {
@@ -76,9 +81,13 @@ export function initWebsocket(getToken: () => Promise<string | null>): EventChan
 										reservation_id: typeof message.reservation_id === 'number' ? message.reservation_id : null,
 										title: message.title,
 										message: typeof message.message === 'string' ? message.message : '',
-										notification_type: (message.notification_type === 'check_in' || message.notification_type === 'check_out') ? message.notification_type : 'check_in',
+										notification_type:
+											message.notification_type === 'check_in' || message.notification_type === 'check_out'
+												? message.notification_type
+												: 'check_in',
 										is_read: typeof message.is_read === 'boolean' ? message.is_read : false,
-										date_created: typeof message.date_created === 'string' ? message.date_created : new Date().toISOString(),
+										date_created:
+											typeof message.date_created === 'string' ? message.date_created : new Date().toISOString(),
 									};
 									emitter(WSNotificationAction(notification));
 								}

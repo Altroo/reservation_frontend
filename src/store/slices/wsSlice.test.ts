@@ -1,3 +1,4 @@
+import { APP_VERSION } from '@/utils/appVersion';
 import reducer, { setWSMaintenance } from './wsSlice';
 
 describe('wsSlice reducer', () => {
@@ -5,6 +6,8 @@ describe('wsSlice reducer', () => {
 		const result = reducer(undefined, { type: '' });
 		expect(result).toEqual({
 			maintenance: false,
+			localVersion: APP_VERSION,
+			serverVersion: null,
 		});
 	});
 
@@ -12,6 +15,8 @@ describe('wsSlice reducer', () => {
 		const result = reducer(undefined, setWSMaintenance(true));
 		expect(result).toEqual({
 			maintenance: true,
+			localVersion: APP_VERSION,
+			serverVersion: null,
 		});
 	});
 });

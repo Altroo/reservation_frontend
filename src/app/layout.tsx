@@ -15,6 +15,8 @@ import { LanguageContextProvider } from '@/contexts/languageContext';
 import SkipToContent from '@/components/shared/skipToContent/skipToContent';
 import { getServerTranslations } from '@/utils/getServerTranslations';
 import { cookies } from 'next/headers';
+import { AuthThemeToggle } from '@/components/shared/themeToggle/themeToggle';
+import { resolveColorMode } from '@/utils/colorMode';
 
 export async function generateMetadata(): Promise<Metadata> {
 	const t = await getServerTranslations();
@@ -71,18 +73,19 @@ export const viewport: Viewport = {
 const RootLayout = async (props: RootLayoutProps) => {
 	const cookieStore = await cookies();
 	const lang = cookieStore.get('app-language')?.value === 'en' ? 'en' : 'fr';
+	const theme = resolveColorMode(cookieStore.get('app-theme')?.value);
 	return (
-		<html lang={lang} data-scroll-behavior="smooth">
+		<html lang={lang} data-theme={theme} data-scroll-behavior="smooth">
 			<body>
 				<SessionProvider>
 					<StoreProvider>
 						<InitContextProvider>
 							<InitEffects />
 							<AppRouterCacheProvider>
-								<ThemeProvider>
+								<ThemeProvider initialTheme={theme}>
 									<LanguageContextProvider initialLanguage={lang}>
-										{' '}
-										<SkipToContent />{' '}
+										<AuthThemeToggle />
+										<SkipToContent />
 										<ErrorBoundary>
 											<ToastContextProvider>
 												<SessionExpiredListener />

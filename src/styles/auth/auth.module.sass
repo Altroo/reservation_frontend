@@ -13,6 +13,16 @@
   justify-content: center
   align-items: center
 
+  // Keep outlined auth inputs and browser autofill on the page surface.
+  :global(.MuiOutlinedInput-root)
+    background-color: transparent
+
+  :global(input:-webkit-autofill)
+    -webkit-box-shadow: 0 0 0 1000px var(--app-bg) inset !important
+    box-shadow: 0 0 0 1000px var(--app-bg) inset !important
+    -webkit-text-fill-color: var(--app-text) !important
+    caret-color: var(--app-text)
+
   // fluid variant - full width from start (set-password-complete only)
   &--fluid
     width: 100%
@@ -146,15 +156,6 @@
   .header
     text-align: center
     font-size: 32px
-
-// Match the auth canvas when the browser fills saved credentials.
-// Scope the override to dark mode so light-mode autofill remains unchanged.
-:global(:root[data-theme='dark']) .contentWrapper
-  input:-webkit-autofill,
-  input:autofill
-    -webkit-box-shadow: 0 0 0 100px var(--app-bg) inset
-    -webkit-text-fill-color: var(--app-text)
-    caret-color: var(--app-accent)
 
 // Mobile specific adjustments
 @media #{$mobile}

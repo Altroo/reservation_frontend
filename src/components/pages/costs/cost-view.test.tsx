@@ -211,7 +211,8 @@ describe('CostViewClient', () => {
 		it('navigates back to list on back button click', () => {
 			render(<CostViewClient session={mockSession} id={7} />);
 			fireEvent.click(screen.getByText('Liste des coûts'));
-			expect(mockBack).toHaveBeenCalledTimes(1);
+			expect(mockPush).toHaveBeenCalledWith('/dashboard/costs');
+			expect(mockBack).not.toHaveBeenCalled();
 		});
 
 		it('navigates to edit page on Modifier click', () => {

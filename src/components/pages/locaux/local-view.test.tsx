@@ -314,7 +314,8 @@ describe('LocalViewClient', () => {
 		it('navigates back to list on back button click', () => {
 			render(<LocalViewClient session={mockSession} id={5} />);
 			fireEvent.click(screen.getByText('Liste des locaux'));
-			expect(mockBack).toHaveBeenCalledTimes(1);
+			expect(mockPush).toHaveBeenCalledWith('/dashboard/locaux');
+			expect(mockBack).not.toHaveBeenCalled();
 		});
 
 		it('navigates to edit page on Modifier click', () => {

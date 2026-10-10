@@ -206,7 +206,8 @@ describe('ReservationViewClient', () => {
 		it('navigates back to list on back button click', () => {
 			render(<ReservationViewClient session={mockSession} id={42} />);
 			fireEvent.click(screen.getByText('Liste des réservations'));
-			expect(mockBack).toHaveBeenCalledTimes(1);
+			expect(mockPush).toHaveBeenCalledWith('/dashboard/reservations');
+			expect(mockBack).not.toHaveBeenCalled();
 		});
 
 		it('navigates to edit page on Modifier click', () => {

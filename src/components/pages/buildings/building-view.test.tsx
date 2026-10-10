@@ -203,7 +203,8 @@ describe('BuildingViewClient', () => {
 		it('navigates back to list on back button click', () => {
 			render(<BuildingViewClient session={mockSession} id={1} />);
 			fireEvent.click(screen.getByText('Liste des résidences'));
-			expect(mockBack).toHaveBeenCalledTimes(1);
+			expect(mockPush).toHaveBeenCalledWith('/dashboard/buildings');
+			expect(mockBack).not.toHaveBeenCalled();
 		});
 
 		it('navigates to edit page on Modifier click', () => {

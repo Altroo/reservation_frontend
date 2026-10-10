@@ -175,7 +175,7 @@ const ReservationViewClient: FC<Props> = ({ session, id }) => {
 								size="large"
 								variant="outlined"
 								startIcon={<ArrowBackIcon />}
-								onClick={() => router.back()}
+								onClick={() => router.push(RESERVATIONS_LIST)}
 								sx={{ width: isMobile ? '100%' : 'auto' }}
 							>
 								{t.reservations.reservationsList}

@@ -1,5 +1,6 @@
 'use client';
 
+import { listReturnUrl } from '@/utils/listReturn';
 import { runAsyncWithErrorHandler } from '@/utils/runWithCleanup';
 import { runWithCleanup } from '@/utils/runWithCleanup';
 import { useEffect, useRef, useState, type ChangeEvent, type FC, type MouseEvent } from 'react';
@@ -165,7 +166,7 @@ const FormikContent: FC<FormikContentProps> = ({ token, id }) => {
 						} else {
 							await createReservation(fields).unwrap();
 							onSuccess(t.reservations.reservationAddedSuccess);
-							router.push(RESERVATIONS_LIST);
+							router.push(listReturnUrl(RESERVATIONS_LIST));
 						}
 					} catch (e) {
 						setFormikAutoErrors({ e, setFieldError });
@@ -311,7 +312,7 @@ const FormikContent: FC<FormikContentProps> = ({ token, id }) => {
 					<Button
 						variant="outlined"
 						startIcon={<ArrowBackIcon />}
-						onClick={() => router.push(RESERVATIONS_LIST)}
+						onClick={() => router.push(listReturnUrl(RESERVATIONS_LIST))}
 						sx={{
 							whiteSpace: 'nowrap',
 							px: { xs: 1.5, sm: 2, md: 3 },

@@ -1,5 +1,6 @@
 'use client';
 
+import { listReturnUrl } from '@/utils/listReturn';
 import { runWithCleanup } from '@/utils/runWithCleanup';
 import { useState, type ChangeEvent, type FC } from 'react';
 import { useRouter } from 'next/navigation';
@@ -118,7 +119,7 @@ const FormikContent: FC<FormikContentProps> = ({ token, id }) => {
 							await createCost({ data: payload }).unwrap();
 							onSuccess(t.costs.costAddedSuccess);
 						}
-						router.push(COSTS_LIST);
+						router.push(listReturnUrl(COSTS_LIST));
 					} catch (e) {
 						setFormikAutoErrors({ e, setFieldError });
 						onError(isEditMode ? t.costs.costUpdateError : t.costs.costAddError);
@@ -147,7 +148,7 @@ const FormikContent: FC<FormikContentProps> = ({ token, id }) => {
 					<Button
 						variant="outlined"
 						startIcon={<ArrowBackIcon />}
-						onClick={() => router.push(COSTS_LIST)}
+						onClick={() => router.push(listReturnUrl(COSTS_LIST))}
 						sx={{ whiteSpace: 'nowrap' }}
 					>
 						{t.costs.costsList}

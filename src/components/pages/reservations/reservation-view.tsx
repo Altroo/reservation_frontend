@@ -1,5 +1,6 @@
 'use client';
 
+import { listReturnUrl } from '@/utils/listReturn';
 import { runWithCleanup } from '@/utils/runWithCleanup';
 import { useState, type FC, type ReactNode, isValidElement } from 'react';
 import { useRouter } from 'next/navigation';
@@ -123,7 +124,7 @@ const ReservationViewClient: FC<Props> = ({ session, id }) => {
 				try {
 					await deleteRecord({ id }).unwrap();
 					onSuccess(t.reservations.reservationDeletedSuccess);
-					router.push(RESERVATIONS_LIST);
+					router.push(listReturnUrl(RESERVATIONS_LIST));
 				} catch (err) {
 					onError(extractApiErrorMessage(err, t.reservations.reservationDeleteError));
 				}
@@ -175,7 +176,7 @@ const ReservationViewClient: FC<Props> = ({ session, id }) => {
 								size="large"
 								variant="outlined"
 								startIcon={<ArrowBackIcon />}
-								onClick={() => router.push(RESERVATIONS_LIST)}
+								onClick={() => router.push(listReturnUrl(RESERVATIONS_LIST))}
 								sx={{ width: isMobile ? '100%' : 'auto' }}
 							>
 								{t.reservations.reservationsList}

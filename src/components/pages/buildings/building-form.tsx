@@ -1,5 +1,6 @@
 'use client';
 
+import { listReturnUrl } from '@/utils/listReturn';
 import { runWithCleanup } from '@/utils/runWithCleanup';
 import { useEffect, useRef, useState, type FC } from 'react';
 import { useRouter } from 'next/navigation';
@@ -76,7 +77,7 @@ const FormikContent: FC<FormikContentProps> = ({ token, id }) => {
 							await createBuilding(fields).unwrap();
 							onSuccess(t.buildings.residenceAddedSuccess);
 						}
-						router.push(BUILDINGS_LIST);
+						router.push(listReturnUrl(BUILDINGS_LIST));
 					} catch (e) {
 						setFormikAutoErrors({ e, setFieldError });
 						onError(isEditMode ? t.buildings.residenceUpdateError : t.buildings.residenceAddError);
@@ -113,7 +114,7 @@ const FormikContent: FC<FormikContentProps> = ({ token, id }) => {
 				<Button
 					variant="outlined"
 					startIcon={<ArrowBackIcon />}
-					onClick={() => router.push(BUILDINGS_LIST)}
+					onClick={() => router.push(listReturnUrl(BUILDINGS_LIST))}
 					sx={{ whiteSpace: 'nowrap' }}
 				>
 					{t.buildings.residencesList}

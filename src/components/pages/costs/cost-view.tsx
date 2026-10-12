@@ -1,5 +1,6 @@
 'use client';
 
+import { listReturnUrl } from '@/utils/listReturn';
 import { runWithCleanup } from '@/utils/runWithCleanup';
 import { isValidElement, useState, type FC, type ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
@@ -131,7 +132,7 @@ const CostViewClient: FC<Props> = ({ session, id }) => {
 				try {
 					await deleteCost({ id }).unwrap();
 					onSuccess(t.costs.costDeletedSuccess);
-					router.push(COSTS_LIST);
+					router.push(listReturnUrl(COSTS_LIST));
 				} catch (err) {
 					onError(extractApiErrorMessage(err, t.costs.costDeleteError));
 				}
@@ -184,7 +185,7 @@ const CostViewClient: FC<Props> = ({ session, id }) => {
 							<Button
 								variant="outlined"
 								startIcon={<ArrowBackIcon />}
-								onClick={() => router.push(COSTS_LIST)}
+								onClick={() => router.push(listReturnUrl(COSTS_LIST))}
 								sx={{ width: isMobile ? '100%' : 'auto' }}
 							>
 								{t.costs.costsList}

@@ -1,5 +1,6 @@
 'use client';
 
+import { listReturnUrl } from '@/utils/listReturn';
 import { runWithCleanup } from '@/utils/runWithCleanup';
 import { isValidElement, useState, type FC, type ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
@@ -132,7 +133,7 @@ const BuildingViewClient: FC<SessionProps & { id: number }> = ({ session, id }) 
 				try {
 					await deleteBuilding({ id }).unwrap();
 					onSuccess(t.buildings.residenceDeletedSuccess);
-					router.push(BUILDINGS_LIST);
+					router.push(listReturnUrl(BUILDINGS_LIST));
 				} catch (err) {
 					onError(extractApiErrorMessage(err, t.buildings.residenceDeleteError));
 				}
@@ -184,7 +185,7 @@ const BuildingViewClient: FC<SessionProps & { id: number }> = ({ session, id }) 
 							<Button
 								variant="outlined"
 								startIcon={<ArrowBackIcon />}
-								onClick={() => router.push(BUILDINGS_LIST)}
+								onClick={() => router.push(listReturnUrl(BUILDINGS_LIST))}
 								sx={{ whiteSpace: 'nowrap' }}
 							>
 								{t.buildings.residencesList}

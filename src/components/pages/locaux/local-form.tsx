@@ -1,5 +1,6 @@
 'use client';
 
+import { listReturnUrl } from '@/utils/listReturn';
 import { runAsyncWithErrorHandler } from '@/utils/runWithCleanup';
 import { runWithCleanup } from '@/utils/runWithCleanup';
 import { useEffect, useRef, useState, type ChangeEvent, type FC } from 'react';
@@ -196,7 +197,7 @@ const FormikContent: FC<FormikContentProps> = ({ token, id }) => {
 						if (isEditMode) {
 							await updateLocal({ id: id!, data: payload as typeof fields }).unwrap();
 							onSuccess(t.locaux.localUpdatedSuccess);
-							router.push(LOCAUX_LIST);
+							router.push(listReturnUrl(LOCAUX_LIST));
 						} else {
 							const result = (await createLocal(payload as typeof fields).unwrap()) as { id: number };
 							onSuccess(t.locaux.localAddedSuccess);
@@ -352,7 +353,7 @@ const FormikContent: FC<FormikContentProps> = ({ token, id }) => {
 					<Button
 						variant="outlined"
 						startIcon={<ArrowBackIcon />}
-						onClick={() => router.push(LOCAUX_LIST)}
+						onClick={() => router.push(listReturnUrl(LOCAUX_LIST))}
 						sx={{ whiteSpace: 'nowrap' }}
 					>
 						{t.locaux.localsList}

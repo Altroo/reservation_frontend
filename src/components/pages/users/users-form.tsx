@@ -1,5 +1,6 @@
 'use client';
 
+import { listReturnUrl } from '@/utils/listReturn';
 import { runAsyncWithErrorHandler } from '@/utils/runWithCleanup';
 import { runWithCleanup } from '@/utils/runWithCleanup';
 import { useState, type FC, type MouseEvent } from 'react';
@@ -132,7 +133,7 @@ const FormikContent: FC<FormikContentProps> = (props: FormikContentProps) => {
 							} else {
 								await addUser({ data: payload }).unwrap();
 								onSuccess(t.users.userAddedSuccess);
-								router.push(USERS_LIST);
+								router.push(listReturnUrl(USERS_LIST));
 							}
 						},
 						async (e) => {
@@ -200,7 +201,7 @@ const FormikContent: FC<FormikContentProps> = (props: FormikContentProps) => {
 				<Button
 					variant="outlined"
 					startIcon={<ArrowBackIcon />}
-					onClick={() => router.push(USERS_LIST)}
+					onClick={() => router.push(listReturnUrl(USERS_LIST))}
 					sx={{
 						whiteSpace: 'nowrap',
 						px: { xs: 1.5, sm: 2, md: 3 },

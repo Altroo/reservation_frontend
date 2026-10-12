@@ -1,5 +1,6 @@
 'use client';
 
+import { listReturnUrl } from '@/utils/listReturn';
 import { runAsyncWithErrorHandler } from '@/utils/runWithCleanup';
 import { runWithCleanup } from '@/utils/runWithCleanup';
 import { isValidElement, useState, type FC, type ReactNode } from 'react';
@@ -158,7 +159,7 @@ const LocalViewClient: FC<Props> = ({ session, id }) => {
 				try {
 					await deleteLocal({ id }).unwrap();
 					onSuccess(t.locaux.localDeletedSuccess);
-					router.push(LOCAUX_LIST);
+					router.push(listReturnUrl(LOCAUX_LIST));
 				} catch (err) {
 					onError(extractApiErrorMessage(err, t.locaux.localDeleteError));
 				}
@@ -217,7 +218,7 @@ const LocalViewClient: FC<Props> = ({ session, id }) => {
 							<Button
 								variant="outlined"
 								startIcon={<ArrowBackIcon />}
-								onClick={() => router.push(LOCAUX_LIST)}
+								onClick={() => router.push(listReturnUrl(LOCAUX_LIST))}
 								sx={{ width: isMobile ? '100%' : 'auto' }}
 							>
 								{t.locaux.localsList}

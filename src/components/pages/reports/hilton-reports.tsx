@@ -678,7 +678,13 @@ const HiltonReportsClient: FC<SessionProps> = ({ session }) => {
 					)
 					.join('')
 			: `<tr><td class="vertical"></td><td colspan="3">${escapeHtml(t.hiltonReports.noManualLines)}</td></tr>`;
-		const noteRows = notes.map((line) => `<li>${escapeHtml(tx(line.description))}</li>`).join('');
+		const noteRows = notes
+			.map((line) => {
+				const text = tx(line.description);
+				const alreadyListed = /^\s*(?:[•*+-]|\d+[.)])\s/u.test(text);
+				return `<li${alreadyListed ? ' style="list-style:none"' : ''}>${escapeHtml(text)}</li>`;
+			})
+			.join('');
 		const title = `${t.hiltonReports.reportNumber(report.id)} - ${printDate(report.end_date)}`;
 		win.document.open();
 		if (win.closed) return;

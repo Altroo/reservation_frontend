@@ -16,7 +16,7 @@ export const aiAssistantApi = createApi({
 	),
 	endpoints: (builder) => ({
 		translateTexts: builder.mutation<{ translations: string[] }, { texts: string[]; target_language: 'fr' | 'en' }>({
-			query: (data) => ({ url: '/ai/translate/', method: 'POST', data }),
+			query: (data) => ({ url: '/ai/translate/', method: 'POST', data, timeout: 30_000 }),
 		}),
 		assistText: builder.mutation<AiAssistResponse, AiAssistRequest>({
 			query: (data) => ({ url: '/ai/assist/', method: 'POST', data }),

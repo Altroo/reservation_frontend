@@ -65,6 +65,9 @@ import type {
 import Styles from '@/styles/dashboard/dashboard.module.sass';
 import NavigationBar from '@/components/layouts/navigationBar/navigationBar';
 import { Protected } from '@/components/layouts/protected/protected';
+import { createSavedTranslationsReader } from '@/utils/pdfTranslations';
+import { showPdfError } from '@/utils/pdfErrors';
+import CircularProgress from '@mui/material/CircularProgress';
 import ActionModals from '@/components/htmlElements/modals/actionModal/actionModals';
 import { useInitAccessToken } from '@/contexts/InitContext';
 import { useLanguage, useToast } from '@/utils/hooks';
@@ -179,7 +182,8 @@ const HiltonReportsClient: FC<SessionProps> = ({ session }) => {
 	const token = useInitAccessToken(session);
 	const { t, language } = useLanguage();
 	const [translateTexts] = useTranslateTextsMutation();
-	const { onSuccess, onError } = useToast();
+	const { onSuccess, onError, onInfo } = useToast();
+	const [printingId, setPrintingId] = useState<number | null>(null);
 
 	const today = formatLocalDate(new Date());
 	const [startDate, setStartDate] = useState('');
@@ -595,11 +599,13 @@ const HiltonReportsClient: FC<SessionProps> = ({ session }) => {
 	);
 
 	const printReport = async (report: HiltonReportType) => {
-		if (typeof window === 'undefined') return;
+		if (typeof window === 'undefined' || printingId !== null) return;
 		const win = window.open('', '_blank', 'width=980,height=1200');
 		if (!win) return;
+		setPrintingId(report.id);
 		win.document.body.textContent = language === 'fr' ? 'Préparation du PDF en cours…' : 'Preparing PDF…';
 		const translated: Record<string, string> = {};
+		const readTranslations = createSavedTranslationsReader();
 		try {
 			if (process.env.NEXT_PUBLIC_AI_ASSISTANT_ENABLED === 'true') {
 				const texts = [
@@ -611,7 +617,9 @@ const HiltonReportsClient: FC<SessionProps> = ({ session }) => {
 				];
 				for (let start = 0; start < texts.length; start += 10) {
 					const batch = texts.slice(start, start + 10);
-					const response = await translateTexts({ texts: batch, target_language: language }).unwrap();
+					const response = await readTranslations(() =>
+						translateTexts({ texts: batch, target_language: language }).unwrap(),
+					);
 					batch.forEach((text, index) => {
 						translated[text] = response.translations[index];
 					});
@@ -619,8 +627,16 @@ const HiltonReportsClient: FC<SessionProps> = ({ session }) => {
 			}
 		} catch (error) {
 			win.close();
-			onError(extractApiErrorMessage(error, t.errors.errorOccurred));
+			showPdfError(
+				error,
+				onError,
+				onInfo,
+				t.hiltonReports.translationPending,
+				extractApiErrorMessage(error, t.errors.errorOccurred),
+			);
 			return;
+		} finally {
+			setPrintingId(null);
 		}
 		const tx = (text: string) => translated[text] ?? text;
 		const label = (fr: string, en: string) => (language === 'fr' ? fr : en);
@@ -665,6 +681,7 @@ const HiltonReportsClient: FC<SessionProps> = ({ session }) => {
 		const noteRows = notes.map((line) => `<li>${escapeHtml(tx(line.description))}</li>`).join('');
 		const title = `${t.hiltonReports.reportNumber(report.id)} - ${printDate(report.end_date)}`;
 		win.document.open();
+		if (win.closed) return;
 		win.document.write(`
 			<!doctype html>
 			<html>
@@ -689,7 +706,7 @@ const HiltonReportsClient: FC<SessionProps> = ({ session }) => {
 						.balance-line { display: grid; grid-template-columns: 1fr 95mm; gap: 12px; align-items: end; margin: 0 0 10mm 5mm; font-size: 15px; font-weight: 700; }
 						.balance-line .value { border-bottom: 1px solid #24375f; color: #24375f; text-align: right; padding-right: 2mm; font-style: italic; }
 						table { border-collapse: collapse; width: 100%; }
-						th, td { border: 1.5px solid #111; padding: 2px 5px; font-size: 12px; }
+						th, td { white-space: pre-wrap; border: 1.5px solid #111; padding: 2px 5px; font-size: 12px; }
 						th { font-weight: 800; text-align: center; }
 						.summary { margin-bottom: 8mm; }
 						.summary th:nth-child(2) { color: #1976d2; }
@@ -710,7 +727,7 @@ const HiltonReportsClient: FC<SessionProps> = ({ session }) => {
 						.costs th { font-size: 13px; }
 						.vertical { writing-mode: vertical-rl; transform: rotate(180deg); text-align: center; font-family: Arial, sans-serif !important; font-weight: 800; width: 30mm; }
 						.additional { width: 88%; margin: 0 auto; color: #8b4a22; font-weight: 800; text-decoration: underline; font-size: 18px; }
-						.additional-list { width: 88%; margin: 3mm auto 0; font-size: 13px; }
+						.additional-list { white-space: pre-wrap; width: 88%; margin: 3mm auto 0; font-size: 13px; }
 						@media print { body { print-color-adjust: exact; -webkit-print-color-adjust: exact; } }
 					</style>
 				</head>
@@ -1044,8 +1061,16 @@ const HiltonReportsClient: FC<SessionProps> = ({ session }) => {
 																	<TableCell>{report.created_by_user_name ?? '-'}</TableCell>
 																	<TableCell align="right">
 																		<Tooltip title={t.hiltonReports.printPdf}>
-																			<IconButton size="small" onClick={() => printReport(report)}>
-																				<PrintIcon fontSize="small" />
+																			<IconButton
+																				size="small"
+																				disabled={printingId !== null}
+																				onClick={() => printReport(report)}
+																			>
+																				{printingId === report.id ? (
+																					<CircularProgress size={18} />
+																				) : (
+																					<PrintIcon fontSize="small" />
+																				)}
 																			</IconButton>
 																		</Tooltip>
 																		<Tooltip title={t.hiltonReports.viewReport}>
@@ -1138,7 +1163,11 @@ const HiltonReportsClient: FC<SessionProps> = ({ session }) => {
 								<Button onClick={() => setViewReport(null)} startIcon={<CloseIcon />}>
 									{t.common.close}
 								</Button>
-								<Button onClick={() => printReport(viewReport)} startIcon={<PrintIcon />}>
+								<Button
+									disabled={printingId !== null}
+									onClick={() => printReport(viewReport)}
+									startIcon={printingId === viewReport.id ? <CircularProgress size={18} /> : <PrintIcon />}
+								>
 									{t.hiltonReports.printPdf}
 								</Button>
 								<Button onClick={() => openEdit(viewReport)} startIcon={<EditIcon />}>

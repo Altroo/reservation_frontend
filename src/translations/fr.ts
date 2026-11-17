@@ -545,6 +545,7 @@ export const fr: TranslationDictionary = {
 		lastUpdated: 'Dernière mise à jour',
 	},
 	hiltonReports: {
+		translationPending: 'La traduction du document est en préparation. Veuillez réessayer plus tard.',
 		title: 'Rapports Hilton residence',
 		subtitle: 'Rapports en espèces par intervalle pour Hilton residence',
 		createReport: 'Créer un rapport',

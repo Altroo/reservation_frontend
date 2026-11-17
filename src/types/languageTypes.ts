@@ -537,6 +537,7 @@ export type TranslationDictionary = {
 		canAccessHiltonReports: string;
 	};
 	hiltonReports: {
+		translationPending: string;
 		title: string;
 		subtitle: string;
 		createReport: string;

@@ -540,6 +540,7 @@ export const en: TranslationDictionary = {
 		lastUpdated: 'Last updated',
 	},
 	hiltonReports: {
+		translationPending: 'The document translation is being prepared. Please try again later.',
 		title: 'Hilton residence reports',
 		subtitle: 'Cash-only interval reports for Hilton residence',
 		createReport: 'Create report',

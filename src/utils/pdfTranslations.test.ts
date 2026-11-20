@@ -25,7 +25,7 @@ it('bounds the whole print preparation wait', async () => {
 	jest.useFakeTimers();
 	const request = jest.fn().mockRejectedValue({ status: 409, data: { details: { code: 'pdf_translation_pending' } } });
 	const result = waitForSavedTranslations(request).catch((error) => error.name);
-	await jest.advanceTimersByTimeAsync(180000);
+	await jest.advanceTimersByTimeAsync(45_000);
 	expect(await result).toBe('PdfTranslationDeferredError');
 });
 it('does not hide an actual network failure', async () => {

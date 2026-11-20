@@ -1,8 +1,10 @@
 import { PdfTranslationDeferredError } from './pdfErrors';
 
+const PDF_WAIT_MS = 45_000;
+
 export const waitForSavedTranslations = async (
 	request: () => Promise<{ translations: string[] }>,
-	deadline = Date.now() + 180_000,
+	deadline = Date.now() + PDF_WAIT_MS,
 ): Promise<{ translations: string[] }> => {
 	for (;;) {
 		try {
@@ -23,6 +25,6 @@ export const waitForSavedTranslations = async (
 
 /** Share one bounded preparation window across every batch in a print action. */
 export const createSavedTranslationsReader = () => {
-	const deadline = Date.now() + 180_000;
+	const deadline = Date.now() + PDF_WAIT_MS;
 	return (request: () => Promise<{ translations: string[] }>) => waitForSavedTranslations(request, deadline);
 };
